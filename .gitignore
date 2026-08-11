@@ -1,0 +1,29 @@
+# Local-only deliverables (regenerable / not for version control)
+*.pdf
+*.csv
+*.xlsx
+*.docx
+
+# Pipeline scratch
+.pipeline/
+
+# Secrets — never commit
+.env
+.env.*
+*.token
+*.key
+credentials*.json
+
+# Local editor / agent settings
+.claude/settings.local.json
+
+# gstack operational tooling state (runtime scratch + local tokens — never commit)
+.gstack/
+
+# OS cruft
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Node
+node_modules/
