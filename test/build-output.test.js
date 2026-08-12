@@ -1,9 +1,8 @@
-import { test, before } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
 let outDir;
@@ -14,6 +13,10 @@ before(() => {
     stdio: 'pipe',
     shell: true,
   });
+});
+
+after(() => {
+  if (outDir) rmSync(outDir, { recursive: true, force: true });
 });
 
 function htmlFiles(dir) {
@@ -37,7 +40,9 @@ test('every built page carries the Framework & Co. credit', () => {
 });
 
 test('every built page has exactly one h1', () => {
-  for (const page of htmlFiles(outDir)) {
+  const pages = htmlFiles(outDir);
+  assert.ok(pages.length > 0, 'build produced no HTML');
+  for (const page of pages) {
     const html = readFileSync(page, 'utf8');
     const count = (html.match(/<h1[\s>]/g) || []).length;
     assert.equal(count, 1, `expected exactly one h1 in ${page}, found ${count}`);
@@ -45,7 +50,9 @@ test('every built page has exactly one h1', () => {
 });
 
 test('every built page declares a viewport and a lang attribute', () => {
-  for (const page of htmlFiles(outDir)) {
+  const pages = htmlFiles(outDir);
+  assert.ok(pages.length > 0, 'build produced no HTML');
+  for (const page of pages) {
     const html = readFileSync(page, 'utf8');
     assert.match(html, /<html lang="en">/, `missing lang: ${page}`);
     assert.match(html, /name="viewport"/, `missing viewport: ${page}`);
@@ -61,7 +68,7 @@ test('the stylesheet contains no box-shadow and no max-width media queries', () 
 test('the stylesheet never uses the decorative brass token for text colour', () => {
   const css = readFileSync('src/css/main.css', 'utf8');
   assert.equal(
-    /color:\s*var\(--brass\)/.test(css),
+    /(?<!-)color:\s*var\(--brass\)/.test(css),
     false,
     '--brass fails AA on paper; use --brass-text for text',
   );
