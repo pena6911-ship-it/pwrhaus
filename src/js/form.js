@@ -5,6 +5,10 @@
     var errorEl = form.querySelector('[data-form-error]');
     var button = form.querySelector('button[type="submit"]');
 
+    // The button ships disabled; enabling it here is what makes the form
+    // usable, so a no-JS visitor can never submit into the void.
+    if (button) button.disabled = false;
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }

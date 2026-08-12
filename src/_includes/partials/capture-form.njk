@@ -34,6 +34,18 @@
            tabindex="-1" autocomplete="off">
   </div>
 
-  <button class="btn btn-primary" type="submit">Create free profile</button>
+  <!-- Starts disabled and is enabled by form.js. Without JS the form has no
+       action/method, so a submit would GET-reload the page with the fields as
+       query params and silently lose the enquiry. Disabled-by-default makes
+       that impossible; the noscript block explains why. -->
+  <button class="btn btn-primary" type="submit" disabled>Create free profile</button>
+
+  <noscript>
+    <p class="form-noscript">
+      This form needs JavaScript to submit securely. Please enable JavaScript
+      and reload the page.
+    </p>
+  </noscript>
+
   <p class="form-error" data-form-error role="alert" hidden></p>
 </form>

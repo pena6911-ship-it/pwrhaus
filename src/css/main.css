@@ -179,3 +179,5 @@ body.nav-open { overflow: hidden; }
 .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .form-error { color: var(--error); font-size: 0.875rem; }
 .form-error[hidden] { display: none; }
+.form-noscript { color: var(--error); font-size: 0.875rem; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
