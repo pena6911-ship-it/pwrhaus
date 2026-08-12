@@ -1,8 +1,8 @@
-let counter = 0;
-const id = (p) => `${p}_${++counter}`;
 const nowIso = () => new Date(0).toISOString(); // deterministic for tests
 
 export function createFakeDb() {
+  let counter = 0;
+  const id = (p) => `${p}_${++counter}`;
   const contacts = [];
   const orders = [];
   const orderEvents = [];
@@ -18,6 +18,7 @@ export function createFakeDb() {
     },
     async setContactGhlId(contactId, ghlContactId) {
       const c = contacts.find((x) => x.id === contactId);
+      if (!c) return null;
       c.ghl_contact_id = ghlContactId;
       return c;
     },
