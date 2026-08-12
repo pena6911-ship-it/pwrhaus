@@ -4,7 +4,16 @@ export async function createContact({ db, ghl }, input) {
   assertPresent(input.email, 'email');
 
   const existing = await db.findContactByEmail(input.email);
-  if (existing) return existing;
+  if (existing) {
+    if (existing.ghl_contact_id) return existing;
+    // Stranded contact: GHL push failed on a prior attempt. Re-push now.
+    const ghlId = await ghl.upsertContact({
+      email: existing.email,
+      full_name: existing.full_name,
+      phone: existing.phone,
+    });
+    return db.setContactGhlId(existing.id, ghlId);
+  }
 
   const contact = await db.insertContact({
     email: input.email,
