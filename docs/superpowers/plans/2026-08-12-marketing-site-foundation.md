@@ -263,6 +263,7 @@ If a source filename differs from the above, use the actual name found in Step 2
   --brass:        #B8912A;   /* decorative ONLY — 2.9:1 on paper */
   --brass-text:   #7D6218;   /* brass-coloured TEXT — 5.9:1, passes AA */
   --line:         #E6E1D6;
+  --error:        #8C2F1E;   /* form validation messages */
 
   /* Type families */
   --font-display: "Fraunces", Georgia, serif;
@@ -1211,7 +1212,7 @@ git commit -m "feat(contacts): append every submission to the contact_inquiries 
 }
 .field textarea { min-height: 120px; }
 .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-.form-error { color: #8C2F1E; font-size: 0.875rem; }
+.form-error { color: var(--error); font-size: 0.875rem; }
 .form-error[hidden] { display: none; }
 ```
 
