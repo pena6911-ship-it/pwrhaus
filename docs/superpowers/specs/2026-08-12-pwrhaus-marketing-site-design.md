@@ -325,10 +325,12 @@ Anything else falls back to `site`. For event interest, `notes` is auto-prefixed
 
 ### Endpoint hardening (changes to existing code)
 
-1. **`tier` is never read from the request body.** The handler constructs a sanitized payload
-   and forces `tier: 'free'`. Paid tiers are written only by the signature-authenticated
-   Stripe webhook path. *This closes a privilege escalation: today a public POST can
-   self-assign `member` or `inner_circle`.*
+1. ✅ **DONE 2026-08-12 — already on `main`, ahead of this plan.** `tier` is never read from
+   the request body; the handler forces `tier: 'free'`. Paid tiers are written only by the
+   signature-verified Stripe webhook path. *This closed a privilege escalation: a public POST
+   could previously self-assign `member` or `inner_circle`.* Covered by
+   `test/handlers.test.js` → "ignores a client-supplied tier and forces free".
+   **The implementation plan should not redo this.**
 2. **`source` whitelisted** against the list above; unknown values → `site`.
 3. **Email format validated**, max 254 chars → `400 invalid_email`.
 4. **Honeypot**: if `company_website` is non-empty, return `201` with a synthetic id — a

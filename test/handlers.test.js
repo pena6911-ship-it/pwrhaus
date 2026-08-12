@@ -31,6 +31,23 @@ test('contact-create handler rejects non-POST and missing email', async () => {
   assert.deepEqual(await bad.json(), { error: 'email_required' });
 });
 
+test('contact-create handler ignores a client-supplied tier and forces free', async () => {
+  let received;
+  const handler = makeContactCreateHandler({
+    createContact: async (_deps, input) => {
+      received = input;
+      return { id: 'c_1', ghl_contact_id: 'ghl_1' };
+    },
+    deps: {},
+    log: silentLog,
+  });
+
+  const res = await handler(req('POST', { email: 'a@x.com', tier: 'inner_circle' }));
+
+  assert.equal(res.status, 201);
+  assert.equal(received.tier, 'free');
+});
+
 test('stripe-webhook handler verifies signature then records the event', async () => {
   const recorded = [];
   const handler = makeStripeWebhookHandler({

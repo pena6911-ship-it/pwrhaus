@@ -6,7 +6,9 @@ export function makeContactCreateHandler({ createContact, deps, log = console })
     let body;
     try { body = await req.json(); } catch { return json({ error: 'invalid_json' }, 400); }
     if (!body?.email) return json({ error: 'email_required' }, 400);
-    const contact = await createContact(deps, body);
+    // tier is never client-controlled: this endpoint is public and unauthenticated.
+    // Paid tiers are written only by the signature-verified Stripe webhook path.
+    const contact = await createContact(deps, { ...body, tier: 'free' });
     log.info?.('contact.created', { id: contact.id });
     return json({ id: contact.id, ghl_contact_id: contact.ghl_contact_id }, 201);
   };
