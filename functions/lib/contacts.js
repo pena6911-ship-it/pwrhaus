@@ -1,53 +1,44 @@
 import { assertPresent } from './idempotency.js';
 
-export async function createContact({ db, ghl }, input) {
+export async function createContact({ db, ghl, log = console }, input) {
   assertPresent(input.email, 'email');
 
   const existing = await db.findContactByEmail(input.email);
-  let contact;
 
-  if (existing) {
-    if (existing.ghl_contact_id) {
-      contact = existing;
-    } else {
-      // Stranded contact: GHL push failed on a prior attempt. Re-push now.
-      const ghlId = await ghl.upsertContact({
-        email: existing.email,
-        full_name: existing.full_name,
-        phone: existing.phone,
-      });
-      // Fall back to the row we already hold: setContactGhlId returns null if
-      // the row vanished between lookup and update. Without this, the ledger
-      // append below dereferences null and throws a bare TypeError.
-      contact = (await db.setContactGhlId(existing.id, ghlId)) ?? existing;
-    }
-  } else {
-    const inserted = await db.insertContact({
-      email: input.email,
-      full_name: input.full_name ?? null,
-      phone: input.phone ?? null,
-      tier: input.tier ?? 'free',
-      source: input.source ?? 'site',
-      notes: input.notes ?? null,
-    });
+  const contact = existing ?? await db.insertContact({
+    email: input.email,
+    full_name: input.full_name ?? null,
+    phone: input.phone ?? null,
+    tier: input.tier ?? 'free',
+    source: input.source ?? 'site',
+    notes: input.notes ?? null,
+  });
 
-    const ghlId = await ghl.upsertContact({
-      email: inserted.email,
-      full_name: inserted.full_name,
-      phone: inserted.phone,
-    });
-
-    contact = (await db.setContactGhlId(inserted.id, ghlId)) ?? inserted;
-  }
-
-  // Append-only: every submission is a fact, including repeat ones from a
-  // known email. Without this the warm leads (free profile now, sponsorship
-  // later) would be silently dropped by the dedupe above.
+  // Supabase owns facts; GHL is downstream. The ledger row is appended BEFORE
+  // the CRM push so a GoHighLevel outage can never lose the enquiry. Every
+  // submission appends one, including repeats from a known email — those are
+  // the warm leads, and createContact dedupes the contact row itself.
   await db.insertContactInquiry({
     contact_id: contact.id,
     source: input.source ?? 'site',
     notes: input.notes ?? null,
   });
 
-  return contact;
+  if (contact.ghl_contact_id) return contact;
+
+  // Either brand new, or stranded by a previous failed push. Either way, link it.
+  try {
+    const ghlId = await ghl.upsertContact({
+      email: contact.email,
+      full_name: contact.full_name,
+      phone: contact.phone,
+    });
+    // setContactGhlId returns null if the row vanished between read and update.
+    return (await db.setContactGhlId(contact.id, ghlId)) ?? contact;
+  } catch (err) {
+    // The fact is already durable. Leave ghl_contact_id null so the next
+    // submission from this email self-heals the link, and log loudly.
+    log.error?.('contact.ghl_push_failed', { contactId: contact.id, err: err?.message });
+    return contact;
+  }
 }

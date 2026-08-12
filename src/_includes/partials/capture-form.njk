@@ -38,7 +38,7 @@
        action/method, so a submit would GET-reload the page with the fields as
        query params and silently lose the enquiry. Disabled-by-default makes
        that impossible; the noscript block explains why. -->
-  <button class="btn btn-primary" type="submit" disabled>Create free profile</button>
+  <button class="btn btn-primary" type="submit" disabled>{{ formSubmitLabel | default("Create free profile") }}</button>
 
   <noscript>
     <p class="form-noscript">

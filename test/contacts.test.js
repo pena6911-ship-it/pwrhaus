@@ -100,6 +100,21 @@ test('createContact records no inquiry when the email is missing', async () => {
   assert.equal(db._inquiries.length, 0);
 });
 
+test('createContact keeps the enquiry when the GHL push fails', async () => {
+  const db = createFakeDb();
+  const ghl = { async upsertContact() { throw new Error('ghl 503'); } };
+  const log = { error() {} };
+
+  const c = await createContact({ db, ghl, log }, {
+    email: 'a@x.com', tier: 'free', source: 'web_sponsor', notes: 'Interested',
+  });
+
+  assert.equal(c.email, 'a@x.com');
+  assert.equal(c.ghl_contact_id, null, 'left unlinked so a later submission self-heals it');
+  assert.equal(db._inquiries.length, 1, 'the enquiry must survive a CRM outage');
+  assert.equal(db._inquiries[0].source, 'web_sponsor');
+});
+
 test('createContact falls back to the known row when setContactGhlId returns null', async () => {
   const db = createFakeDb();
   const ghl = fakeGhl();

@@ -73,3 +73,23 @@ test('the stylesheet never uses the decorative brass token for text colour', () 
     '--brass fails AA on paper; use --brass-text for text',
   );
 });
+
+test('every rendered form posts a source the backend whitelists', async () => {
+  const { ALLOWED_SOURCES } = await import('../functions/lib/sanitize.js');
+  const pages = htmlFiles(outDir);
+  assert.ok(pages.length > 0, 'build produced no HTML');
+
+  let found = 0;
+  for (const page of pages) {
+    const html = readFileSync(page, 'utf8');
+    const matches = html.matchAll(/name="source"\s+value="([^"]+)"/g);
+    for (const m of matches) {
+      found++;
+      assert.ok(
+        ALLOWED_SOURCES.has(m[1]),
+        `${page} posts source="${m[1]}", which the backend would silently downgrade to 'site'`,
+      );
+    }
+  }
+  assert.ok(found > 0, 'no capture form found in the built output');
+});
