@@ -7,6 +7,9 @@
 # Pipeline scratch
 .pipeline/
 
+# Superpowers scratch (smoke scripts, brainstorm mockups, progress ledger)
+.superpowers/
+
 # Secrets — never commit
 .env
 .env.*
