@@ -386,6 +386,39 @@ Apply to `pwrhaus-dev` via the Supabase SQL editor, as with `0001_init.sql`.
 - The site stays **dark on Netlify until after Aug 27** — DNS is not repointed from Wix.
   This is unchanged from the Phase 1 hard constraint.
 
+### DNS cutover — Wix is the registrar (confirmed 2026-08-12)
+
+This resolves the `docs/pwrhaus-scope-session.md` §0 blank.
+
+**Cutover is a DNS record change, not a domain transfer.** In the Wix Domains area, repoint
+at Netlify using the exact records shown in the Netlify dashboard (do not hardcode an apex IP
+from memory — Netlify's can change). Minutes to apply, fully reversible.
+
+**Ordered sequence:**
+
+1. **24–48h before cutover:** lower TTL on the existing records to **300s**. Whatever the TTL
+   is now is how long a rollback takes. This step is worthless if done on the day.
+2. **After Aug 27:** repoint DNS to Netlify. Verify apex and `www` both resolve, and that TLS
+   is issued before announcing.
+3. **Then, and only then:** decide the domain's long-term home (below).
+
+**Do not transfer the domain before go-live.** Transfers take 5–7 days, require an auth code,
+and are blocked within 60 days of registration or a prior transfer. A transfer near the
+Aug 21 / Aug 27 events risks a dark site during the two highest-stakes dates of the quarter.
+
+**⚠ Conflicts with "Wix is decommissioned after go-live"** (Phase 1 spec §6). The domain is
+registered at Wix, so cancelling the account endangers the domain — especially if it was
+issued free with a Premium plan, where cancellation can affect the registration directly.
+Two acceptable resolutions, to be chosen after cutover is stable:
+
+- **Keep a minimal Wix account** for the domain only, cancelling the site plan. Zero effort;
+  leaves the domain tied to an otherwise-abandoned vendor and easy to miss at renewal.
+- **Transfer out** to a dedicated registrar (Cloudflare at cost, Porkbun, Namecheap) once the
+  60-day window allows. Clean long-term ownership; a few days of work, done at low stakes.
+
+Until this is settled, **the Wix account must not be cancelled**, regardless of what the
+decommissioning step says.
+
 ---
 
 ## 9 · Testing & verification
@@ -446,3 +479,8 @@ against `events.json`) · merch · unified BI dashboard.
 3. **Event photography** — real event photos exist and are cleared for use, but they have not
    been collected, cropped, or optimized. Needed before `/events` and `/about` are finishable.
 4. **`0002` not yet applied** to `pwrhaus-dev`.
+5. **Domain name, current DNS host, and current TTL not yet recorded.** Registrar is confirmed
+   as Wix; the domain string itself appears nowhere in this repo. Needed before the TTL
+   pre-drop in §8.
+6. **Long-term domain ownership undecided** — keep a minimal Wix account, or transfer out
+   post-cutover. See §8. Until decided, do not cancel Wix.
