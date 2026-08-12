@@ -12,9 +12,10 @@ body {
 img, picture, svg { display: block; max-width: 100%; }
 a { color: var(--forest); }
 
-/* Focus */
+/* Focus — --brass-text, not --brass. WCAG 2.2 SC 1.4.11 requires 3:1 for a
+   focus indicator; --brass is 2.9:1 on paper and fails, --brass-text is 5.9:1. */
 :focus-visible {
-  outline: 2px solid var(--brass);
+  outline: 2px solid var(--brass-text);
   outline-offset: 2px;
 }
 

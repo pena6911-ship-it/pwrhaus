@@ -149,7 +149,9 @@ src/fonts/work-sans-variable.woff2   (axis: wght)
 - **Secondary button** — transparent, `--forest` text, 2px `--brass` bottom border, no radius.
 - **Card** — `--paper-raised`, `--radius-card`, `1px solid --line`. **No box-shadow anywhere
   in the stylesheet.**
-- **Focus ring** — `2px solid --brass`, `outline-offset: 2px`, on every focusable element.
+- **Focus ring** — `2px solid --brass-text`, `outline-offset: 2px`, on every focusable
+  element. **Not `--brass`:** WCAG 2.2 SC 1.4.11 requires 3:1 for a focus indicator, and
+  `--brass` is 2.9:1 on paper. `--brass-text` is 5.9:1. Same brass family, one step deeper.
 - **Motion** — 160ms hovers, 240ms reveals, no parallax. All transitions wrapped in
   `@media (prefers-reduced-motion: no-preference)`.
 
@@ -343,6 +345,19 @@ Anything else falls back to `site`. For event interest, `notes` is auto-prefixed
 `createContact` dedupes on email. It is extended so that **every** submission — new contact
 or existing — appends a row to `contact_inquiries`. The `contacts` row is still created only
 once; `contacts.notes` holds the first-touch message only.
+
+### GHL outage behaviour
+
+The `contact_inquiries` append happens **before** the GoHighLevel push, and the push is
+wrapped in `try/catch`. So a CRM outage never loses an enquiry: the Supabase facts are
+written, the ledger row is durable, the visitor still reaches `/thanks/`, and
+`ghl_contact_id` is left null with the failure logged.
+
+**Open gap:** a contact stranded this way self-heals only when that same email submits
+again, which may never happen. Nothing sweeps for `contacts` rows with a null
+`ghl_contact_id`. A reconciliation job belongs with the nightly GHL pull already planned
+for Phase 2 — until then, a prolonged outage leaves contacts in Supabase that Michelle
+never sees in her CRM.
 
 ### Known limitation — stated, not solved
 
