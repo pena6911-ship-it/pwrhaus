@@ -159,3 +159,23 @@ body.nav-open { overflow: hidden; }
   .footer-inner { grid-template-columns: 2fr 1fr; }
   .footer-nav ul { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Forms */
+.capture-form { max-width: var(--prose-max); display: grid; gap: var(--space-4); }
+.field { display: grid; gap: var(--space-2); }
+.field label { font-size: 0.875rem; font-weight: 600; }
+.field input, .field textarea {
+  font-family: var(--font-body);
+  font-size: 16px;                      /* below 16px iOS Safari zooms on focus */
+  min-height: var(--touch-min);
+  padding: var(--space-3);
+  background: var(--paper-raised);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  width: 100%;
+}
+.field textarea { min-height: 120px; }
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-error { color: var(--error); font-size: 0.875rem; }
+.form-error[hidden] { display: none; }

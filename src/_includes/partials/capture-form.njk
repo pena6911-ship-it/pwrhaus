@@ -1,0 +1,39 @@
+<form class="capture-form" data-capture-form id="join">
+  <h2>{{ formHeading }}</h2>
+
+  <input type="hidden" name="source" value="{{ formSource }}">
+
+  <div class="field">
+    <label for="cf-name-{{ formSource }}">Name</label>
+    <input id="cf-name-{{ formSource }}" name="full_name" type="text"
+           autocomplete="name" maxlength="120">
+  </div>
+
+  <div class="field">
+    <label for="cf-email-{{ formSource }}">Email <span aria-hidden="true">*</span></label>
+    <input id="cf-email-{{ formSource }}" name="email" type="email" required
+           inputmode="email" autocomplete="email" maxlength="254">
+  </div>
+
+  <div class="field">
+    <label for="cf-phone-{{ formSource }}">Phone</label>
+    <input id="cf-phone-{{ formSource }}" name="phone" type="tel"
+           inputmode="tel" autocomplete="tel" maxlength="40">
+  </div>
+
+  {% if showNotes %}
+  <div class="field">
+    <label for="cf-notes-{{ formSource }}">Tell us a little about what you're looking for</label>
+    <textarea id="cf-notes-{{ formSource }}" name="notes" rows="4" maxlength="2000"></textarea>
+  </div>
+  {% endif %}
+
+  <div class="hp-field" aria-hidden="true">
+    <label for="cf-hp-{{ formSource }}">Company website</label>
+    <input id="cf-hp-{{ formSource }}" name="company_website" type="text"
+           tabindex="-1" autocomplete="off">
+  </div>
+
+  <button class="btn btn-primary" type="submit">Create free profile</button>
+  <p class="form-error" data-form-error role="alert" hidden></p>
+</form>
