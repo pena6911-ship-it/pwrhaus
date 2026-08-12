@@ -1,4 +1,4 @@
-<form class="capture-form" data-capture-form id="join">
+<form class="capture-form" data-capture-form id="join-{{ formSource }}">
   <h2>{{ formHeading }}</h2>
 
   <input type="hidden" name="source" value="{{ formSource }}">
@@ -42,8 +42,7 @@
 
   <noscript>
     <p class="form-noscript">
-      This form needs JavaScript to submit securely. Please enable JavaScript
-      and reload the page.
+      This form needs JavaScript to submit. Please enable JavaScript and reload the page.
     </p>
   </noscript>
 
