@@ -19,9 +19,16 @@ test('recordStripeEvent writes a paid ledger row for a known order', async () =>
 test('recordStripeEvent is idempotent on event id', async () => {
   const db = createFakeDb();
   await db.insertOrder({ contact_id: 'c1', type: 'membership', amount_cents: 65000, currency: 'usd', stripe_payment_intent_id: 'pi_1', idempotency_key: 'stripe:pi_1' });
+
+  let insertCount = 0;
+  const originalInsert = db.insertOrderEvent.bind(db);
+  db.insertOrderEvent = async (input) => { insertCount++; return originalInsert(input); };
+
   await recordStripeEvent({ db }, paidEvent('evt_1', 'pi_1', 65000));
   const again = await recordStripeEvent({ db }, paidEvent('evt_1', 'pi_1', 65000));
+
   assert.equal(again.status, 'duplicate');
+  assert.equal(insertCount, 1); // replay must NOT write a second ledger row
 });
 
 test('recordStripeEvent returns no_order when the payment intent is unknown', async () => {
