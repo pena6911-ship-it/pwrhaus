@@ -1,0 +1,71 @@
+/* PWRHaus design tokens — "Clubhouse Light".
+   FINAL. Do not substitute values. */
+
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/fraunces-variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Work Sans";
+  src: url("/fonts/work-sans-variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+:root {
+  /* Ground */
+  --paper:        #FAF8F3;
+  --paper-raised: #FFFFFF;
+
+  /* Text */
+  --ink:          #14201A;
+  --ink-muted:    #55645B;
+
+  /* Brand */
+  --forest:       #1A4D36;
+  --forest-deep:  #123527;
+  --brass:        #B8912A;   /* decorative ONLY — 2.9:1 on paper */
+  --brass-text:   #7D6218;   /* brass-coloured TEXT — 5.9:1, passes AA */
+  --line:         #E6E1D6;
+  --error:        #8C2F1E;   /* form validation messages */
+
+  /* Type families */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body:    "Work Sans", system-ui, sans-serif;
+
+  /* Spacing (8px scale) */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-5: 24px;  --space-6: 32px;  --space-7: 48px;  --space-8: 64px;
+  --space-9: 96px;  --space-10: 128px;
+
+  /* Section rhythm, mobile-first */
+  --space-section-sm: 56px;
+  --space-section-md: 80px;
+  --space-section-lg: 96px;
+
+  /* Layout */
+  --content-max: 1120px;
+  --prose-max:   680px;
+  --gutter:      16px;
+  --page-pad:    20px;
+  --radius-card: 4px;
+  --radius-pill: 999px;
+  --touch-min:   44px;
+
+  /* Motion */
+  --t-hover:  160ms;
+  --t-reveal: 240ms;
+}
+
+@media (min-width: 768px) {
+  :root { --gutter: 20px; --page-pad: 32px; }
+}
+
+@media (min-width: 1024px) {
+  :root { --gutter: 24px; --page-pad: 40px; }
+}
