@@ -355,7 +355,8 @@ still flood `contacts`. Revisit before go-live if abuse appears.
 
 ## 7 · Schema changes
 
-`supabase/migrations/0002_contact_notes.sql` (written; **not yet applied**):
+`supabase/migrations/0002_contact_notes.sql` — **applied to `pwrhaus-dev` 2026-08-12**.
+Still to be applied to production at go-live, alongside `0001_init.sql`.
 
 ```sql
 alter table contacts add column notes text;
@@ -388,7 +389,20 @@ Apply to `pwrhaus-dev` via the Supabase SQL editor, as with `0001_init.sql`.
 
 ### DNS cutover — Wix is the registrar (confirmed 2026-08-12)
 
-This resolves the `docs/pwrhaus-scope-session.md` §0 blank.
+This resolves the `docs/pwrhaus-scope-session.md` §0 blank. **Wix is both the registrar and
+the current DNS host** (confirmed 2026-08-12).
+
+Because Wix holds both roles there are two different cutover mechanisms, and they have
+opposite risk profiles:
+
+- **Change A/CNAME records inside Wix DNS** → governed by the record TTL, which you control.
+  Propagates in minutes and rolls back in minutes. **Use this for the cutover.**
+- **Delegate nameservers to Netlify DNS** → governed by the parent zone's NS TTL, typically
+  24–48h and *not* under your control. Cleaner long-term, but far slower to reverse.
+
+So: cut over by record change, confirm stable, and only then consider delegating nameservers
+to Netlify as a separate, unhurried change. Doing the nameserver switch as the cutover would
+trade a five-minute rollback for a two-day one.
 
 **Cutover is a DNS record change, not a domain transfer.** In the Wix Domains area, repoint
 at Netlify using the exact records shown in the Netlify dashboard (do not hardcode an apex IP
@@ -478,7 +492,8 @@ against `events.json`) · merch · unified BI dashboard.
    by her.
 3. **Event photography** — real event photos exist and are cleared for use, but they have not
    been collected, cropped, or optimized. Needed before `/events` and `/about` are finishable.
-4. **`0002` not yet applied** to `pwrhaus-dev`.
+4. ✅ **`0002` applied to `pwrhaus-dev`** on 2026-08-12. Not yet applied to the production
+   Supabase project, which remains pristine until go-live.
 5. **Domain name, current DNS host, and current TTL not yet recorded.** Registrar is confirmed
    as Wix; the domain string itself appears nowhere in this repo. Needed before the TTL
    pre-drop in §8.
