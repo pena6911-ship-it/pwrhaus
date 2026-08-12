@@ -2,12 +2,19 @@
   "name": "pwrhaus-backbone",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
+    "build": "eleventy",
+    "dev": "eleventy --serve",
     "test": "node --test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "stripe": "^16.0.0"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.6"
   }
 }

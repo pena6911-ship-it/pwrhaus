@@ -30,3 +30,6 @@ Desktop.ini
 
 # Node
 node_modules/
+
+# Eleventy build output
+public/
