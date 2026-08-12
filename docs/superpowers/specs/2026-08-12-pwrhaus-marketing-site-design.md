@@ -94,10 +94,10 @@ Miami). No Boca Raton or New York placeholders — per §6, "no longer positioni
   --space-section-md: 80px;  /* >= 768px  */
   --space-section-lg: 96px;  /* >= 1024px */
 
-  /* Breakpoints (min-width only - never mix with max-width) */
-  --bp-md: 768px;
-  --bp-lg: 1024px;
-  --bp-xl: 1280px;
+  /* Breakpoints are 768px / 1024px / 1280px, min-width only, never mixed
+     with max-width. They are deliberately NOT custom properties: CSS custom
+     properties cannot be used in media query conditions, so
+     `@media (min-width: var(--bp-md))` does not work. Write the literals. */
 
   --content-max: 1120px;
   --prose-max:   680px;
