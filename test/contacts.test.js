@@ -99,3 +99,21 @@ test('createContact records no inquiry when the email is missing', async () => {
   await assert.rejects(() => createContact({ db, ghl }, { email: '' }), /email is required/);
   assert.equal(db._inquiries.length, 0);
 });
+
+test('createContact falls back to the known row when setContactGhlId returns null', async () => {
+  const db = createFakeDb();
+  const ghl = fakeGhl();
+  await db.insertContact({ email: 'b@x.com', full_name: 'B', phone: '2', tier: 'free', source: 'site', notes: null });
+  const stranded = await db.findContactByEmail('b@x.com');
+
+  // Simulate the row vanishing between lookup and update.
+  db.setContactGhlId = async () => null;
+
+  const c = await createContact({ db, ghl }, {
+    email: 'b@x.com', tier: 'free', source: 'web_sponsor', notes: null,
+  });
+
+  assert.equal(c.id, stranded.id);
+  assert.equal(db._inquiries.length, 1);
+  assert.equal(db._inquiries[0].contact_id, stranded.id);
+});

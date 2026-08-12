@@ -16,7 +16,10 @@ export async function createContact({ db, ghl }, input) {
         full_name: existing.full_name,
         phone: existing.phone,
       });
-      contact = await db.setContactGhlId(existing.id, ghlId);
+      // Fall back to the row we already hold: setContactGhlId returns null if
+      // the row vanished between lookup and update. Without this, the ledger
+      // append below dereferences null and throws a bare TypeError.
+      contact = (await db.setContactGhlId(existing.id, ghlId)) ?? existing;
     }
   } else {
     const inserted = await db.insertContact({
@@ -34,7 +37,7 @@ export async function createContact({ db, ghl }, input) {
       phone: inserted.phone,
     });
 
-    contact = await db.setContactGhlId(inserted.id, ghlId);
+    contact = (await db.setContactGhlId(inserted.id, ghlId)) ?? inserted;
   }
 
   // Append-only: every submission is a fact, including repeat ones from a
