@@ -359,7 +359,7 @@ These URLs 404 until Plan B2 adds the pages. That is expected.
       </ul>
     </nav>
 
-    <a class="btn btn-primary nav-cta" href="/#join">Create free profile</a>
+    <a class="btn btn-primary nav-cta" href="/#join-web_free_profile">Create free profile</a>
 
     <button class="nav-toggle" type="button"
             aria-expanded="false" aria-controls="nav-overlay" aria-label="Open menu">
@@ -376,7 +376,7 @@ These URLs 404 until Plan B2 adds the pages. That is expected.
         {% endfor %}
       </ul>
     </nav>
-    <a class="btn btn-primary" href="/#join">Create free profile</a>
+    <a class="btn btn-primary" href="/#join-web_free_profile">Create free profile</a>
   </div>
 </header>
 ```
@@ -1102,7 +1102,10 @@ export async function createContact({ db, ghl }, input) {
         full_name: existing.full_name,
         phone: existing.phone,
       });
-      contact = await db.setContactGhlId(existing.id, ghlId);
+      // Fall back to the row we already hold: setContactGhlId returns null if
+      // the row vanished between lookup and update. Without this, the ledger
+      // append below dereferences null and throws a bare TypeError.
+      contact = (await db.setContactGhlId(existing.id, ghlId)) ?? existing;
     }
   } else {
     const inserted = await db.insertContact({
@@ -1120,7 +1123,7 @@ export async function createContact({ db, ghl }, input) {
       phone: inserted.phone,
     });
 
-    contact = await db.setContactGhlId(inserted.id, ghlId);
+    contact = (await db.setContactGhlId(inserted.id, ghlId)) ?? inserted;
   }
 
   // Append-only: every submission is a fact, including repeat ones from a
@@ -1180,7 +1183,10 @@ git commit -m "feat(contacts): append every submission to the contact_inquiries 
 `showNotes` is optional and defaults to false.
 
 ```njk
-<form class="capture-form" data-capture-form id="join">
+<!-- id is parameterised: this partial is included with five different
+     formSource values, so a static id would collide if two forms ever
+     appear on one page. Nav CTAs link to /#join-web_free_profile. -->
+<form class="capture-form" data-capture-form id="join-{{ formSource }}">
   <h2>{{ formHeading }}</h2>
 
   <input type="hidden" name="source" value="{{ formSource }}">
@@ -1216,7 +1222,19 @@ git commit -m "feat(contacts): append every submission to the contact_inquiries 
            tabindex="-1" autocomplete="off">
   </div>
 
-  <button class="btn btn-primary" type="submit">Create free profile</button>
+  <!-- Starts disabled and is enabled by form.js. Without JS the form has no
+       action/method, so a submit would GET-reload the page with the fields as
+       query params and silently lose the enquiry. Disabled-by-default makes
+       that impossible; the noscript block explains why. -->
+  <button class="btn btn-primary" type="submit" disabled>Create free profile</button>
+
+  <noscript>
+    <p class="form-noscript">
+      This form needs JavaScript to submit. Please enable JavaScript and
+      reload the page.
+    </p>
+  </noscript>
+
   <p class="form-error" data-form-error role="alert" hidden></p>
 </form>
 ```
@@ -1243,6 +1261,8 @@ git commit -m "feat(contacts): append every submission to the contact_inquiries 
 .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .form-error { color: var(--error); font-size: 0.875rem; }
 .form-error[hidden] { display: none; }
+.form-noscript { color: var(--error); font-size: 0.875rem; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
 ```
 
 - [ ] **Step 3: Create `src/js/form.js`**
@@ -1254,6 +1274,10 @@ git commit -m "feat(contacts): append every submission to the contact_inquiries 
   Array.prototype.forEach.call(forms, function (form) {
     var errorEl = form.querySelector('[data-form-error]');
     var button = form.querySelector('button[type="submit"]');
+
+    // The button ships disabled; enabling it here is what makes the form
+    // usable, so a no-JS visitor can never submit into the void.
+    if (button) button.disabled = false;
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -1271,16 +1295,29 @@ git commit -m "feat(contacts): append every submission to the contact_inquiries 
       })
         .then(function (res) {
           if (res.status === 201) { window.location.href = '/thanks/'; return; }
-          return res.json().then(function (body) {
-            throw new Error(body && body.error === 'invalid_email'
-              ? 'That email address does not look right. Please check it and try again.'
-              : 'Something went wrong. Please try again.');
-          });
+          // A crashed function can return HTML, so a JSON parse failure here is
+          // expected, not exceptional — swallow it and fall through to the
+          // generic message rather than surfacing a SyntaxError to the visitor.
+          return res.json()
+            .catch(function () { return {}; })
+            .then(function (body) {
+              var err = new Error('capture_submit_failed');
+              err.friendly = body && body.error === 'invalid_email'
+                ? 'That email address does not look right. Please check it and try again.'
+                : 'Something went wrong. Please try again.';
+              throw err;
+            });
         })
         .catch(function (err) {
           if (button) button.disabled = false;
+          // Raw error text goes to the console for debugging; the visitor only
+          // ever sees a message we wrote. err.message would otherwise surface
+          // "Failed to fetch" or a SyntaxError verbatim.
+          if (window.console && console.error) {
+            console.error('capture-form submit failed', err);
+          }
           if (errorEl) {
-            errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+            errorEl.textContent = err.friendly || 'Something went wrong. Please try again.';
             errorEl.hidden = false;
           }
         });
