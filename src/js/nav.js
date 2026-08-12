@@ -11,6 +11,7 @@
     overlay.hidden = false;
     document.body.classList.add('nav-open');
     toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Close menu');
     var items = focusable();
     if (items.length) items[0].focus();
   }
@@ -19,6 +20,7 @@
     overlay.hidden = true;
     document.body.classList.remove('nav-open');
     toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open menu');
     toggle.focus();
   }
 
@@ -41,5 +43,14 @@
     } else if (!e.shiftKey && document.activeElement === last) {
       e.preventDefault(); first.focus();
     }
+  });
+
+  window.addEventListener('resize', function () {
+    if (overlay.hidden) return;
+    if (window.innerWidth < 1024) return;
+    overlay.hidden = true;
+    document.body.classList.remove('nav-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open menu');
   });
 })();
