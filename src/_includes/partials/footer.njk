@@ -1,0 +1,21 @@
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="wordmark">{{ site.shortName }}</span>
+      <p class="footer-blurb">{{ site.description }}</p>
+    </div>
+
+    <nav class="footer-nav" aria-label="Footer">
+      <ul>
+        {% for item in nav %}
+        <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+
+  <div class="container footer-credit">
+    <p>&copy; {{ site.name }}</p>
+    <p><a href="https://www.frameworkandco.com" rel="noopener">Developed by Framework &amp; Co.</a></p>
+  </div>
+</footer>

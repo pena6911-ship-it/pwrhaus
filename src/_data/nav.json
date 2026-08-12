@@ -1,0 +1,8 @@
+[
+  { "label": "Events",     "url": "/events/" },
+  { "label": "Membership", "url": "/membership/" },
+  { "label": "Lessons",    "url": "/lessons/" },
+  { "label": "Sponsors",   "url": "/sponsors/" },
+  { "label": "Corporate",  "url": "/corporate/" },
+  { "label": "About",      "url": "/about/" }
+]

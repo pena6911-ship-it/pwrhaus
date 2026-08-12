@@ -1,0 +1,33 @@
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="wordmark" href="/">{{ site.shortName }}</a>
+
+    <nav class="nav-desktop" aria-label="Primary">
+      <ul>
+        {% for item in nav %}
+        <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <a class="btn btn-primary nav-cta" href="/#join">Create free profile</a>
+
+    <button class="nav-toggle" type="button"
+            aria-expanded="false" aria-controls="nav-overlay" aria-label="Open menu">
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+    </button>
+  </div>
+
+  <div class="nav-overlay" id="nav-overlay" hidden>
+    <nav aria-label="Mobile">
+      <ul>
+        {% for item in nav %}
+        <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+    <a class="btn btn-primary" href="/#join">Create free profile</a>
+  </div>
+</header>
