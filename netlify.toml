@@ -1,0 +1,13 @@
+[build]
+  functions = "functions"
+  publish   = "public"
+
+# Env-var contexts: set the ACTUAL secret VALUES in the Netlify UI, scoped per
+# context. Sandbox/test creds -> deploy-preview + branch-deploy. Production
+# creds -> production. This file only documents the contract; no secrets here.
+[context.production.environment]
+  STRIPE_MODE = "live"
+[context.deploy-preview.environment]
+  STRIPE_MODE = "test"
+[context.branch-deploy.environment]
+  STRIPE_MODE = "test"
