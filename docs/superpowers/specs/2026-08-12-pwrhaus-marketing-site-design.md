@@ -89,14 +89,24 @@ Miami). No Boca Raton or New York placeholders — per §6, "no longer positioni
   --space-5: 24px;  --space-6: 32px;  --space-7: 48px;  --space-8: 64px;
   --space-9: 96px;  --space-10: 128px;
 
-  --space-section-lg: 96px;  /* desktop section rhythm */
-  --space-section-sm: 64px;  /* mobile section rhythm */
+  /* Section rhythm, mobile-first */
+  --space-section-sm: 56px;  /* base / phone */
+  --space-section-md: 80px;  /* >= 768px  */
+  --space-section-lg: 96px;  /* >= 1024px */
+
+  /* Breakpoints (min-width only - never mix with max-width) */
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
 
   --content-max: 1120px;
   --prose-max:   680px;
-  --gutter:      24px;
+  --gutter:      24px;   /* 16px base, 20px at --bp-md, 24px at --bp-lg */
   --radius-card: 4px;
   --radius-pill: 999px;
+
+  /* Minimum interactive target - never go below this */
+  --touch-min:   44px;
 }
 ```
 
@@ -158,6 +168,91 @@ Do not repeat the same shape three times running.
 | `/sponsors` | short hero → three-column tier cards → single-column prose → inline form |
 | `/corporate` | two-column hero → prose → inline form |
 | `/thanks`, `/404` | shared layout, single-column, centered, `--space-section-lg` top and bottom, no form |
+
+### Breakpoints & grid — mobile-first
+
+CSS is authored **mobile-first**: base rules target the smallest screen, and every media
+query is `min-width`. No `max-width` queries — mixing both is how spacing rules end up
+cancelling each other out.
+
+| Token | Width | Target | Columns | Gutter | Page padding |
+|---|---|---|---|---|---|
+| (base) | 320–767px | Phone | 4 | 16px | 20px |
+| `--bp-md` | 768px | Tablet portrait | 8 | 20px | 32px |
+| `--bp-lg` | 1024px | Tablet landscape / small laptop | 12 | 24px | 40px |
+| `--bp-xl` | 1280px | Desktop | 12 | 24px | centered at `--content-max` 1120px |
+
+Section rhythm by breakpoint: **56px** base → **80px** at `--bp-md` → **96px** at `--bp-lg`.
+(`--space-section-sm` / `-md` / `-lg` respectively.)
+
+**The page must never scroll horizontally at any width from 320px up.** Any element that can
+overflow — tables, pricing rows, long unbroken strings — is wrapped in its own
+`overflow-x: auto` container rather than allowed to widen the body.
+
+### Responsive collapse, per section shape
+
+Named explicitly so nothing is left to interpretation.
+
+| Desktop shape | At `--bp-md` (tablet) | Base (phone) |
+|---|---|---|
+| Two-column split | stays 2-col, 50/50 | stacks; image first, text second |
+| Three-column pricing | 3-col | stacks vertically, full width, `--space-5` between |
+| Three-column tier cards | 2-col, third wraps | stacks |
+| Horizontal 3-item list | 3-col | stacks, left-aligned, no centering |
+| Event card grid | 2-up | 1-up, full width |
+| Event teaser (2-up) | 2-up | 1-up, shows only the next event |
+| Event header (details + image) | stacks: image, then details | same |
+| Full-bleed hero | `min-height: 60vh` | `min-height: auto`, `--space-section-md` vertical padding |
+| Footer | 3-col | stacks, credit last |
+
+### Navigation
+
+Six destinations plus a CTA is too many for a phone bar.
+
+- **`--bp-lg` and up:** horizontal nav — Events · Membership · Lessons · Sponsors · Corporate ·
+  About — with the primary CTA button right-aligned.
+- **Below `--bp-lg`:** a toggle button (44×44px minimum) opens a full-screen overlay panel.
+  Panel items are 18px, `--space-4` vertical padding each. Focus is trapped inside the panel
+  while open, `Esc` closes it, and focus returns to the toggle. Body scroll locks while open.
+- The header is **not sticky** on phones — it costs vertical space on the surface that has
+  least of it.
+
+### Touch and input
+
+- **Minimum touch target 44×44 CSS px** for every interactive element, including nav toggle,
+  buttons, and form controls. Spacing between adjacent targets ≥ 8px.
+- **Form inputs are 16px minimum font-size.** Below 16px, iOS Safari zooms the viewport on
+  focus and the user lands on a scrolled, misaligned page. This is not a preference.
+- Inputs carry correct mobile keyboard hints: `type="email" inputmode="email"
+  autocomplete="email"`, `type="tel" inputmode="tel" autocomplete="tel"`,
+  `autocomplete="name"`. The honeypot gets `tabindex="-1"`, `autocomplete="off"`, and is
+  hidden from assistive tech.
+- On phones only, a **sticky bottom CTA bar** ("Create free profile") appears after the user
+  scrolls past the hero. Height 64px plus `env(safe-area-inset-bottom)` so it clears the home
+  indicator on notched devices. It is the site's stated job on the surface most people use.
+
+### Images
+
+Every content image must specify all of the following, or it will cause layout shift:
+
+- explicit `width` and `height` attributes, plus a CSS `aspect-ratio` (16/9 for event and hero
+  images, 4/3 for portraits)
+- `srcset` at **480 / 768 / 1200 / 1600px** widths with a matching `sizes` attribute
+- `loading="lazy"` and `decoding="async"` on everything below the fold; the hero image is
+  `loading="eager"` with `fetchpriority="high"` and is preloaded
+- AVIF with WebP fallback, JPEG as last resort
+- `object-fit: cover` with a defined focal point so crops don't decapitate people
+
+### Performance budget
+
+Michelle's audience arrives on phones, often on cellular. Targets, measured on a simulated
+4G connection:
+
+- **LCP < 2.5s**, **CLS < 0.1**, **INP < 200ms**
+- Hero image ≤ 200KB after compression; any single image ≤ 300KB
+- Total JS ≤ 15KB minified — there is no framework, so this is only form enhancement, the
+  event sort, and the nav toggle
+- Fonts: 2 woff2 files, both preloaded, both subset to Latin
 
 ### Footer
 
@@ -306,9 +401,29 @@ Apply to `pwrhaus-dev` via the Supabase SQL editor, as with `0001_init.sql`.
 
 **Build** — Eleventy builds clean; `events.json` yields exactly one page per published entry.
 
-**Manual, before handoff** — keyboard focus visible on every interactive element; layout holds
-at 375px; `prefers-reduced-motion` honored; heading order semantic; alt text meaningful;
-images below the fold lazy-loaded.
+**Responsive verification** — every page checked at all of these widths, not just the extremes:
+
+| Width | Represents |
+|---|---|
+| 320px | Smallest supported — iPhone SE 1st gen, and where overflow bugs surface first |
+| 375px | iPhone SE / 13 mini |
+| 390px | iPhone 14/15 — the most common single width |
+| 768px | iPad portrait — the `--bp-md` boundary |
+| 820px | iPad Air portrait |
+| 1024px | iPad landscape — the `--bp-lg` boundary, and where the nav switches |
+| 1280px | Laptop |
+| 1440px+ | Desktop — confirm content stays centered at `--content-max` and does not sprawl |
+
+At each width: no horizontal scroll on the body, no text clipped or overlapping, every touch
+target ≥ 44×44px, and nothing relies on hover to be usable.
+
+**Also verify** — the nav overlay traps focus and returns it to the toggle on close; form
+inputs do not trigger iOS zoom on focus (16px minimum); the sticky mobile CTA clears the home
+indicator via `env(safe-area-inset-bottom)`; images reserve space so CLS stays under 0.1.
+
+**Manual, before handoff** — keyboard focus visible on every interactive element;
+`prefers-reduced-motion` honored; heading order semantic; alt text meaningful; images below
+the fold lazy-loaded; Lighthouse mobile run meets the §4 performance budget.
 
 ---
 
