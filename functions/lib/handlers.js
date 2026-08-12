@@ -10,9 +10,12 @@ export function makeContactCreateHandler({ createContact, deps, log = console })
 
     // Honeypot: a real browser never fills this hidden field. Return a
     // convincing 201 rather than a 400 — an error teaches a bot to retry.
+    // Both ids are synthetic and unpersisted. ghl_contact_id must NOT be null:
+    // every genuine success returns a non-null one, so null would be a reliable
+    // tell that the submission was discarded.
     if (typeof body?.company_website === 'string' && body.company_website.trim() !== '') {
       log.info?.('contact.honeypot');
-      return json({ id: randomUUID(), ghl_contact_id: null }, 201);
+      return json({ id: randomUUID(), ghl_contact_id: randomUUID() }, 201);
     }
 
     if (!body?.email) return json({ error: 'email_required' }, 400);

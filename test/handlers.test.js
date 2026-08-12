@@ -64,8 +64,12 @@ test('contact-create handler silently accepts and discards honeypot submissions'
   assert.equal(res.status, 201);
   assert.equal(called, false, 'createContact must not run for honeypot hits');
   const body = await res.json();
-  assert.equal(typeof body.id, 'string');
-  assert.equal(body.ghl_contact_id, null);
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  // Shape must be indistinguishable from a real success: every genuine 201
+  // carries a non-null ghl_contact_id, so returning null here would tell a bot
+  // exactly which of its submissions were discarded.
+  assert.match(body.id, UUID_RE);
+  assert.match(body.ghl_contact_id, UUID_RE);
 });
 
 test('contact-create handler rejects a malformed email', async () => {
