@@ -11,6 +11,7 @@ export function createSupabaseDb(env) {
     findContactByEmail: (email) => maybe(sb.from('contacts').select('*').eq('email', email)),
     insertContact: (input) => one(sb.from('contacts').insert(input).select().single()),
     setContactGhlId: (id, ghlId) => one(sb.from('contacts').update({ ghl_contact_id: ghlId }).eq('id', id).select().single()),
+    insertContactInquiry: (input) => one(sb.from('contact_inquiries').insert(input).select().single()),
     findOrderByIdempotencyKey: (key) => maybe(sb.from('orders').select('*').eq('idempotency_key', key)),
     insertOrder: (input) => one(sb.from('orders').insert(input).select().single()),
     findOrderByPaymentIntent: (pi) => maybe(sb.from('orders').select('*').eq('stripe_payment_intent_id', pi)),

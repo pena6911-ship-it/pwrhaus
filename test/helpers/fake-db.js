@@ -6,13 +6,14 @@ export function createFakeDb() {
   const contacts = [];
   const orders = [];
   const orderEvents = [];
+  const contactInquiries = [];
 
   return {
     async findContactByEmail(email) {
       return contacts.find((c) => c.email === email) ?? null;
     },
-    async insertContact({ email, full_name, phone, tier, source }) {
-      const c = { id: id('c'), email, full_name, phone, tier, source, ghl_contact_id: null, created_at: nowIso() };
+    async insertContact({ email, full_name, phone, tier, source, notes }) {
+      const c = { id: id('c'), email, full_name, phone, tier, source, notes: notes ?? null, ghl_contact_id: null, created_at: nowIso() };
       contacts.push(c);
       return c;
     },
@@ -22,6 +23,12 @@ export function createFakeDb() {
       c.ghl_contact_id = ghlContactId;
       return c;
     },
+    async insertContactInquiry({ contact_id, source, notes }) {
+      const row = { id: id('ci'), contact_id, source, notes: notes ?? null, created_at: nowIso() };
+      contactInquiries.push(row);
+      return row;
+    },
+    _inquiries: contactInquiries,
     async findOrderByIdempotencyKey(key) {
       return orders.find((o) => o.idempotency_key === key) ?? null;
     },

@@ -48,3 +48,54 @@ test('createContact requires an email', async () => {
   const ghl = fakeGhl();
   await assert.rejects(() => createContact({ db, ghl }, { email: '' }), /email is required/);
 });
+
+test('createContact appends an inquiry row for a brand-new contact', async () => {
+  const db = createFakeDb();
+  const ghl = fakeGhl();
+
+  await createContact({ db, ghl }, {
+    email: 'a@x.com', full_name: 'A', phone: '1', tier: 'free',
+    source: 'web_sponsor', notes: 'Interested in Hole in One',
+  });
+
+  assert.equal(db._inquiries.length, 1);
+  assert.equal(db._inquiries[0].source, 'web_sponsor');
+  assert.equal(db._inquiries[0].notes, 'Interested in Hole in One');
+});
+
+test('createContact appends a second inquiry for a repeat submission without duplicating the contact', async () => {
+  const db = createFakeDb();
+  const ghl = fakeGhl();
+
+  const first = await createContact({ db, ghl }, {
+    email: 'a@x.com', tier: 'free', source: 'web_free_profile', notes: null,
+  });
+  const second = await createContact({ db, ghl }, {
+    email: 'a@x.com', tier: 'free', source: 'web_sponsor', notes: 'Now interested in sponsoring',
+  });
+
+  assert.equal(second.id, first.id, 'must not create a second contact');
+  assert.equal(ghl.calls.length, 1, 'must not re-push to GHL');
+  assert.equal(db._inquiries.length, 2, 'both inquiries must be recorded');
+  assert.equal(db._inquiries[1].source, 'web_sponsor');
+  assert.equal(db._inquiries[1].contact_id, first.id);
+});
+
+test('createContact stores the first-touch note on the contact row', async () => {
+  const db = createFakeDb();
+  const ghl = fakeGhl();
+
+  const c = await createContact({ db, ghl }, {
+    email: 'a@x.com', tier: 'free', source: 'web_lessons', notes: 'First message',
+  });
+
+  assert.equal(c.notes, 'First message');
+});
+
+test('createContact records no inquiry when the email is missing', async () => {
+  const db = createFakeDb();
+  const ghl = fakeGhl();
+
+  await assert.rejects(() => createContact({ db, ghl }, { email: '' }), /email is required/);
+  assert.equal(db._inquiries.length, 0);
+});
