@@ -525,6 +525,7 @@ p  { max-width: var(--prose-max); }
   font-family: var(--font-body); font-weight: 800;
   letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--forest); text-decoration: none; font-size: 0.875rem;
+  display: inline-flex; align-items: center; min-height: var(--touch-min);
 }
 .nav-desktop { display: none; }
 .nav-cta { display: none; }
@@ -586,7 +587,12 @@ body.nav-open { overflow: hidden; }
 .footer-credit p, .footer-credit a {
   color: var(--ink-muted); font-size: 0.875rem; text-decoration: none;
 }
-.footer-credit a:hover { color: var(--forest); text-decoration: underline; }
+/* Hit area only — the credit's quiet styling must not change. */
+.footer-credit a {
+  display: inline-flex; align-items: center; min-height: var(--touch-min);
+}
+/* No accent colour on the credit, per the design system — underline only. */
+.footer-credit a:hover { text-decoration: underline; }
 
 @media (min-width: 768px) {
   .footer-inner { grid-template-columns: 2fr 1fr; }
@@ -610,6 +616,7 @@ body.nav-open { overflow: hidden; }
     overlay.hidden = false;
     document.body.classList.add('nav-open');
     toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Close menu');
     var items = focusable();
     if (items.length) items[0].focus();
   }
@@ -618,6 +625,7 @@ body.nav-open { overflow: hidden; }
     overlay.hidden = true;
     document.body.classList.remove('nav-open');
     toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open menu');
     toggle.focus();
   }
 
@@ -640,6 +648,20 @@ body.nav-open { overflow: hidden; }
     } else if (!e.shiftKey && document.activeElement === last) {
       e.preventDefault(); first.focus();
     }
+  });
+
+  // Crossing to desktop width while the overlay is open hides both the overlay
+  // and the toggle via CSS, but nothing would clear the scroll lock — leaving
+  // the page unscrollable with no visible control. An iPad rotating to
+  // landscape is exactly 1024px, so this is a rotation away, not a corner case.
+  // Deliberately NOT close(): that focuses the toggle, which is display:none here.
+  window.addEventListener('resize', function () {
+    if (overlay.hidden) return;
+    if (window.innerWidth < 1024) return;
+    overlay.hidden = true;
+    document.body.classList.remove('nav-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open menu');
   });
 })();
 ```
