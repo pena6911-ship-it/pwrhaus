@@ -838,7 +838,7 @@ export function sanitizeContactInput(body) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npm test`
-Expected: all sanitize tests pass; total 37 passing, 0 failing.
+Expected: all sanitize tests pass; total 38 passing, 0 failing.
 
 - [ ] **Step 5: Commit**
 
@@ -879,8 +879,12 @@ test('contact-create handler silently accepts and discards honeypot submissions'
   assert.equal(res.status, 201);
   assert.equal(called, false, 'createContact must not run for honeypot hits');
   const body = await res.json();
-  assert.equal(typeof body.id, 'string');
-  assert.equal(body.ghl_contact_id, null);
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  // Shape must be indistinguishable from a real success: every genuine 201
+  // carries a non-null ghl_contact_id, so returning null here would tell a bot
+  // exactly which of its submissions were discarded.
+  assert.match(body.id, UUID_RE);
+  assert.match(body.ghl_contact_id, UUID_RE);
 });
 
 test('contact-create handler rejects a malformed email', async () => {
@@ -945,9 +949,12 @@ export function makeContactCreateHandler({ createContact, deps, log = console })
 
     // Honeypot: a real browser never fills this hidden field. Return a
     // convincing 201 rather than a 400 — an error teaches a bot to retry.
+    // Both ids are synthetic and unpersisted. ghl_contact_id must NOT be null:
+    // every genuine success returns a non-null one, so null would be a reliable
+    // tell that the submission was discarded.
     if (typeof body?.company_website === 'string' && body.company_website.trim() !== '') {
       log.info?.('contact.honeypot');
-      return json({ id: randomUUID(), ghl_contact_id: null }, 201);
+      return json({ id: randomUUID(), ghl_contact_id: randomUUID() }, 201);
     }
 
     if (!body?.email) return json({ error: 'email_required' }, 400);
@@ -965,7 +972,7 @@ export function makeContactCreateHandler({ createContact, deps, log = console })
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npm test`
-Expected: 40 passing, 0 failing. The pre-existing `email_required` and tier tests must still pass.
+Expected: 41 passing, 0 failing. The pre-existing `email_required` and tier tests must still pass.
 
 - [ ] **Step 5: Commit**
 
@@ -1132,7 +1139,7 @@ export async function createContact({ db, ghl }, input) {
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `npm test`
-Expected: 44 passing, 0 failing. All four pre-existing `createContact` tests still pass.
+Expected: 45 passing, 0 failing. All four pre-existing `createContact` tests still pass.
 
 - [ ] **Step 6: Add the production adapter method**
 
@@ -1145,7 +1152,7 @@ In `functions/lib/supabase.js`, add this line to the returned object, immediatel
 - [ ] **Step 7: Verify the suite is still green**
 
 Run: `npm test`
-Expected: 44 passing, 0 failing.
+Expected: 45 passing, 0 failing.
 
 - [ ] **Step 8: Commit**
 
@@ -1430,7 +1437,7 @@ Restore the line, then continue.
 - [ ] **Step 3: Run the test to verify it passes**
 
 Run: `npm test`
-Expected: 49 passing, 0 failing.
+Expected: 50 passing, 0 failing.
 
 - [ ] **Step 4: Commit**
 
