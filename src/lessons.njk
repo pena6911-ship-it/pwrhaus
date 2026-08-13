@@ -1,0 +1,53 @@
+---
+layout: base.njk
+title: Lessons — PWRHaus Golf Society
+description: Golf lessons built for people who have never picked up a club. Most PWRHaus members started exactly there.
+---
+{% from "partials/media-slot.njk" import mediaSlot %}
+
+<section class="section">
+  <div class="container split">
+    <div class="stack">
+      <p class="eyebrow">Lessons</p>
+      <h1>You don't need to know how to play.</h1>
+      <p class="lead">Most PWRHaus members had never held a club before joining.
+         Now they play. That is the entire point of this.</p>
+    </div>
+    {{ mediaSlot(false, "", "4 / 3") }}
+  </div>
+</section>
+
+<section class="section band">
+  <div class="container">
+    <div class="section-head">
+      <hr class="rule">
+      <h2>How it goes</h2>
+    </div>
+    <ul class="list-h">
+      <li>
+        <h3>1 &middot; Tell us your level</h3>
+        <p>There is no wrong answer, including &ldquo;none&rdquo;. That's the most
+           common one we get.</p>
+      </li>
+      <li>
+        <h3>2 &middot; Learn properly</h3>
+        <p>Small groups and real instruction, without an audience or a performance.</p>
+      </li>
+      <li>
+        <h3>3 &middot; Play your first scramble</h3>
+        <p>The format is forgiving by design. Nobody is watching your swing &mdash;
+           they're talking to you.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% set formSource = "web_lessons" %}
+    {% set formHeading = "Ask about lessons" %}
+    {% set formSubmitLabel = "Ask about lessons" %}
+    {% set showNotes = true %}
+    {% include "partials/capture-form.njk" %}
+  </div>
+</section>
