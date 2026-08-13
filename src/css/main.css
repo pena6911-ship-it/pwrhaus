@@ -287,7 +287,12 @@ body.nav-open { overflow: hidden; }
 
 /* Reserve room so the bar cannot cover the last thing on the page, which is
    the footer credit. Only applied while the bar is actually visible. */
-body.has-sticky-cta { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+/* Height comes from the bar itself via sticky-cta.js — a hardcoded value breaks
+   the moment a per-page label wraps, and the overflow would cover the footer
+   credit. The 64px fallback only applies before the script runs. */
+body.has-sticky-cta {
+  padding-bottom: calc(var(--sticky-cta-height, 64px) + env(safe-area-inset-bottom));
+}
 
 @media (min-width: 768px) {
   .sticky-cta { display: none; }
@@ -317,7 +322,10 @@ body.has-sticky-cta { padding-bottom: calc(64px + env(safe-area-inset-bottom)); 
   .hero-text {
     margin-inline: 0;
     max-width: none;
-    padding-inline: max(var(--page-pad), calc((100vw - var(--content-max)) / 2)) var(--space-7);
+    /* Must match .container's content edge, which is offset + page-pad — not
+       max(page-pad, offset). Above 1120px those differ by exactly one page-pad,
+       which is a visible 40px misalignment against every other section. */
+    padding-inline: max(var(--page-pad), calc((100vw - var(--content-max)) / 2 + var(--page-pad))) var(--space-7);
     padding-block: var(--space-7);
   }
   .hero-media { display: block; align-self: stretch; }

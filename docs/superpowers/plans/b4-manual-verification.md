@@ -27,6 +27,9 @@ Widths: **320, 375, 390, 768, 820, 1024, 1280, 1440**
 - [ ] Carries the right label per page: free profile on home/about/membership, the page's own
       enquiry on lessons/sponsors/corporate/events
 - [ ] On a notched iPhone, sits above the home indicator rather than under it
+- [ ] On `/thanks/` and `/404.html` the bar may never appear, because those pages can be
+      short enough that the hero never leaves the viewport. This is expected, not a bug:
+      a visitor on `/thanks/` has already converted, and `/404.html` carries two inline CTAs.
 
 ## Hero
 

@@ -539,8 +539,12 @@ not implement and who owns them.**
 | §5 events data, generated event pages, upcoming/past sort | **B3 events** | Not started — blocked on client event data |
 | §4 home-page event teaser | **B3 events** | Not started — needs `events.json` |
 | §4 image rules (`srcset`, AVIF/WebP, dimensions) + `og:image` | **B3 events** | Not started — blocked on photography |
-| **§4 sticky bottom CTA bar (phones, 64px + safe-area-inset)** | **B4 mobile conversion** | Not started |
-| **§4 full-bleed hero, `min-height: 60vh` desktop** | **B4 mobile conversion** | Not started |
-| **§9 manual 8-viewport responsive + a11y pass** | **B4 mobile conversion** | Not started — now covers 9 pages |
+| **§4 sticky bottom CTA bar (phones, 64px + safe-area-inset)** | **B4 mobile conversion** | Delivered in B4, pending merge |
+| **§4 full-bleed hero, `min-height: 60vh` desktop** | **B4 mobile conversion** | Delivered in B4, pending merge |
+| **§9 manual 8-viewport responsive + a11y pass** | **B4 mobile conversion** | Delivered in B4, pending merge — static assertions in test/accessibility.test.js, manual checklist in docs/superpowers/plans/b4-manual-verification.md |
 | §6 rate limiting | Deferred, documented | Stated limitation |
 | §6 reconciliation sweep for null `ghl_contact_id` | Phase 2, with the nightly GHL pull | Documented in §6 |
+
+**Keeping this table honest.** A plan's final task must flip its own rows in this table as
+part of shipping. Relying on whoever merges to remember is how the status column goes stale —
+which is a quieter version of the same failure this section exists to prevent.

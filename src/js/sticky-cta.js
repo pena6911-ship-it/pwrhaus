@@ -2,13 +2,23 @@
   var bar = document.querySelector('[data-sticky-cta]');
   if (!bar) return;
 
+  function syncHeight() {
+    document.body.style.setProperty('--sticky-cta-height', bar.offsetHeight + 'px');
+  }
+
   function reveal() {
     bar.hidden = false;
     document.body.classList.add('has-sticky-cta');
+    // Measure after the bar is visible: a wrapped label makes it taller than
+    // its min-height, and the reserved space must match or the bar covers the
+    // footer credit.
+    syncHeight();
   }
+
   function conceal() {
     bar.hidden = true;
     document.body.classList.remove('has-sticky-cta');
+    document.body.style.removeProperty('--sticky-cta-height');
   }
 
   // Every page's hero is the first section in <main> by construction, so no
@@ -28,4 +38,9 @@
   });
 
   observer.observe(hero);
+
+  // Rotation and resize can change whether the label wraps.
+  window.addEventListener('resize', function () {
+    if (!bar.hidden) syncHeight();
+  });
 })();
