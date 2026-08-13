@@ -88,7 +88,9 @@ Every task's requirements implicitly include this section.
 **Interfaces:**
 - Consumes: `base.njk`, `tokens.css`, `site.json` (`name`, `shortName`, `description`, `url`) — all from B1.
 - Produces:
-  - Partial usage: `{% set mediaAlt = "..." %}{% set mediaRatio = "4 / 3" %}{% include "partials/media-slot.njk" %}`. `mediaSrc` is optional; when unset a placeholder renders. `mediaRatio` defaults to `16 / 9`.
+  - Macro usage — each page imports once, then calls per slot:
+    `{% from "partials/media-slot.njk" import mediaSlot %}` then `{{ mediaSlot(false, "", "4 / 3") }}`.
+    Arguments are `(src, alt, ratio)`. A falsy `src` renders the placeholder. **It is a macro, not an include**, because `{% set %}` state leaks across `{% include %}` boundaries and would cross-contaminate pages with two slots.
   - CSS classes every later task uses: `.lead`, `.split`, `.list-h`, `.list-stack`, `.cards-3`, `.card`, `.price`, `.band`, `.faq`, `.media`.
   - Every page automatically gains canonical + Open Graph tags.
 
@@ -96,25 +98,40 @@ Every task's requirements implicitly include this section.
 
 ```njk
 {#
-  Photo slot. No photography exists yet, so when mediaSrc is unset this renders
-  a token-coloured block instead — the layout is correct now and dropping real
+  Photo slot. No photography exists yet, so a falsy `src` renders a
+  token-coloured block instead — the layout is correct now, and dropping real
   files in later needs no template change.
 
-  Params:
-    mediaSrc   optional. Path under /img/.
-    mediaAlt   required when mediaSrc is set. Omit for the placeholder.
-    mediaRatio optional, default "16 / 9".
+  This is a MACRO, not an include, and that is deliberate. Nunjucks `{% set %}`
+  variables persist in the calling template across an `{% include %}` boundary,
+  so a page with two slots would silently leak the first slot's src and alt into
+  the second the moment real photography lands. Macro arguments are scoped per
+  call, which removes that class of bug structurally rather than by convention.
+
+  Usage — import once per page, then call it:
+    {% from "partials/media-slot.njk" import mediaSlot %}
+    {{ mediaSlot(false, "", "4 / 3") }}
+    {{ mediaSlot("/img/scramble.jpg", "Members on the first tee", "16 / 9") }}
+
+  src    falsy renders the placeholder block.
+  alt    REQUIRED whenever src is set. A build test asserts no shipped <img>
+         has an empty alt, so forgetting it fails the suite rather than
+         silently shipping an image screen readers treat as decorative.
+  ratio  CSS aspect-ratio value, e.g. "16 / 9". Reserves space so there is no
+         layout shift.
 #}
-{% if mediaSrc %}
-<img class="media" src="{{ mediaSrc }}" alt="{{ mediaAlt }}"
+{% macro mediaSlot(src, alt, ratio) %}
+{% if src %}
+<img class="media" src="{{ src }}" alt="{{ alt }}"
      loading="lazy" decoding="async"
-     style="aspect-ratio: {{ mediaRatio | default('16 / 9') }};">
+     style="aspect-ratio: {{ ratio }};">
 {% else %}
 {# aria-hidden: there is no image to describe, and announcing an empty box
    as an image would be worse than silence. Surrounding copy carries meaning. #}
 <div class="media media-placeholder" aria-hidden="true"
-     style="aspect-ratio: {{ mediaRatio | default('16 / 9') }};"></div>
+     style="aspect-ratio: {{ ratio }};"></div>
 {% endif %}
+{% endmacro %}
 ```
 
 - [ ] **Step 2: Create `src/img/favicon.svg`**
@@ -197,7 +214,8 @@ Change nothing else in the file.
 
 .rule { border: 0; border-top: 1px solid var(--brass); width: 64px; margin-bottom: var(--space-4); }
 
-/* Utilities — no inline style attributes anywhere in the templates. */
+/* Utilities. No inline style for layout or spacing — the one sanctioned
+   exception is aspect-ratio in the media-slot macro, which is call-site data. */
 .prose { max-width: var(--prose-max); }
 .center { text-align: center; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
@@ -255,6 +273,7 @@ layout: base.njk
 title: PWRHaus Golf Society — business networking through golf
 description: A co-ed society of founders and business owners who use golf to find, build, and exit companies. Fort Lauderdale and Miami.
 ---
+{% from "partials/media-slot.njk" import mediaSlot %}
 
 <section class="section">
   <div class="container">
@@ -280,8 +299,7 @@ description: A co-ed society of founders and business owners who use golf to fin
       <p>It started as a women's society, because that was the door that needed opening.
          It's co-ed now. Men are welcome here, and plenty are already members.</p>
     </div>
-    {% set mediaRatio = "4 / 3" %}
-    {% include "partials/media-slot.njk" %}
+    {{ mediaSlot(false, "", "4 / 3") }}
   </div>
 </section>
 
@@ -360,6 +378,7 @@ layout: base.njk
 title: About PWRHaus Golf Society
 description: How a women's golf society became a co-ed network of founders doing business on the course.
 ---
+{% from "partials/media-slot.njk" import mediaSlot %}
 
 <section class="section">
   <div class="container prose">
@@ -384,15 +403,13 @@ description: How a women's golf society became a co-ed network of founders doing
       <p>So PWRHaus is co-ed. The founding story is still the founding story. But this is
          now for anyone serious about building a business, and men are explicitly invited.</p>
     </div>
-    {% set mediaRatio = "4 / 3" %}
-    {% include "partials/media-slot.njk" %}
+    {{ mediaSlot(false, "", "4 / 3") }}
   </div>
 </section>
 
 <section class="section">
   <div class="container">
-    {% set mediaRatio = "21 / 9" %}
-    {% include "partials/media-slot.njk" %}
+    {{ mediaSlot(false, "", "21 / 9") }}
   </div>
 </section>
 
@@ -581,6 +598,7 @@ layout: base.njk
 title: Lessons — PWRHaus Golf Society
 description: Golf lessons built for people who have never picked up a club. Most PWRHaus members started exactly there.
 ---
+{% from "partials/media-slot.njk" import mediaSlot %}
 
 <section class="section">
   <div class="container split">
@@ -590,8 +608,7 @@ description: Golf lessons built for people who have never picked up a club. Most
       <p class="lead">Most PWRHaus members had never held a club before joining.
          Now they play. That is the entire point of this.</p>
     </div>
-    {% set mediaRatio = "4 / 3" %}
-    {% include "partials/media-slot.njk" %}
+    {{ mediaSlot(false, "", "4 / 3") }}
   </div>
 </section>
 
@@ -746,6 +763,7 @@ layout: base.njk
 title: Corporate golf experiences — PWRHaus Golf Society
 description: Golf simulator experiences for sales conferences, offsites and client days, run by PWRHaus.
 ---
+{% from "partials/media-slot.njk" import mediaSlot %}
 
 <section class="section">
   <div class="container split">
@@ -756,8 +774,7 @@ description: Golf simulator experiences for sales conferences, offsites and clie
          offsites, client days. It works because it gives people something to do together
          that isn't a name badge and a canap&eacute;.</p>
     </div>
-    {% set mediaRatio = "4 / 3" %}
-    {% include "partials/media-slot.njk" %}
+    {{ mediaSlot(false, "", "4 / 3") }}
   </div>
 </section>
 
@@ -881,6 +898,20 @@ test('every built page declares canonical and Open Graph metadata', () => {
   }
 });
 
+test('no shipped image has an empty alt attribute', () => {
+  const pages = htmlFiles(outDir);
+  assert.ok(pages.length > 0, 'build produced no HTML');
+  for (const page of pages) {
+    const html = readFileSync(page, 'utf8');
+    for (const m of html.matchAll(/<img\b[^>]*>/g)) {
+      assert.ok(
+        /\salt="[^"]+"/.test(m[0]),
+        `${page} ships an image with a missing or empty alt: ${m[0]}`,
+      );
+    }
+  }
+});
+
 test('every navigation link resolves to a page that was actually built', () => {
   const nav = JSON.parse(readFileSync('src/_data/nav.json', 'utf8'));
   assert.ok(nav.length > 0, 'nav.json is empty');
@@ -910,7 +941,12 @@ Rename it back before continuing. Confirm with `Test-Path src/events.njk` return
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `npm run build`; then `npm test`
-Expected: 55 passing, 0 failing.
+Expected: 56 passing, 0 failing.
+
+The empty-`alt` test passes vacuously today, because every media slot currently renders
+the placeholder branch and ships no `<img>` at all. That is intentional: it exists so the
+`mediaSlot` macro's alt contract is enforced the moment real photography lands in B3,
+rather than being caught in review months later.
 
 - [ ] **Step 6: Verify the built output**
 
