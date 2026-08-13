@@ -228,7 +228,8 @@ body.nav-open { overflow: hidden; }
 
 .rule { border: 0; border-top: 1px solid var(--brass); width: 64px; margin-bottom: var(--space-4); }
 
-/* Utilities — no inline style attributes anywhere in the templates. */
+/* Utilities. No inline style for layout or spacing — the one sanctioned
+   exception is aspect-ratio in the media-slot macro, which is call-site data. */
 .prose { max-width: var(--prose-max); }
 .center { text-align: center; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }

@@ -1,20 +1,35 @@
 {#
-  Photo slot. No photography exists yet, so when mediaSrc is unset this renders
-  a token-coloured block instead — the layout is correct now and dropping real
+  Photo slot. No photography exists yet, so a falsy `src` renders a
+  token-coloured block instead — the layout is correct now, and dropping real
   files in later needs no template change.
 
-  Params:
-    mediaSrc   optional. Path under /img/.
-    mediaAlt   required when mediaSrc is set. Omit for the placeholder.
-    mediaRatio optional, default "16 / 9".
+  This is a MACRO, not an include, and that is deliberate. Nunjucks `{% set %}`
+  variables persist in the calling template across an `{% include %}` boundary,
+  so a page with two slots would silently leak the first slot's src and alt into
+  the second the moment real photography lands. Macro arguments are scoped per
+  call, which removes that class of bug structurally rather than by convention.
+
+  Usage — import once per page, then call it:
+    {% from "partials/media-slot.njk" import mediaSlot %}
+    {{ mediaSlot(false, "", "4 / 3") }}
+    {{ mediaSlot("/img/scramble.jpg", "Members on the first tee", "16 / 9") }}
+
+  src    falsy renders the placeholder block.
+  alt    REQUIRED whenever src is set. A build test asserts no shipped <img>
+         has an empty alt, so forgetting it fails the suite rather than
+         silently shipping an image screen readers treat as decorative.
+  ratio  CSS aspect-ratio value, e.g. "16 / 9". Reserves space so there is no
+         layout shift.
 #}
-{% if mediaSrc %}
-<img class="media" src="{{ mediaSrc }}" alt="{{ mediaAlt }}"
+{% macro mediaSlot(src, alt, ratio) %}
+{% if src %}
+<img class="media" src="{{ src }}" alt="{{ alt }}"
      loading="lazy" decoding="async"
-     style="aspect-ratio: {{ mediaRatio | default('16 / 9') }};">
+     style="aspect-ratio: {{ ratio }};">
 {% else %}
 {# aria-hidden: there is no image to describe, and announcing an empty box
    as an image would be worse than silence. Surrounding copy carries meaning. #}
 <div class="media media-placeholder" aria-hidden="true"
-     style="aspect-ratio: {{ mediaRatio | default('16 / 9') }};"></div>
+     style="aspect-ratio: {{ ratio }};"></div>
 {% endif %}
+{% endmacro %}
