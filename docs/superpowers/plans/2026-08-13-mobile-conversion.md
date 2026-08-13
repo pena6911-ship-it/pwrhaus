@@ -238,13 +238,15 @@ stickyHref: "#join-web_event_interest"
 
 - [ ] **Step 6: Record the spec deviation**
 
-In `docs/superpowers/specs/2026-08-12-pwrhaus-marketing-site-design.md`, find this line in the "Touch and input" section:
+In `docs/superpowers/specs/2026-08-12-pwrhaus-marketing-site-design.md`, replace these three lines **exactly** (they are lines 232–234, in the "Touch and input" section):
 
 ```
 - On phones only, a **sticky bottom CTA bar** ("Create free profile") appears after the user
+  scrolls past the hero. Height 64px plus `env(safe-area-inset-bottom)` so it clears the home
+  indicator on notched devices. It is the site's stated job on the surface most people use.
 ```
 
-Replace that bullet's first sentence so the paragraph reads:
+with these six:
 
 ```
 - On phones only, a **sticky bottom CTA bar** appears after the user scrolls past the hero.
@@ -255,7 +257,7 @@ Replace that bullet's first sentence so the paragraph reads:
   indicator on notched devices. It is the site's stated job on the surface most people use.
 ```
 
-Delete the two leftover lines of the original bullet ("scrolls past the hero. Height 64px plus…" through "…surface most people use.") so the bullet is not duplicated.
+This is a whole-bullet replacement, not an insertion — there must be exactly one such bullet afterwards.
 
 - [ ] **Step 7: Build and verify**
 
@@ -486,7 +488,8 @@ test('form inputs declare at least 16px so iOS Safari does not zoom on focus', (
 
 test('no fixed width in the stylesheet exceeds the narrowest supported viewport', () => {
   const css = readFileSync('src/css/main.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-  for (const m of css.matchAll(/(?<!min-|max-)width:\s*(\d+)px/g)) {
+  // Exclude every hyphenated -width property: min-width, max-width, border-width.
+  for (const m of css.matchAll(/(?<![a-z-])width:\s*(\d+)px/g)) {
     assert.ok(
       Number(m[1]) <= 320,
       `fixed width ${m[1]}px will overflow a 320px viewport — use a relative unit or a max-width`,
