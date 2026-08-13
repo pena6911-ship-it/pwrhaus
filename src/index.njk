@@ -1,19 +1,69 @@
 ---
 layout: base.njk
-title: PWRHaus Golf Society
+title: PWRHaus Golf Society — business networking through golf
+description: A co-ed society of founders and business owners who use golf to find, build, and exit companies. Fort Lauderdale and Miami.
 ---
+{% from "partials/media-slot.njk" import mediaSlot %}
+
 <section class="section">
   <div class="container">
     <p class="eyebrow">Co-ed &middot; Fort Lauderdale &amp; Miami</p>
-    <h1>Never golfed? Perfect.</h1>
-    <p>Placeholder home page. Real content lands in Plan B2.</p>
+    <h1>Never golfed?<br>Perfect.</h1>
+    <p class="lead">Most of our members hadn't either. They came for the business.
+       They stayed for the game.</p>
+    <p class="actions">
+      <a class="btn btn-primary" href="#join-web_free_profile">Create free profile</a>
+      <a class="btn btn-secondary" href="/membership/">How membership works</a>
+    </p>
+  </div>
+</section>
+
+<section class="section band">
+  <div class="container split">
+    <div class="stack">
+      <hr class="rule">
+      <h2>A golf society for people building something</h2>
+      <p>PWRHaus is founders and business owners who use golf to find, build, and exit
+         companies. Eighteen holes is four hours of someone's undivided attention &mdash;
+         which turns out to be where the real conversations happen.</p>
+      <p>It started as a women's society, because that was the door that needed opening.
+         It's co-ed now. Men are welcome here, and plenty are already members.</p>
+    </div>
+    {{ mediaSlot(false, "", "4 / 3") }}
   </div>
 </section>
 
 <section class="section">
   <div class="container">
+    <div class="section-head">
+      <hr class="rule">
+      <h2>What you're actually joining</h2>
+    </div>
+    <ul class="list-h">
+      <li>
+        <h3>Rooms worth being in</h3>
+        <p>Every event is founders, owners, and people with signing authority.
+           No lead-gen, no vendors working the room.</p>
+      </li>
+      <li>
+        <h3>Golf, actually taught</h3>
+        <p>Lessons built for people who have never picked up a club.
+           That's how most of our members started.</p>
+      </li>
+      <li>
+        <h3>Two cities, one network</h3>
+        <p>Fort Lauderdale and Miami, with the same people showing up in both.
+           One organisation, not chapters.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="section band">
+  <div class="container">
     {% set formSource = "web_free_profile" %}
-    {% set formHeading = "Create your free profile" %}
+    {% set formHeading = "Start free. Decide later." %}
+    {% set formSubmitLabel = "Create free profile" %}
     {% include "partials/capture-form.njk" %}
   </div>
 </section>
