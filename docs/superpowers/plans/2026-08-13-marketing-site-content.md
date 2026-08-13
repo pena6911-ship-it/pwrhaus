@@ -117,10 +117,11 @@ Every task's requirements implicitly include this section.
   alt    REQUIRED whenever src is set. A build test asserts no shipped <img>
          has an empty alt, so forgetting it fails the suite rather than
          silently shipping an image screen readers treat as decorative.
-  ratio  CSS aspect-ratio value, e.g. "16 / 9". Reserves space so there is no
-         layout shift.
+  ratio  CSS aspect-ratio value, e.g. "16 / 9". Defaults to "16 / 9" so a
+         two-argument call cannot emit `aspect-ratio: ;`. Reserves space so
+         there is no layout shift.
 #}
-{% macro mediaSlot(src, alt, ratio) %}
+{% macro mediaSlot(src, alt, ratio="16 / 9") %}
 {% if src %}
 <img class="media" src="{{ src }}" alt="{{ alt }}"
      loading="lazy" decoding="async"

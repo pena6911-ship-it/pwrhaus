@@ -21,7 +21,7 @@
   ratio  CSS aspect-ratio value, e.g. "16 / 9". Reserves space so there is no
          layout shift.
 #}
-{% macro mediaSlot(src, alt, ratio) %}
+{% macro mediaSlot(src, alt, ratio="16 / 9") %}
 {% if src %}
 <img class="media" src="{{ src }}" alt="{{ alt }}"
      loading="lazy" decoding="async"
