@@ -229,8 +229,11 @@ Six destinations plus a CTA is too many for a phone bar.
   autocomplete="email"`, `type="tel" inputmode="tel" autocomplete="tel"`,
   `autocomplete="name"`. The honeypot gets `tabindex="-1"`, `autocomplete="off"`, and is
   hidden from assistive tech.
-- On phones only, a **sticky bottom CTA bar** ("Create free profile") appears after the user
-  scrolls past the hero. Height 64px plus `env(safe-area-inset-bottom)` so it clears the home
+- On phones only, a **sticky bottom CTA bar** appears after the user scrolls past the hero.
+  Its label and target are **per-page**: "Create free profile" on the home, about and
+  membership pages, and the page's own enquiry elsewhere — a sponsor is a company, not a
+  prospective member, so a free-profile bar under a sponsorship form would compete with that
+  page's conversion. Height 64px plus `env(safe-area-inset-bottom)` so it clears the home
   indicator on notched devices. It is the site's stated job on the surface most people use.
 
 ### Images

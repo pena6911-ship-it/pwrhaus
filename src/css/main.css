@@ -265,3 +265,31 @@ body.nav-open { overflow: hidden; }
 .card > * + * { margin-top: var(--space-3); }
 /* Action rows keep their larger separation; this must outrank the flow rule. */
 .card > .card-actions { margin-top: var(--space-4); }
+
+/* Phones-only sticky CTA. Styled by default and hidden from 768px up — the
+   desktop header already carries a persistent CTA, so a second one would be
+   redundant. Never write this as a max-width query. */
+.sticky-cta {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 40;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--page-pad);
+  /* Clears the home indicator on notched phones. */
+  padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
+  background: var(--paper-raised);
+  border-top: 1px solid var(--ink-muted);
+}
+.sticky-cta[hidden] { display: none; }
+.sticky-cta .btn { width: 100%; }
+
+/* Reserve room so the bar cannot cover the last thing on the page, which is
+   the footer credit. Only applied while the bar is actually visible. */
+body.has-sticky-cta { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+
+@media (min-width: 768px) {
+  .sticky-cta { display: none; }
+  body.has-sticky-cta { padding-bottom: 0; }
+}

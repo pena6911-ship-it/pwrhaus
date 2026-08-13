@@ -1,0 +1,13 @@
+{#
+  Phones-only sticky CTA. Ships hidden and is revealed by sticky-cta.js once the
+  hero scrolls out of view, so it never covers the hero's own buttons.
+
+  Label and target are per-page. A sponsor is a company, not a prospective
+  member, so a bar reading "Create free profile" underneath a sponsorship
+  enquiry form would compete with that page's own conversion.
+#}
+<div class="sticky-cta" data-sticky-cta hidden>
+  <a class="btn btn-primary" href="{{ stickyHref | default('/#join-web_free_profile') }}">
+    {{ stickyLabel | default('Create free profile') }}
+  </a>
+</div>
