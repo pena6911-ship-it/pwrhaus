@@ -197,6 +197,13 @@ Change nothing else in the file.
 
 .rule { border: 0; border-top: 1px solid var(--brass); width: 64px; margin-bottom: var(--space-4); }
 
+/* Utilities — no inline style attributes anywhere in the templates. */
+.prose { max-width: var(--prose-max); }
+.center { text-align: center; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
+.card-actions { margin-top: var(--space-4); }
+.card h2 { font-size: 1.375rem; }
+
 @media (min-width: 768px) {
   .split { grid-template-columns: 1fr 1fr; align-items: center; }
   .list-h { grid-template-columns: repeat(3, 1fr); }
@@ -255,7 +262,7 @@ description: A co-ed society of founders and business owners who use golf to fin
     <h1>Never golfed?<br>Perfect.</h1>
     <p class="lead">Most of our members hadn't either. They came for the business.
        They stayed for the game.</p>
-    <p style="margin-top: var(--space-6);">
+    <p class="actions">
       <a class="btn btn-primary" href="#join-web_free_profile">Create free profile</a>
       <a class="btn btn-secondary" href="/membership/">How membership works</a>
     </p>
@@ -355,7 +362,7 @@ description: How a women's golf society became a co-ed network of founders doing
 ---
 
 <section class="section">
-  <div class="container" style="max-width: var(--prose-max);">
+  <div class="container prose">
     <p class="eyebrow">About</p>
     <h1>We started because the deals were happening somewhere we weren't.</h1>
     <p class="lead">PWRHaus began as a women's golf society and became something broader:
@@ -390,7 +397,7 @@ description: How a women's golf society became a co-ed network of founders doing
 </section>
 
 <section class="section">
-  <div class="container" style="max-width: var(--prose-max);">
+  <div class="container prose">
     <div class="section-head">
       <hr class="rule">
       <h2>What membership actually gets you</h2>
@@ -415,7 +422,7 @@ description: How a women's golf society became a co-ed network of founders doing
            exit strategy.</p>
       </li>
     </ul>
-    <p style="margin-top: var(--space-6);">
+    <p class="actions">
       <a class="btn btn-primary" href="/membership/">See membership</a>
     </p>
   </div>
@@ -458,7 +465,7 @@ description: Three ways into PWRHaus. Free to start, $650 a year for full member
 ---
 
 <section class="section">
-  <div class="container" style="max-width: var(--prose-max);">
+  <div class="container prose">
     <p class="eyebrow">Membership</p>
     <h1>Three ways in.</h1>
     <p class="lead">Start free and look around. Join when it's obviously worth it.</p>
@@ -469,29 +476,29 @@ description: Three ways into PWRHaus. Free to start, $650 a year for full member
   <div class="container">
     <ul class="cards-3">
       <li class="card">
-        <h2 style="font-size: 1.375rem;">Free</h2>
+        <h2>Free</h2>
         <p class="price">$0</p>
         <p>Create a profile, browse events, and book lessons or scrambles at guest rates.
            No vetting, no commitment, no card.</p>
-        <p style="margin-top: var(--space-4);">
+        <p class="card-actions">
           <a class="btn btn-secondary" href="#join-web_free_profile">Start here</a>
         </p>
       </li>
       <li class="card card-featured">
-        <h2 style="font-size: 1.375rem;">Member</h2>
+        <h2>Member</h2>
         <p class="price">$650<span class="price-note"> / year</span></p>
         <p>Everything in Free, plus member rates on every event, the member portal, and
            the member directory. This is where most people land.</p>
-        <p style="margin-top: var(--space-4);">
+        <p class="card-actions">
           <a class="btn btn-primary" href="#join-web_free_profile">Create a profile</a>
         </p>
       </li>
       <li class="card">
-        <h2 style="font-size: 1.375rem;">Inner Circle</h2>
+        <h2>Inner Circle</h2>
         <p class="price">From $5,000</p>
         <p>A certified business valuation, coaching, and a documented exit strategy,
            led by Michelle. By invitation, and deliberately small.</p>
-        <p class="price-note" style="margin-top: var(--space-4);">
+        <p class="price-note card-actions">
           Invitation only &mdash; start with a profile and we'll talk.</p>
       </li>
     </ul>
@@ -499,7 +506,7 @@ description: Three ways into PWRHaus. Free to start, $650 a year for full member
 </section>
 
 <section class="section">
-  <div class="container" style="max-width: var(--prose-max);">
+  <div class="container prose">
     <div class="section-head">
       <hr class="rule">
       <h2>Questions people actually ask</h2>
@@ -657,7 +664,7 @@ description: Put your brand in front of founders, owners and operators at PWRHau
 ---
 
 <section class="section">
-  <div class="container" style="max-width: var(--prose-max);">
+  <div class="container prose">
     <p class="eyebrow">Sponsorship</p>
     <h1>Put your brand in the room.</h1>
     <p class="lead">PWRHaus events are founders, owners and operators &mdash; the audience
@@ -669,16 +676,16 @@ description: Put your brand in front of founders, owners and operators at PWRHau
   <div class="container">
     <ul class="cards-3">
       <li class="card">
-        <h2 style="font-size: 1.375rem;">Social-Tee</h2>
+        <h2>Social-Tee</h2>
         <p>Presence at a single event. A straightforward way to meet the room before
            committing to anything larger.</p>
       </li>
       <li class="card">
-        <h2 style="font-size: 1.375rem;">Hole in One</h2>
+        <h2>Hole in One</h2>
         <p>Recurring presence across a season, so the same people see you more than once.</p>
       </li>
       <li class="card">
-        <h2 style="font-size: 1.375rem;">Double Eagle</h2>
+        <h2>Double Eagle</h2>
         <p>A named partnership with year-round visibility across the calendar.</p>
       </li>
     </ul>
@@ -686,7 +693,7 @@ description: Put your brand in front of founders, owners and operators at PWRHau
 </section>
 
 <section class="section">
-  <div class="container" style="max-width: var(--prose-max);">
+  <div class="container prose">
     <div class="section-head">
       <hr class="rule">
       <h2>How it works</h2>
@@ -755,7 +762,7 @@ description: Golf simulator experiences for sales conferences, offsites and clie
 </section>
 
 <section class="section band">
-  <div class="container" style="max-width: var(--prose-max);">
+  <div class="container prose">
     <div class="section-head">
       <hr class="rule">
       <h2>What it looks like</h2>
@@ -814,7 +821,7 @@ description: Scrambles and socials for founders and business owners in Fort Laud
 ---
 
 <section class="section">
-  <div class="container" style="max-width: var(--prose-max);">
+  <div class="container prose">
     <p class="eyebrow">Events</p>
     <h1>The next season is being finalised.</h1>
     <p class="lead">Our scrambles and socials are planned well ahead. Tell us where you'd
@@ -846,11 +853,11 @@ permalink: /404.html
 ---
 
 <section class="section">
-  <div class="container" style="max-width: var(--prose-max); text-align: center;">
+  <div class="container prose center">
     <p class="eyebrow">404</p>
     <h1>That page isn't here.</h1>
     <p class="lead">The link may be old, or we may have moved it.</p>
-    <p style="margin-top: var(--space-6);">
+    <p class="actions">
       <a class="btn btn-primary" href="/">Back to home</a>
       <a class="btn btn-secondary" href="/membership/">See membership</a>
     </p>
