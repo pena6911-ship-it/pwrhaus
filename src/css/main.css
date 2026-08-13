@@ -255,3 +255,13 @@ body.nav-open { overflow: hidden; }
 /* Flex items ignore inherited text-align, so a centered section needs the
    action row centered explicitly. */
 .center .actions { justify-content: center; }
+
+/* The reset zeroes every margin, so card children have no rhythm of their own.
+   The pricing cards only looked right because .price happens to carry
+   margin-block — the sponsor tier cards, which go straight from h2 to p, had a
+   0px gap. Give cards an explicit flow rule rather than depending on one
+   child's incidental margin. Adjacent margins collapse, so the pricing cards
+   are unchanged. */
+.card > * + * { margin-top: var(--space-3); }
+/* Action rows keep their larger separation; this must outrank the flow rule. */
+.card > .card-actions { margin-top: var(--space-4); }

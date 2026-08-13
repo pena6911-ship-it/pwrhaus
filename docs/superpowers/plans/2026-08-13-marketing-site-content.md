@@ -223,6 +223,14 @@ Change nothing else in the file.
 .card-actions { margin-top: var(--space-4); }
 .card h2 { font-size: 1.375rem; }
 
+/* The reset zeroes every margin, so card children have no rhythm of their own.
+   Without this a card going straight from h2 to p has a 0px gap — the pricing
+   cards only escape it because .price carries margin-block. Adjacent margins
+   collapse, so this does not double the pricing cards' spacing. */
+.card > * + * { margin-top: var(--space-3); }
+/* Action rows keep their larger separation; this must outrank the flow rule. */
+.card > .card-actions { margin-top: var(--space-4); }
+
 @media (min-width: 768px) {
   .split { grid-template-columns: 1fr 1fr; align-items: center; }
   .list-h { grid-template-columns: repeat(3, 1fr); }
