@@ -1,0 +1,24 @@
+---
+layout: base.njk
+title: Events — PWRHaus Golf Society
+description: Scrambles and socials for founders and business owners in Fort Lauderdale and Miami.
+---
+
+<section class="section">
+  <div class="container prose">
+    <p class="eyebrow">Events</p>
+    <h1>The next season is being finalised.</h1>
+    <p class="lead">Our scrambles and socials are planned well ahead. Tell us where you'd
+       like to play and we'll make sure you hear about the calendar first.</p>
+  </div>
+</section>
+
+<section class="section band">
+  <div class="container">
+    {% set formSource = "web_event_interest" %}
+    {% set formHeading = "Get the calendar first" %}
+    {% set formSubmitLabel = "Keep me posted" %}
+    {% set showNotes = true %}
+    {% include "partials/capture-form.njk" %}
+  </div>
+</section>

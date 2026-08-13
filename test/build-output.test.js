@@ -93,3 +93,42 @@ test('every rendered form posts a source the backend whitelists', async () => {
   }
   assert.ok(found > 0, 'no capture form found in the built output');
 });
+
+test('every built page declares canonical and Open Graph metadata', () => {
+  const pages = htmlFiles(outDir);
+  assert.ok(pages.length > 0, 'build produced no HTML');
+  for (const page of pages) {
+    const html = readFileSync(page, 'utf8');
+    assert.match(html, /<link rel="canonical" href="http/, `missing canonical: ${page}`);
+    assert.match(html, /<meta property="og:title"/, `missing og:title: ${page}`);
+    assert.match(html, /<meta property="og:description"/, `missing og:description: ${page}`);
+  }
+});
+
+test('no shipped image has an empty alt attribute', () => {
+  const pages = htmlFiles(outDir);
+  assert.ok(pages.length > 0, 'build produced no HTML');
+  for (const page of pages) {
+    const html = readFileSync(page, 'utf8');
+    for (const m of html.matchAll(/<img\b[^>]*>/g)) {
+      assert.ok(
+        /\salt="[^"]+"/.test(m[0]),
+        `${page} ships an image with a missing or empty alt: ${m[0]}`,
+      );
+    }
+  }
+});
+
+test('every navigation link resolves to a page that was actually built', () => {
+  const nav = JSON.parse(readFileSync('src/_data/nav.json', 'utf8'));
+  assert.ok(nav.length > 0, 'nav.json is empty');
+  const built = htmlFiles(outDir).map((p) => p.replace(/\\/g, '/'));
+
+  for (const item of nav) {
+    const slug = item.url.replace(/^\/|\/$/g, '');
+    assert.ok(
+      built.some((p) => p.endsWith(`/${slug}/index.html`)),
+      `nav links to ${item.url} but no page was built for it`,
+    );
+  }
+});
