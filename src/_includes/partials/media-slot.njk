@@ -1,0 +1,20 @@
+{#
+  Photo slot. No photography exists yet, so when mediaSrc is unset this renders
+  a token-coloured block instead — the layout is correct now and dropping real
+  files in later needs no template change.
+
+  Params:
+    mediaSrc   optional. Path under /img/.
+    mediaAlt   required when mediaSrc is set. Omit for the placeholder.
+    mediaRatio optional, default "16 / 9".
+#}
+{% if mediaSrc %}
+<img class="media" src="{{ mediaSrc }}" alt="{{ mediaAlt }}"
+     loading="lazy" decoding="async"
+     style="aspect-ratio: {{ mediaRatio | default('16 / 9') }};">
+{% else %}
+{# aria-hidden: there is no image to describe, and announcing an empty box
+   as an image would be worse than silence. Surrounding copy carries meaning. #}
+<div class="media media-placeholder" aria-hidden="true"
+     style="aspect-ratio: {{ mediaRatio | default('16 / 9') }};"></div>
+{% endif %}
