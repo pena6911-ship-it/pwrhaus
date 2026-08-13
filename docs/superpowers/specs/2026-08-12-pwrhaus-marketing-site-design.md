@@ -514,3 +514,30 @@ against `events.json`) · merch · unified BI dashboard.
    pre-drop in §8.
 6. **Long-term domain ownership undecided** — keep a minimal Wix account, or transfer out
    post-cutover. See §8. Until decided, do not cancel Wix.
+
+---
+
+## 12 · Plan ownership of this spec
+
+Added 2026-08-13 after a whole-branch review found two §4 requirements that no plan
+implemented and no plan claimed. A task-scoped reviewer cannot catch that: it checks its
+brief against its file, and a requirement absent from every brief is invisible to all of
+them. **Every future plan derived from this spec must state which spec requirements it does
+not implement and who owns them.**
+
+| Spec area | Owning plan | Status |
+|---|---|---|
+| §4 design tokens, fonts, components, breakpoints | B1 foundation | Merged `4f84683` |
+| §4 layout shell, nav, footer credit | B1 foundation | Merged `4f84683` |
+| §6 lead capture + endpoint hardening | B1 foundation | Merged `4f84683` |
+| §7 schema (`contacts.notes`, `contact_inquiries`) | B1 foundation | Merged, applied to dev |
+| §3 IA — all content pages, `/404` | B2 content pages | Complete, pending merge |
+| §4 page metadata (canonical, Open Graph, favicon) | B2 content pages | Complete, pending merge |
+| §5 events data, generated event pages, upcoming/past sort | **B3 events** | Not started — blocked on client event data |
+| §4 home-page event teaser | **B3 events** | Not started — needs `events.json` |
+| §4 image rules (`srcset`, AVIF/WebP, dimensions) + `og:image` | **B3 events** | Not started — blocked on photography |
+| **§4 sticky bottom CTA bar (phones, 64px + safe-area-inset)** | **B4 mobile conversion** | Not started |
+| **§4 full-bleed hero, `min-height: 60vh` desktop** | **B4 mobile conversion** | Not started |
+| **§9 manual 8-viewport responsive + a11y pass** | **B4 mobile conversion** | Not started — now covers 9 pages |
+| §6 rate limiting | Deferred, documented | Stated limitation |
+| §6 reconciliation sweep for null `ghl_contact_id` | Phase 2, with the nightly GHL pull | Documented in §6 |

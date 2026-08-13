@@ -59,14 +59,21 @@ test('every built page declares a viewport and a lang attribute', () => {
   }
 });
 
+// These rules are about what the stylesheet SHIPS, not what it mentions. Comments
+// legitimately name the banned properties to explain why they are banned, so strip
+// them first — otherwise documenting a rule is enough to violate it.
+function declarationsOnly(cssPath) {
+  return readFileSync(cssPath, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
 test('the stylesheet contains no box-shadow and no max-width media queries', () => {
-  const css = readFileSync('src/css/main.css', 'utf8');
+  const css = declarationsOnly('src/css/main.css');
   assert.equal(/box-shadow/.test(css), false, 'box-shadow is banned by the design system');
   assert.equal(/@media[^{]*max-width/.test(css), false, 'CSS must be mobile-first: min-width only');
 });
 
 test('the stylesheet never uses the decorative brass token for text colour', () => {
-  const css = readFileSync('src/css/main.css', 'utf8');
+  const css = declarationsOnly('src/css/main.css');
   assert.equal(
     /(?<!-)color:\s*var\(--brass\)/.test(css),
     false,
