@@ -5,16 +5,21 @@ description: A co-ed society of founders and business owners who use golf to fin
 ---
 {% from "partials/media-slot.njk" import mediaSlot %}
 
-<section class="section">
-  <div class="container">
-    <p class="eyebrow">Co-ed &middot; Fort Lauderdale &amp; Miami</p>
-    <h1>Never golfed?<br>Perfect.</h1>
-    <p class="lead">Most of our members hadn't either. They came for the business.
-       They stayed for the game.</p>
-    <p class="actions">
-      <a class="btn btn-primary" href="#join-web_free_profile">Create free profile</a>
-      <a class="btn btn-secondary" href="/membership/">How membership works</a>
-    </p>
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <p class="eyebrow">Co-ed &middot; Fort Lauderdale &amp; Miami</p>
+      <h1>Never golfed?<br>Perfect.</h1>
+      <p class="lead">Most of our members hadn't either. They came for the business.
+         They stayed for the game.</p>
+      <p class="actions">
+        <a class="btn btn-primary" href="#join-web_free_profile">Create free profile</a>
+        <a class="btn btn-secondary" href="/membership/">How membership works</a>
+      </p>
+    </div>
+    <div class="hero-media">
+      {{ mediaSlot(false, "", "4 / 3") }}
+    </div>
   </div>
 </section>
 
