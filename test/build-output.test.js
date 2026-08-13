@@ -132,3 +132,14 @@ test('every navigation link resolves to a page that was actually built', () => {
     );
   }
 });
+
+test('the home page hosts the form the nav CTAs anchor to', () => {
+  const html = readFileSync(join(outDir, 'index.html'), 'utf8');
+  // Both header CTAs link to /#join-web_free_profile. The id is derived from
+  // the form's source, so changing that source silently breaks them sitewide.
+  assert.match(
+    html,
+    /id="join-web_free_profile"/,
+    'home page must host the form the header CTAs link to',
+  );
+});

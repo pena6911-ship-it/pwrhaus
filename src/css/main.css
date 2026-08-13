@@ -241,3 +241,17 @@ body.nav-open { overflow: hidden; }
   .list-h { grid-template-columns: repeat(3, 1fr); }
   .cards-3 { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* Component boundaries must clear 3:1 (WCAG 2.2 SC 1.4.11). --line is 1.30:1
+   on white, so cards inside a .band and all form inputs are effectively
+   edgeless. --ink-muted is ~6.4:1; --brass-text is 5.9:1 and keeps the
+   featured card in the brass family while passing. box-shadow is banned, so
+   the border is the only separator available. */
+.card,
+.field input,
+.field textarea { border-color: var(--ink-muted); }
+.card-featured { border-color: var(--brass-text); border-width: 2px; }
+
+/* Flex items ignore inherited text-align, so a centered section needs the
+   action row centered explicitly. */
+.center .actions { justify-content: center; }
