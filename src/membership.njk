@@ -1,0 +1,92 @@
+---
+layout: base.njk
+title: Membership — PWRHaus Golf Society
+description: Three ways into PWRHaus. Free to start, $650 a year for full membership, and an invitation-only Inner Circle.
+---
+
+<section class="section">
+  <div class="container prose">
+    <p class="eyebrow">Membership</p>
+    <h1>Three ways in.</h1>
+    <p class="lead">Start free and look around. Join when it's obviously worth it.</p>
+  </div>
+</section>
+
+<section class="section band">
+  <div class="container">
+    <ul class="cards-3">
+      <li class="card">
+        <h2>Free</h2>
+        <p class="price">$0</p>
+        <p>Create a profile, browse events, and book lessons or scrambles at guest rates.
+           No vetting, no commitment, no card.</p>
+        <p class="card-actions">
+          <a class="btn btn-secondary" href="#join-web_free_profile">Start here</a>
+        </p>
+      </li>
+      <li class="card card-featured">
+        <h2>Member</h2>
+        <p class="price">$650<span class="price-note"> / year</span></p>
+        <p>Everything in Free, plus member rates on every event, the member portal, and
+           the member directory. This is where most people land.</p>
+        <p class="card-actions">
+          <a class="btn btn-primary" href="#join-web_free_profile">Create a profile</a>
+        </p>
+      </li>
+      <li class="card">
+        <h2>Inner Circle</h2>
+        <p class="price">From $5,000</p>
+        <p>A certified business valuation, coaching, and a documented exit strategy,
+           led by Michelle. By invitation, and deliberately small.</p>
+        <p class="price-note card-actions">
+          Invitation only &mdash; start with a profile and we'll talk.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container prose">
+    <div class="section-head">
+      <hr class="rule">
+      <h2>Questions people actually ask</h2>
+    </div>
+    <div class="faq">
+      <div>
+        <h3>Do I need to know how to golf?</h3>
+        <p>No. Most of our members had never played when they joined. We run lessons
+           precisely because that's the normal starting point here.</p>
+      </div>
+      <div>
+        <h3>Is this only for women?</h3>
+        <p>No. PWRHaus started as a women's society and is now co-ed. Men are members,
+           and men are welcome.</p>
+      </div>
+      <div>
+        <h3>Where do events happen?</h3>
+        <p>Fort Lauderdale and Miami today. We go where the people we're building this
+           for actually are, rather than planting flags in cities we don't serve.</p>
+      </div>
+      <div>
+        <h3>What happens after I create a free profile?</h3>
+        <p>Nothing you don't choose. You can browse events and book lessons at guest
+           rates. We'll tell you what's coming up; you decide whether to join.</p>
+      </div>
+      <div>
+        <h3>Can I cancel?</h3>
+        <p>Membership runs for a year. Individual event tickets are refundable up to
+           48 hours before the event; after that we can't refund or credit them,
+           because the course is already booked.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section band">
+  <div class="container">
+    {% set formSource = "web_free_profile" %}
+    {% set formHeading = "Start with a free profile" %}
+    {% set formSubmitLabel = "Create free profile" %}
+    {% include "partials/capture-form.njk" %}
+  </div>
+</section>
