@@ -1,11 +1,12 @@
 import Stripe from 'stripe';
 import { json } from './http.js';
-import { findVariant } from './catalog.js';
+import { findEnabledVariant } from './catalog.js';
 
-// POST /api/merch/checkout — body: { items: [{ slug, variant_id, quantity }] }
-// Builds a Stripe Checkout Session from the server-side catalog (the client
-// never sends a price) and returns { url } to redirect to Stripe.
-export function makeMerchCheckoutHandler({ env }) {
+// POST /api/merch/checkout — body: { items: [{ product_id, variant_id, quantity }] }
+// Each item is validated against Printify at request time — the product must be
+// visible and the variant enabled — and the price is read from Printify, never
+// from the client. Returns { url } to redirect to Stripe's hosted checkout.
+export function makeMerchCheckoutHandler({ env, printify }) {
   const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
   return async (req) => {
@@ -25,22 +26,30 @@ export function makeMerchCheckoutHandler({ env }) {
     const lineItems = [];
     const printifyLines = [];
     for (const it of items) {
-      const found = findVariant(it.slug, it.variant_id);
-      if (!found) return json({ error: 'unknown_variant', slug: it.slug }, 400);
+      let product;
+      try {
+        product = await printify.getProduct(it.product_id);
+      } catch {
+        return json({ error: 'unknown_product', product_id: it.product_id }, 400);
+      }
+      const variant = findEnabledVariant(product, it.variant_id);
+      if (!variant) {
+        return json({ error: 'unknown_variant', product_id: it.product_id, variant_id: it.variant_id }, 400);
+      }
       const quantity = Math.max(1, Math.min(10, Number(it.quantity) || 1));
+      const img = (product.images || []).find((i) => i.is_default) || (product.images || [])[0];
       lineItems.push({
         quantity,
         price_data: {
           currency: 'usd',
-          unit_amount: found.variant.priceCents,
-          product_data: { name: `${found.product.name} — ${found.variant.label}` },
+          unit_amount: variant.price, // price authority = Printify
+          product_data: {
+            name: `${product.title} — ${variant.title}`,
+            ...(img && /^https?:\/\//.test(img.src) ? { images: [img.src] } : {}),
+          },
         },
       });
-      printifyLines.push({
-        product_id: found.product.printifyProductId,
-        variant_id: found.variant.printifyVariantId,
-        quantity,
-      });
+      printifyLines.push({ product_id: it.product_id, variant_id: variant.id, quantity });
     }
 
     const origin = new URL(req.url).origin;

@@ -33,3 +33,7 @@ node_modules/
 
 # Eleventy build output
 public/
+
+# Local Netlify folder
+.netlify
+deno.lock

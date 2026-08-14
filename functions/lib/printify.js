@@ -51,5 +51,24 @@ export function createPrintifyClient({ token, shopId, userAgent = 'pwrhaus-poc' 
         method: 'POST',
       });
     },
+
+    // Build-time: every product in the shop (paginated).
+    async listProducts() {
+      const all = [];
+      let page = 1;
+      for (;;) {
+        const res = await request(`/shops/${shopId}/products.json?limit=50&page=${page}`);
+        all.push(...(res.data || []));
+        if (!res.last_page || page >= res.last_page) break;
+        page += 1;
+      }
+      return all;
+    },
+
+    // Request-time: one product, so checkout can validate the variant + read the
+    // authoritative price straight from Printify.
+    getProduct(productId) {
+      return request(`/shops/${shopId}/products/${productId}.json`);
+    },
   };
 }

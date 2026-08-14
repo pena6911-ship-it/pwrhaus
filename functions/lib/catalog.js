@@ -1,52 +1,45 @@
-// Merch catalog — single source of truth for both the storefront (Eleventy reads
-// it via src/_data/products.js) and the checkout function (imports it directly).
-// Prices are integer cents, per the backbone money rule. Printify ids come from
-// Michelle's Printify shop; only products with a printifyProductId are buyable.
-export const PRODUCTS = [
-  {
-    slug: 'golf-cap',
-    name: 'PWRHaus Golf Cap',
-    summary: 'Structured performance cap with the embroidered PH mark.',
-    priceCents: 3500,
-    image: '/img/golfcap.avif',
-    printifyProductId: '6a7f47f50f5334d3be054b1e',
-    variants: [
-      { label: 'Adjustable / White', printifyVariantId: 259127, priceCents: 3500 },
-    ],
-  },
-  {
-    slug: 'golf-polo',
-    name: 'PWRHaus Golf Polo',
-    summary: 'Performance polo. Coming soon.',
-    priceCents: 7500,
-    image: '/img/golfpolo.avif',
-    printifyProductId: null, // not yet set up in Printify
-    variants: [],
-  },
-  {
-    slug: 'golf-towel',
-    name: 'PWRHaus Golf Towel',
-    summary: 'Microfiber golf towel. Coming soon.',
-    priceCents: 2500,
-    image: '/img/golftowel.avif',
-    printifyProductId: null, // not yet set up in Printify
-    variants: [],
-  },
-];
+// Merch catalog is driven live by Printify — there is no hand-maintained product
+// list. The storefront (src/_data/products.js) fetches products at build time and
+// maps them with mapPrintifyProduct; checkout validates a variant at request time
+// with findEnabledVariant and takes the price straight from Printify.
 
-// A product is buyable only when it maps to a real Printify product + variant.
-export function isBuyable(product) {
-  return Boolean(product.printifyProductId) && product.variants.length > 0;
+export function stripHtml(input = '') {
+  return String(input)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&[a-z]+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
-// Resolve a (slug, printifyVariantId) pair to the product + variant, or null.
-// The server uses this so a client can never invent a price or a variant.
-export function findVariant(slug, printifyVariantId) {
-  const product = PRODUCTS.find((p) => p.slug === slug);
-  if (!product || !isBuyable(product)) return null;
-  const variant = product.variants.find(
-    (v) => v.printifyVariantId === Number(printifyVariantId),
+// Raw Printify product -> the shape the storefront renders. Prices are integer
+// cents (Printify's retail price, which Michelle sets in Printify).
+export function mapPrintifyProduct(p) {
+  const img = (p.images || []).find((i) => i.is_default) || (p.images || [])[0];
+  const variants = (p.variants || [])
+    .filter((v) => v.is_enabled)
+    .map((v) => ({ id: v.id, label: v.title, priceCents: v.price }));
+  return {
+    productId: p.id,
+    name: p.title,
+    summary: stripHtml(p.description).slice(0, 160),
+    image: img ? img.src : '',
+    variants,
+    priceCents: variants.length ? Math.min(...variants.map((v) => v.priceCents)) : 0,
+    visible: p.visible !== false,
+  };
+}
+
+// A product only reaches the storefront if it is visible and actually orderable.
+export function isBuyable(product) {
+  return product.visible && product.variants.length > 0;
+}
+
+// Server-side check at checkout: the enabled variant object (with .price/.title)
+// or null. The client can never invent a price or buy a disabled variant.
+export function findEnabledVariant(rawProduct, variantId) {
+  if (!rawProduct || rawProduct.visible === false) return null;
+  const variant = (rawProduct.variants || []).find(
+    (v) => v.id === Number(variantId) && v.is_enabled,
   );
-  if (!variant) return null;
-  return { product, variant };
+  return variant || null;
 }
