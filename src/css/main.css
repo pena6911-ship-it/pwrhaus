@@ -251,6 +251,11 @@ body.nav-open { overflow: hidden; }
   object-fit: cover;
 }
 
+/* Small photo/venue credit line (e.g. under a hero). */
+.media-credit { margin-top: var(--space-3); font-size: 0.8125rem; color: var(--ink-muted); }
+.media-credit a { color: var(--ink-muted); }
+.media-credit a:hover { color: var(--forest); }
+
 /* Media slots */
 .media { width: 100%; border-radius: var(--radius-card); object-fit: cover; }
 .media-placeholder {
