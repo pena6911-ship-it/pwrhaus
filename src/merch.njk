@@ -1,0 +1,44 @@
+---
+layout: base.njk
+title: Merch — PWRHaus Golf Society
+description: PWRHaus Golf Society gear — printed on demand and shipped to your door.
+---
+{% from "partials/page-hero.njk" import pageHero %}
+
+{{ pageHero({
+  eyebrow: "Merch",
+  heading: "Wear the society.",
+  lead: "PWRHaus gear, printed on demand and shipped to your door.",
+  image: "/img/sponsors-hero.jpg",
+  position: "50% 55%"
+}) }}
+
+<section class="section">
+  <div class="container">
+    <ul class="cards-3">
+      {% for p in products %}
+      <li class="card">
+        <img class="media" src="{{ p.image }}" alt="{{ p.name }}"
+             width="600" height="600" loading="lazy" decoding="async"
+             style="aspect-ratio: 1 / 1;">
+        <h2>{{ p.name }}</h2>
+        <p class="price">{{ p.priceCents | usd }}</p>
+        <p>{{ p.summary }}</p>
+        <p class="card-actions">
+          {% if p.printifyProductId and p.variants.length %}
+          <button class="btn btn-primary" type="button"
+                  data-buy data-slug="{{ p.slug }}"
+                  data-variant="{{ p.variants[0].printifyVariantId }}">Buy</button>
+          {% else %}
+          <button class="btn btn-secondary" type="button" disabled>Coming soon</button>
+          {% endif %}
+        </p>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="prose center" style="margin-top: var(--space-6); color: var(--ink-muted);">
+      POC — checkout runs in Stripe <strong>test mode</strong>; orders create Printify
+      <strong>drafts only</strong>.
+    </p>
+  </div>
+</section>
