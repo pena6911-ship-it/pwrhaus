@@ -1,0 +1,51 @@
+{#
+  Reusable full-bleed hero. One mechanism, per-page media. Call it from any page:
+
+    {% from "partials/page-hero.njk" import pageHero %}
+    {{ pageHero({
+         eyebrow: "Membership",
+         heading: "Three ways in.",
+         lead: "Start free and look around.",
+         image: "/img/membership-hero.jpg",
+         position: "50% 40%"          // optional background-position
+       }) }}
+
+  Video hero instead of an image:
+    {{ pageHero({ heading: "…", video: "/img/x.mp4", poster: "/img/x.jpg" }) }}
+
+  Optional actions (buttons):
+    actions: [ { label: "…", href: "…", class: "btn-primary" }, … ]
+
+  eyebrow/heading/lead pass through `safe`, so inline markup (&mdash;, <br>) works.
+  Image heroes carry the URL as a CSS custom property — call-site data, the same
+  sanctioned exception the media-slot macro uses for aspect-ratio.
+#}
+{% macro pageHero(h) %}
+<section class="hero hero--media{% if h.image %} hero--image{% endif %}"
+  {%- if h.image %} style="--hero-img: url('{{ h.image }}'){% if h.position %}; --hero-pos: {{ h.position }}{% endif %}"{% endif %}>
+  {%- if h.video %}
+  <video class="hero-bg" autoplay muted loop playsinline preload="auto"
+         {% if h.poster %}poster="{{ h.poster }}" {% endif %}aria-hidden="true">
+    <source src="{{ h.video }}" type="video/mp4">
+  </video>
+  {%- endif %}
+  <div class="hero-inner">
+    <div class="hero-text">
+      {%- if h.eyebrow %}
+      <p class="eyebrow">{{ h.eyebrow | safe }}</p>
+      {%- endif %}
+      <h1>{{ h.heading | safe }}</h1>
+      {%- if h.lead %}
+      <p class="lead">{{ h.lead | safe }}</p>
+      {%- endif %}
+      {%- if h.actions %}
+      <p class="actions">
+        {%- for a in h.actions %}
+        <a class="btn {{ a.class or 'btn-primary' }}" href="{{ a.href }}">{{ a.label }}</a>
+        {%- endfor %}
+      </p>
+      {%- endif %}
+    </div>
+  </div>
+</section>
+{% endmacro %}

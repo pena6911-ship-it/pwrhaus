@@ -4,6 +4,7 @@
 export default {
   name: 'PWRHaus Golf Society',
   shortName: 'PWRHaus',
+  tagline: 'Claim your place on the green',
   description: 'A co-ed society of founders who use golf to find, build, and exit businesses.',
   url: process.env.URL || 'https://pwrhaus.netlify.app',
 };

@@ -6,7 +6,7 @@
 <title>{{ title }}</title>
 <meta name="description" content="{{ description or site.description }}">
 <link rel="canonical" href="{{ site.url }}{{ page.url }}">
-<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/img/favicon-mark.png" type="image/png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ site.name }}">
 <meta property="og:title" content="{{ title }}">
@@ -14,8 +14,7 @@
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
 <meta name="twitter:card" content="summary">
 <link rel="preload" href="/fonts/fraunces-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/work-sans-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/tokens.css">
+<link rel="preload" href="/fonts/work-sans-variable.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/css/tokens.css">
 <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
@@ -25,8 +24,10 @@
 </main>
 {% include "partials/sticky-cta.njk" %}
 {% include "partials/footer.njk" %}
+{% include "partials/gate.njk" %}
 <script src="/js/nav.js" defer></script>
 <script src="/js/form.js" defer></script>
 <script src="/js/sticky-cta.js" defer></script>
+<script src="/js/gate.js" defer></script>
 </body>
 </html>

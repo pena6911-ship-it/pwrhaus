@@ -4,15 +4,15 @@ title: About — PWRHaus Golf Society
 description: How a women's golf society became a co-ed network of founders doing business on the course.
 ---
 {% from "partials/media-slot.njk" import mediaSlot %}
+{% from "partials/page-hero.njk" import pageHero %}
 
-<section class="section">
-  <div class="container prose">
-    <p class="eyebrow">About</p>
-    <h1>We started because the deals were happening somewhere we weren't.</h1>
-    <p class="lead">PWRHaus began as a women's golf society and became something broader:
-       a co-ed network of founders and owners who do business on a golf course.</p>
-  </div>
-</section>
+{{ pageHero({
+  eyebrow: "About",
+  heading: "We started because the deals were happening somewhere we weren't.",
+  lead: "PWRHaus began as a women's golf society and became something broader: a co-ed network of founders and owners who do business on a golf course.",
+  image: "/img/groupgolf1.jpg",
+  position: "50% 60%"
+}) }}
 
 <section class="section band">
   <div class="container split">

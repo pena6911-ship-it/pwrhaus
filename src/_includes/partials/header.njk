@@ -1,7 +1,13 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="container header-inner">
-    <a class="wordmark" href="/">{{ site.shortName }}</a>
+    <a class="brand" href="/" aria-label="{{ site.name }} — home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">
+        <span class="brand-wordmark" aria-hidden="true"></span>
+        <span class="brand-tagline">{{ site.tagline }}</span>
+      </span>
+    </a>
 
     <nav class="nav-desktop" aria-label="Primary">
       <ul>

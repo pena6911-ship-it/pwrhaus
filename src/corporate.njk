@@ -6,19 +6,15 @@ stickyLabel: Tell us about your event
 stickyHref: "#join-web_corporate"
 ---
 {% from "partials/media-slot.njk" import mediaSlot %}
+{% from "partials/page-hero.njk" import pageHero %}
 
-<section class="section">
-  <div class="container split">
-    <div class="stack">
-      <p class="eyebrow">Corporate</p>
-      <h1>Bring the simulator to your conference.</h1>
-      <p class="lead">We run golf experiences at corporate events &mdash; sales conferences,
-         offsites, client days. It works because it gives people something to do together
-         that isn't a name badge and a canap&eacute;.</p>
-    </div>
-    {{ mediaSlot(false, "", "4 / 3") }}
-  </div>
-</section>
+{{ pageHero({
+  eyebrow: "Corporate",
+  heading: "Bring the simulator to your conference.",
+  lead: "We run golf experiences at corporate events &mdash; sales conferences, offsites, client days. It works because it gives people something to do together that isn't a name badge and a canap&eacute;.",
+  image: "/img/corporate-hero.jpg",
+  position: "50% 45%"
+}) }}
 
 <section class="section band">
   <div class="container prose">

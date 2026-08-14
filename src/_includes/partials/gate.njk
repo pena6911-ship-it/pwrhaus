@@ -1,0 +1,54 @@
+{#
+  Lead-capture gate. Ships hidden and inert: the `hidden` attribute keeps it out
+  of the layout, and the submit button ships disabled. gate.js is the ONLY thing
+  that reveals it (and only when the visitor hasn't already passed or dismissed).
+  This is deliberate — search engines and no-JS visitors get the full, unblurred
+  page, so there is no cloaking and no content is withheld from crawlers.
+#}
+<div class="gate" data-gate hidden>
+  <div class="gate-dialog" role="dialog" aria-modal="true"
+       aria-labelledby="gate-title" aria-describedby="gate-sub">
+    <img class="gate-logo" src="/img/logo.png" width="2000" height="2000"
+         alt="{{ site.name }}">
+    <p class="eyebrow">Co-ed &middot; Fort Lauderdale &amp; Miami</p>
+    <h2 id="gate-title">{{ site.tagline }}</h2>
+    <p id="gate-sub" class="gate-sub">
+      PWRHaus is founders and owners who do real business over eighteen holes.
+      Tell us where to reach you and step inside.
+    </p>
+
+    <form class="capture-form gate-form" data-gate-form>
+      <input type="hidden" name="source" value="web_gate">
+
+      <div class="field">
+        <label for="gate-name">Name</label>
+        <input id="gate-name" name="full_name" type="text"
+               autocomplete="name" maxlength="120">
+      </div>
+
+      <div class="field">
+        <label for="gate-email">Email <span aria-hidden="true">*</span></label>
+        <input id="gate-email" name="email" type="email" required
+               inputmode="email" autocomplete="email" maxlength="254">
+      </div>
+
+      <div class="field">
+        <label for="gate-phone">Phone</label>
+        <input id="gate-phone" name="phone" type="tel"
+               inputmode="tel" autocomplete="tel" maxlength="40">
+      </div>
+
+      <div class="hp-field" aria-hidden="true">
+        <label for="gate-hp">Company website</label>
+        <input id="gate-hp" name="company_website" type="text"
+               tabindex="-1" autocomplete="off">
+      </div>
+
+      <button class="btn btn-primary" type="submit" disabled>Enter the society</button>
+
+      <p class="form-error" data-gate-error role="alert" hidden></p>
+    </form>
+
+    <button class="gate-skip" type="button" data-gate-skip>Explore the site first</button>
+  </div>
+</div>

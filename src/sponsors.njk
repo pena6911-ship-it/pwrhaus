@@ -6,14 +6,15 @@ stickyLabel: Talk to us about sponsoring
 stickyHref: "#join-web_sponsor"
 ---
 
-<section class="section">
-  <div class="container prose">
-    <p class="eyebrow">Sponsorship</p>
-    <h1>Put your brand in the room.</h1>
-    <p class="lead">PWRHaus events are founders, owners and operators &mdash; the audience
-       most sponsorship budgets are aiming at and usually miss.</p>
-  </div>
-</section>
+{% from "partials/page-hero.njk" import pageHero %}
+
+{{ pageHero({
+  eyebrow: "Sponsorship",
+  heading: "Put your brand in the room.",
+  lead: "PWRHaus events are founders, owners and operators &mdash; the audience most sponsorship budgets are aiming at and usually miss.",
+  image: "/img/sponsors-hero.jpg",
+  position: "50% 55%"
+}) }}
 
 <section class="section band">
   <div class="container">

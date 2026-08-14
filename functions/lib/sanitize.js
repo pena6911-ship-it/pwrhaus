@@ -4,6 +4,7 @@ export const ALLOWED_SOURCES = new Set([
   'web_lessons',
   'web_sponsor',
   'web_corporate',
+  'web_gate',
 ]);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

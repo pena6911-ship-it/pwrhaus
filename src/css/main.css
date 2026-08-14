@@ -74,11 +74,53 @@ p  { max-width: var(--prose-max); }
 }
 .btn-primary:hover { background: var(--forest-deep); }
 
-/* Header */
-.site-header { border-bottom: 1px solid var(--line); background: var(--paper); }
+/* Header. White (not paper) so the logo's white ground is seamless — the
+   logo art is centred with only ~8% margins, so it reads well at header size
+   without a trimmed asset. */
+.site-header { border-bottom: 1px solid var(--line); background: var(--paper-raised); }
 .header-inner {
   display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-4); min-height: 64px;
+  gap: var(--space-4); min-height: 84px;
+}
+.brand {
+  display: inline-flex; align-items: center; gap: var(--space-3);
+  min-height: var(--touch-min); text-decoration: none;
+}
+/* Monogram badge, cropped from the stacked logo with pure CSS so no separate
+   asset is needed. The maths isolate the badge band (source x508–1541,
+   y145–1318 of the 2000² logo) scaled to a 54px mark. The logo's white ground
+   is seamless on the white header. */
+.brand-mark {
+  display: block;
+  width: 48px; height: 54px;
+  background-image: url("/img/logo.png");
+  background-repeat: no-repeat;
+  background-size: 92.1px 92.1px;
+  background-position: -23.4px -6.7px;
+}
+.brand-name { display: inline-flex; flex-direction: column; line-height: 1; }
+/* Wordmark cropped from the logo (source x189–1863, y1439–1915 of the 2000²
+   file) so the header type is IDENTICAL to the footer logo — same typeface,
+   no font guessing. White ground is seamless on the white header. */
+.brand-wordmark {
+  display: block;
+  width: 146px; height: 41px;
+  background-image: url("/img/logo.png");
+  background-repeat: no-repeat;
+  background-size: 174.2px 174.2px;
+  background-position: -16.5px -125.3px;
+}
+/* Tagline under the brand. Hidden on the narrowest screens so it can't crowd
+   the menu button, revealed from 480px up (mobile-first: min-width only). */
+.brand-tagline {
+  display: none;
+  margin-top: 5px;
+  font-family: var(--font-display);
+  font-size: 0.8125rem; line-height: 1.2;
+  color: var(--forest);
+}
+@media (min-width: 480px) {
+  .brand-tagline { display: block; }
 }
 .wordmark {
   font-family: var(--font-body); font-weight: 800;
@@ -126,11 +168,19 @@ body.nav-open { overflow: hidden; }
   .nav-cta { display: inline-flex; }
 }
 
-/* Footer */
+/* Footer. White ground (like .band) so the full logo's white background is
+   seamless — it bookends the white header. */
 .site-footer {
+  background: var(--paper-raised);
   border-top: 1px solid var(--line);
   margin-top: var(--space-section-md);
   padding-block: var(--space-7) var(--space-5);
+}
+.footer-logo { height: 116px; width: auto; margin-bottom: var(--space-3); }
+.footer-tagline {
+  font-family: var(--font-display);
+  font-size: 1.125rem; color: var(--forest);
+  margin-bottom: var(--space-2);
 }
 .footer-inner { display: grid; gap: var(--space-6); }
 .footer-blurb { color: var(--ink-muted); font-size: 0.875rem; margin-top: var(--space-2); }
@@ -335,3 +385,133 @@ body.has-sticky-cta {
     object-fit: cover;
   }
 }
+
+/* Full-bleed media hero: a background image or video with the headline overlaid.
+   Uses only existing palette tokens — a forest-deep scrim ties the photography
+   to the brand rather than washing it with neutral black. Higher specificity
+   than the two-column .hero rules above, so it wins wherever both apply. */
+.hero.hero--media {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  min-height: 82vh;
+  display: grid;
+  align-items: end;          /* headline sits low, editorial */
+  padding-block: 0;
+}
+.hero.hero--media .hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+/* Image heroes carry the photo as a background so no <img> is needed (which
+   also sidesteps the empty-alt rule for a decorative background). The URL and
+   focal point come in as call-site custom properties from the hero macro. */
+.hero.hero--media.hero--image {
+  background-image: var(--hero-img);
+  background-size: cover;
+  background-position: var(--hero-pos, 50% 50%);
+  background-repeat: no-repeat;
+}
+.hero.hero--media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(18,53,39,0)   28%, rgba(18,53,39,0.78) 100%),
+    linear-gradient(90deg,  rgba(18,53,39,0.55) 0%,  rgba(18,53,39,0)    58%);
+}
+.hero.hero--media .hero-inner {
+  display: block;
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  min-height: 0;
+  padding: var(--space-8) var(--page-pad) var(--space-9);
+}
+.hero.hero--media .hero-text {
+  margin-inline: 0;
+  max-width: 42ch;
+  padding-inline: 0;
+  color: var(--paper);
+}
+.hero.hero--media h1 { color: var(--paper); }
+.hero.hero--media .lead { color: rgba(250, 248, 243, 0.88); }
+/* Over the dark scrim the eyebrow reads best as soft cream — --brass is banned
+   as a text colour (fails AA on paper) and --brass-text is too dark on the
+   scrim. Cream keeps it legible and on-palette. */
+.hero.hero--media .eyebrow { color: rgba(250, 248, 243, 0.82); }
+.hero.hero--media .btn-secondary { color: var(--paper); border-bottom-color: var(--brass); }
+
+/* Respect reduced-motion: hide the autoplaying video and fall back to a forest
+   ground. Scoped to :not(.hero--image) so photo heroes keep their background. */
+@media (prefers-reduced-motion: reduce) {
+  .hero.hero--media .hero-bg { display: none; }
+  .hero.hero--media:not(.hero--image) { background: var(--forest-deep); }
+}
+
+/* Lead-capture gate. Ships hidden; gate.js reveals it only for real browsers
+   that haven't passed or dismissed it, so crawlers and no-JS visitors always
+   get the full, unblurred page (no cloaking). box-shadow is banned by the
+   design system, so the dialog separates from the blurred page with a border
+   plus the forest-tinted backdrop. */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+  background: rgba(18, 53, 39, 0.55);
+  overflow-y: auto;
+}
+.gate[hidden] { display: none; }
+.gate-dialog {
+  width: 100%;
+  max-width: 460px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: var(--space-7) var(--space-6);
+  text-align: center;
+}
+.gate-logo { height: 84px; width: auto; margin: 0 auto var(--space-4); }
+.gate-sub {
+  color: var(--ink-muted);
+  margin: var(--space-3) auto var(--space-5);
+  max-width: 42ch;
+}
+.gate-form { text-align: left; }
+.gate-form .btn-primary { width: 100%; }
+.gate-skip {
+  margin-top: var(--space-4);
+  min-height: var(--touch-min);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.gate-skip:hover { color: var(--forest); }
+
+/* Blur everything except the gate itself. Applied ONLY under .gate-active,
+   which gate.js adds at runtime — never in the shipped HTML. */
+.gate-active .site-header,
+.gate-active #main,
+.gate-active .site-footer,
+.gate-active .sticky-cta {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+}
+body.gate-open { overflow: hidden; }

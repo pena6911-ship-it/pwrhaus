@@ -6,14 +6,15 @@ stickyLabel: Keep me posted
 stickyHref: "#join-web_event_interest"
 ---
 
-<section class="section">
-  <div class="container prose">
-    <p class="eyebrow">Events</p>
-    <h1>The next season is being finalised.</h1>
-    <p class="lead">Our scrambles and socials are planned well ahead. Tell us where you'd
-       like to play and we'll make sure you hear about the calendar first.</p>
-  </div>
-</section>
+{% from "partials/page-hero.njk" import pageHero %}
+
+{{ pageHero({
+  eyebrow: "Events",
+  heading: "The next season is being finalised.",
+  lead: "Our scrambles and socials are planned well ahead. Tell us where you'd like to play and we'll make sure you hear about the calendar first.",
+  video: "/img/Dronegolfcourse.mp4",
+  poster: "/img/groupgolf1.jpg"
+}) }}
 
 <section class="section band">
   <div class="container">

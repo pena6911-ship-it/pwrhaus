@@ -6,18 +6,15 @@ stickyLabel: Ask about lessons
 stickyHref: "#join-web_lessons"
 ---
 {% from "partials/media-slot.njk" import mediaSlot %}
+{% from "partials/page-hero.njk" import pageHero %}
 
-<section class="section">
-  <div class="container split">
-    <div class="stack">
-      <p class="eyebrow">Lessons</p>
-      <h1>You don't need to know how to play.</h1>
-      <p class="lead">Most PWRHaus members had never held a club before joining.
-         Now they play. That is the entire point of this.</p>
-    </div>
-    {{ mediaSlot(false, "", "4 / 3") }}
-  </div>
-</section>
+{{ pageHero({
+  eyebrow: "Lessons",
+  heading: "You don't need to know how to play.",
+  lead: "Most PWRHaus members had never held a club before joining. Now they play. That is the entire point of this.",
+  image: "/img/lessons-hero.jpg",
+  position: "50% 55%"
+}) }}
 
 <section class="section band">
   <div class="container">
