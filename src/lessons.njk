@@ -42,11 +42,20 @@ stickyHref: "#join-web_lessons"
 </section>
 
 <section class="section">
-  <div class="container">
-    {% set formSource = "web_lessons" %}
-    {% set formHeading = "Ask about lessons" %}
-    {% set formSubmitLabel = "Ask about lessons" %}
-    {% set showNotes = true %}
-    {% include "partials/capture-form.njk" %}
+  <div class="container split">
+    <div class="video-portrait">
+      <video autoplay muted loop playsinline preload="metadata"
+             poster="/img/golflessons-poster.jpg"
+             aria-label="PWRHaus members at a group putting lesson">
+        <source src="/img/golflessons.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="stack">
+      {% set formSource = "web_lessons" %}
+      {% set formHeading = "Ask about lessons" %}
+      {% set formSubmitLabel = "Ask about lessons" %}
+      {% set showNotes = true %}
+      {% include "partials/capture-form.njk" %}
+    </div>
   </div>
 </section>
