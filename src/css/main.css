@@ -251,7 +251,7 @@ body.nav-open { overflow: hidden; }
   margin-inline: auto;
   aspect-ratio: 9 / 16;
   overflow: hidden;
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-media);
   border: 1px solid var(--line);
   background: var(--forest-deep);
 }
@@ -268,7 +268,7 @@ body.nav-open { overflow: hidden; }
 .media-credit a:hover { color: var(--forest); }
 
 /* Media slots */
-.media { width: 100%; border-radius: var(--radius-card); object-fit: cover; }
+.media { width: 100%; border-radius: var(--radius-media); object-fit: cover; }
 .media-placeholder {
   background: linear-gradient(135deg, var(--line) 0%, var(--paper-raised) 55%, var(--line) 100%);
   border: 1px solid var(--line);
