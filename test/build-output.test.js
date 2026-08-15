@@ -29,8 +29,12 @@ function htmlFiles(dir) {
   return found;
 }
 
+function publicHtmlFiles(dir) {
+  return htmlFiles(dir).filter((page) => !page.replace(/\\/g, '/').includes('/admin/'));
+}
+
 test('every built page carries the Framework & Co. credit', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -40,7 +44,7 @@ test('every built page carries the Framework & Co. credit', () => {
 });
 
 test('every built page has exactly one h1', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -50,7 +54,7 @@ test('every built page has exactly one h1', () => {
 });
 
 test('every built page declares a viewport and a lang attribute', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -83,7 +87,7 @@ test('the stylesheet never uses the decorative brass token for text colour', () 
 
 test('every rendered form posts a source the backend whitelists', async () => {
   const { ALLOWED_SOURCES } = await import('../functions/lib/sanitize.js');
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
 
   let found = 0;
@@ -102,7 +106,7 @@ test('every rendered form posts a source the backend whitelists', async () => {
 });
 
 test('every built page declares canonical and Open Graph metadata', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -113,7 +117,7 @@ test('every built page declares canonical and Open Graph metadata', () => {
 });
 
 test('no shipped image has an empty alt attribute', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -170,4 +174,15 @@ test('published CMS events generate detail pages and drafts do not', () => {
     /ENOENT/,
     'unpublished events must not generate public detail pages',
   );
+});
+
+test('admin route ships the Sveltia CMS boot page and config', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  assert.match(html, /<meta name="robots" content="noindex">/, 'admin must not be indexed');
+  assert.match(html, /@sveltia\/cms/, 'admin page should load Sveltia CMS');
+
+  const config = readFileSync(join(outDir, 'admin', 'config.yml'), 'utf8');
+  assert.match(config, /repo: pena6911-ship-it\/pwrhaus/);
+  assert.match(config, /name: events/);
+  assert.match(config, /file: src\/_data\/siteContent.json/);
 });

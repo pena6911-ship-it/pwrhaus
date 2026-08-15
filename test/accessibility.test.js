@@ -26,8 +26,12 @@ function htmlFiles(dir) {
   return found;
 }
 
+function publicHtmlFiles(dir) {
+  return htmlFiles(dir).filter((page) => !page.replace(/\\/g, '/').includes('/admin/'));
+}
+
 test('no page skips a heading level', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -42,7 +46,7 @@ test('no page skips a heading level', () => {
 });
 
 test('the skip link is the first focusable element on every page', () => {
-  for (const page of htmlFiles(outDir)) {
+  for (const page of publicHtmlFiles(outDir)) {
     const html = readFileSync(page, 'utf8');
     const body = html.slice(html.indexOf('<body'));
     const first = body.match(/<(?:a|button|input|select|textarea)\b[^>]*>/);
@@ -56,7 +60,7 @@ test('the skip link is the first focusable element on every page', () => {
 });
 
 test('every form input has a label bound to it', () => {
-  for (const page of htmlFiles(outDir)) {
+  for (const page of publicHtmlFiles(outDir)) {
     const html = readFileSync(page, 'utf8');
     const forId = new Set([...html.matchAll(/<label[^>]*\sfor="([^"]+)"/g)].map((m) => m[1]));
     for (const m of html.matchAll(/<(?:input|textarea)\b[^>]*>/g)) {
