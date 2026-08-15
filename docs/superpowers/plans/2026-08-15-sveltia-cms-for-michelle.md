@@ -4,7 +4,7 @@
 
 **Goal:** Add a review-first Sveltia CMS setup so Michelle can edit structured event and page content without a custom admin platform.
 
-**Architecture:** Sveltia lives at `/admin/` as static Eleventy output. The CMS edits JSON files in `src/_data/` and media under `src/img/cms/`; Eleventy renders those files into the public Events page and event detail pages. GitHub remains the storage/review layer, with Sveltia configured for the `pena6911-ship-it/pwrhaus` repo.
+**Architecture:** Sveltia lives at `/admin/` as static Eleventy output. The CMS edits JSON files in `src/_data/` and media under `src/img/cms/`; Eleventy renders those files into the public Events page and event detail pages. GitHub remains the storage/review layer, with Sveltia configured for the `pena6911-ship-it/pwrhaus` repo. `events.json` is an object with an `events` array so Sveltia can edit the file cleanly.
 
 **Tech Stack:** Eleventy v3, Nunjucks, vanilla JS/CSS, Sveltia CMS loaded on the admin page, GitHub backend, Node `node:test`.
 
@@ -34,7 +34,7 @@
 - Create `src/_data/content.json`: CMS-editable page-content singleton with Events hero fields.
 - Modify `src/events.njk`: render Events hero and event lists from data.
 - Create `src/events/detail.njk`: generated detail pages for each published event.
-- Modify `eleventy.config.js`: add date/event helper filters.
+- Modify `eleventy.config.js`: add date/event helper filters and passthrough-copy `src/admin/config.yml`.
 - Modify `test/build-output.test.js`: add assertions for admin output and event generation.
 - Create `test/cms-content.test.js`: validate CMS data shape before Eleventy builds.
 - Create `src/img/cms/.gitkeep`: keep the CMS upload folder in Git.
@@ -49,7 +49,7 @@
 - Create: `src/_data/content.json`
 
 **Interfaces:**
-- Produces: `events.json` as an array of event objects.
+- Produces: `events.json` as an object with an `events` array of event objects.
 - Produces: `content.json.eventsHero` with `eyebrow`, `heading`, `lead`, `video`, and `poster`.
 
 - [ ] **Step 1: Write the failing data-shape tests**
@@ -61,7 +61,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const events = JSON.parse(readFileSync('src/_data/events.json', 'utf8'));
+const eventsData = JSON.parse(readFileSync('src/_data/events.json', 'utf8'));
+const events = eventsData.events;
 const content = JSON.parse(readFileSync('src/_data/content.json', 'utf8'));
 
 const requiredEventFields = [
@@ -80,7 +81,8 @@ const requiredEventFields = [
   'registration_url',
 ];
 
-test('events.json is an array of CMS-editable event records', () => {
+test('events.json exposes a CMS-editable events array', () => {
+  assert.ok(eventsData && typeof eventsData === 'object', 'events.json must be an object');
   assert.ok(Array.isArray(events), 'events.json must be an array');
   assert.ok(events.length >= 2, 'seed at least one upcoming and one past event');
 
@@ -122,53 +124,55 @@ Expected: FAIL because `src/_data/events.json` and `src/_data/content.json` do n
 Create `src/_data/events.json`:
 
 ```json
-[
-  {
-    "slug": "fall-founder-scramble",
-    "name": "Fall Founder Scramble",
-    "city": "Fort Lauderdale",
-    "venue": "TPC Eagle Trace",
-    "starts_at": "2026-09-18T13:00:00-04:00",
-    "price_cents": 15000,
-    "capacity": 40,
-    "summary": "A business-first scramble for founders, operators, and investors.",
-    "body": "A relaxed competitive round built for warm introductions, smart pairings, and useful follow-up after the final putt.",
-    "image": "/img/events-hero.jpg",
-    "image_alt": "Golfers walking together across a green course",
-    "published": true,
-    "registration_url": null
-  },
-  {
-    "slug": "spring-networking-nine",
-    "name": "Spring Networking Nine",
-    "city": "Miami",
-    "venue": "The Tips Golf Miami",
-    "starts_at": "2026-04-22T17:30:00-04:00",
-    "price_cents": 8500,
-    "capacity": 24,
-    "summary": "Nine holes, one focused room of business owners, and enough time to actually talk.",
-    "body": "This evening-format event pairs golf with intentional introductions for members and prospective members.",
-    "image": "/img/corporate-hero.webp",
-    "image_alt": "PWRHaus members gathered at an indoor golf venue",
-    "published": true,
-    "registration_url": null
-  },
-  {
-    "slug": "draft-member-preview",
-    "name": "Draft Member Preview",
-    "city": "Miami",
-    "venue": "Private venue",
-    "starts_at": "2026-10-10T10:00:00-04:00",
-    "price_cents": 0,
-    "capacity": 12,
-    "summary": "Hidden seed event used to verify unpublished CMS records stay private.",
-    "body": "This event should not appear on the public site until Michelle marks it published.",
-    "image": "/img/corporate-hero.webp",
-    "image_alt": "Indoor golf venue lounge",
-    "published": false,
-    "registration_url": null
-  }
-]
+{
+  "events": [
+    {
+      "slug": "fall-founder-scramble",
+      "name": "Fall Founder Scramble",
+      "city": "Fort Lauderdale",
+      "venue": "TPC Eagle Trace",
+      "starts_at": "2026-09-18T13:00:00-04:00",
+      "price_cents": 15000,
+      "capacity": 40,
+      "summary": "A business-first scramble for founders, operators, and investors.",
+      "body": "A relaxed competitive round built for warm introductions, smart pairings, and useful follow-up after the final putt.",
+      "image": "/img/groupgolf1.jpg",
+      "image_alt": "Golfers walking together across a green course",
+      "published": true,
+      "registration_url": null
+    },
+    {
+      "slug": "spring-networking-nine",
+      "name": "Spring Networking Nine",
+      "city": "Miami",
+      "venue": "The Tips Golf Miami",
+      "starts_at": "2026-04-22T17:30:00-04:00",
+      "price_cents": 8500,
+      "capacity": 24,
+      "summary": "Nine holes, one focused room of business owners, and enough time to actually talk.",
+      "body": "This evening-format event pairs golf with intentional introductions for members and prospective members.",
+      "image": "/img/corporate-hero.webp",
+      "image_alt": "PWRHaus members gathered at an indoor golf venue",
+      "published": true,
+      "registration_url": null
+    },
+    {
+      "slug": "draft-member-preview",
+      "name": "Draft Member Preview",
+      "city": "Miami",
+      "venue": "Private venue",
+      "starts_at": "2026-10-10T10:00:00-04:00",
+      "price_cents": 0,
+      "capacity": 12,
+      "summary": "Hidden seed event used to verify unpublished CMS records stay private.",
+      "body": "This event should not appear on the public site until Michelle marks it published.",
+      "image": "/img/corporate-hero.webp",
+      "image_alt": "Indoor golf venue lounge",
+      "published": false,
+      "registration_url": null
+    }
+  ]
+}
 ```
 
 Create `src/_data/content.json`:
@@ -247,9 +251,9 @@ Create `src/_data/publishedEvents.js`:
 ```js
 import { readFileSync } from 'node:fs';
 
-const events = JSON.parse(readFileSync(new URL('./events.json', import.meta.url), 'utf8'));
+const eventsData = JSON.parse(readFileSync(new URL('./events.json', import.meta.url), 'utf8'));
 
-export default events.filter((event) => event.published === true);
+export default eventsData.events.filter((event) => event.published === true);
 ```
 
 - [ ] **Step 4: Add event filters to Eleventy config**
@@ -522,13 +526,38 @@ git commit -m "Render CMS-driven events"
 - Create: `src/admin/index.html`
 - Create: `src/admin/config.yml`
 - Create: `src/img/cms/.gitkeep`
+- Modify: `eleventy.config.js`
+- Modify: `test/accessibility.test.js`
 - Modify: `test/build-output.test.js`
 
 **Interfaces:**
 - Produces `/admin/index.html` in the Eleventy output.
 - Produces Sveltia collections named `events` and `site_content`.
 
-- [ ] **Step 1: Add admin build-output tests**
+- [ ] **Step 1: Exclude admin utility pages from public-page assertions**
+
+In `test/build-output.test.js`, add this helper after `htmlFiles`:
+
+```js
+function publicHtmlFiles(dir) {
+  return htmlFiles(dir).filter((page) => !page.replace(/\\/g, '/').includes('/admin/'));
+}
+```
+
+Then replace these public-page loops to use `publicHtmlFiles(outDir)` instead of `htmlFiles(outDir)`:
+- `every built page carries the Framework & Co. credit`
+- `every built page has exactly one h1`
+- `every built page declares a viewport and a lang attribute`
+- `every rendered form posts a source the backend whitelists`
+- `every built page declares canonical and Open Graph metadata`
+- `no shipped image has an empty alt attribute`
+
+In `test/accessibility.test.js`, add the same `publicHtmlFiles` helper after `htmlFiles`, then update these tests to loop over `publicHtmlFiles(outDir)`:
+- `no page skips a heading level`
+- `the skip link is the first focusable element on every page`
+- `every form input has a label bound to it`
+
+- [ ] **Step 2: Add admin build-output tests**
 
 Append to `test/build-output.test.js`:
 
@@ -545,13 +574,13 @@ test('admin route ships the Sveltia CMS boot page and config', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests and verify failure**
+- [ ] **Step 3: Run tests and verify failure**
 
 Run: `npm test`
 
 Expected: FAIL because `/admin/` files do not exist yet.
 
-- [ ] **Step 3: Add Sveltia boot page**
+- [ ] **Step 4: Add Sveltia boot page**
 
 Create `src/admin/index.html`:
 
@@ -570,7 +599,7 @@ Create `src/admin/index.html`:
 </html>
 ```
 
-- [ ] **Step 4: Add Sveltia config**
+- [ ] **Step 5: Add Sveltia config**
 
 Create `src/admin/config.yml`:
 
@@ -640,23 +669,31 @@ collections:
               - { label: Hero Poster, name: poster, widget: image, required: false }
 ```
 
-- [ ] **Step 5: Keep CMS media folder in Git**
+- [ ] **Step 6: Passthrough-copy the CMS config**
+
+In `eleventy.config.js`, add this near the other passthrough copy calls:
+
+```js
+  eleventyConfig.addPassthroughCopy('src/admin/config.yml');
+```
+
+- [ ] **Step 7: Keep CMS media folder in Git**
 
 Create `src/img/cms/.gitkeep` as an empty file.
 
-- [ ] **Step 6: Run tests**
+- [ ] **Step 8: Run tests**
 
 Run: `npm test`
 
 Expected: PASS.
 
-- [ ] **Step 7: Run build**
+- [ ] **Step 9: Run build**
 
 Run: `npm run build`
 
 Expected: PASS and `public/admin/index.html` plus `public/admin/config.yml` exist.
 
-- [ ] **Step 8: Commit Task 4**
+- [ ] **Step 10: Commit Task 4**
 
 Run:
 

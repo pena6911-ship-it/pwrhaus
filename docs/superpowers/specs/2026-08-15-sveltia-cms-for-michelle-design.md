@@ -48,10 +48,17 @@ GitHub-backed and review-first.
 
 ### D4. Events Are The First Real Content Model
 
-Events are highest-churn and already identified by the marketing-site spec as the file a
-git-based CMS edits. Add `src/_data/events.json` and render it on `/events/`.
+Events are highest-churn and already identified by the marketing-site spec as content a
+git-based CMS edits. Add `src/_data/events.json` and render it on `/events/`. The file is
+an object with an `events` array so Sveltia's file collection can edit it cleanly:
 
-Each event has:
+```json
+{
+  "events": []
+}
+```
+
+Each item in `events` has:
 - `slug`
 - `name`
 - `city`
