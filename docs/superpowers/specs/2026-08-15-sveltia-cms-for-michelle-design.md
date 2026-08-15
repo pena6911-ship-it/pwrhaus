@@ -139,3 +139,14 @@ Sveltia's current documentation says it supports GitHub as a Git-based backend, 
 configurable branch, supports internal media folders, and offers simple vs editorial workflows.
 This spec uses those capabilities but keeps implementation constrained to static files in this
 repo.
+
+## 7. Implementation Status
+
+Initial CMS implementation shipped with:
+- `/admin/` Sveltia boot page
+- GitHub backend configuration for `pena6911-ship-it/pwrhaus`
+- Editorial workflow
+- `src/_data/events.json`
+- `src/_data/siteContent.json`
+- CMS media folder at `src/img/cms/`
+- Data-driven `/events/` page and generated published event detail pages

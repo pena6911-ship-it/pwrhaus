@@ -29,7 +29,7 @@ with its real status, regardless of which label it wore.
 | A. Site polish + go-live | — | 🟡 in progress | this doc |
 | B. Merch → production | Plan D | 🟢 **POC built**, needs productionizing | `2026-08-14-merch-stripe-printify-design.md` |
 | C. Member portal | Plan C | 🟡 **decided (GHL native)**, not built | `2026-08-14-member-portal-and-cms-architecture.md` |
-| D. Site CMS for Michelle | Phase 2 | 🟡 **decided (Sveltia)**, not built | same doc as C |
+| D. Site CMS for Michelle | Phase 2 | 🟢 **built initial CMS**: events + events-page content editable via Sveltia | `2026-08-15-sveltia-cms-for-michelle-design.md` |
 | E. CRM/data hardening | Phase 2 | ⬜ not started | needs its own spec |
 | F. Sponsor pipeline automation | Phase 2 | ⬜ blocked on sponsor answers | needs its own spec |
 | G. Inner Circle ($5k) online flow | Phase 2 | ⬜ not started | needs its own spec |
@@ -83,9 +83,13 @@ unlocks gated sections (directory, virtual lessons, perks, payment/address manag
 - **Acceptance:** a free signup can log into a portal; paid sections are gated; payment/address
   edits work. Mostly configuration + linking, minimal custom code (that's the point).
 
-### D · Site CMS for Michelle (Phase 2)  🟡
+### D · Site CMS for Michelle (Phase 2)  🟢
 Decision locked: **git-based CMS, Sveltia recommended** (no backend; commits to the repo →
 Netlify rebuild). Decap is the fallback (maintenance has slowed).
+- **Initial CMS built:** `/admin/`, GitHub-backed Sveltia config, editorial workflow,
+  editable `src/_data/events.json`, editable `src/_data/siteContent.json`, repo media
+  folder at `src/img/cms/`, data-driven `/events/`, and generated published event detail
+  pages.
 - Add Sveltia config (`admin/`), auth backend (GitHub) for Michelle.
 - Model the highest-churn content first: **events** (`src/_data/events.json`), page hero copy,
   merch/product text. Structural templates stay in code.
