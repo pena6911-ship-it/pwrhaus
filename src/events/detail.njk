@@ -1,0 +1,47 @@
+---
+layout: base.njk
+pagination:
+  data: publishedEvents
+  size: 1
+  alias: event
+permalink: "/events/{{ event.slug }}/"
+title: "{{ event.name }} — PWRHaus Golf Society"
+description: "{{ event.summary }}"
+stickyLabel: Keep me posted
+stickyHref: "#join-web_event_interest"
+---
+
+{% from "partials/page-hero.njk" import pageHero %}
+
+{{ pageHero({
+  eyebrow: event.city,
+  heading: event.name,
+  lead: event.summary,
+  image: event.image,
+  position: "50% 45%"
+}) }}
+
+<section class="section">
+  <div class="container split">
+    <div class="stack">
+      <p class="eyebrow">{{ event.starts_at | eventDate }}</p>
+      <h2>{{ event.venue }}</h2>
+      <p>{{ event.body }}</p>
+      <p>{{ event.price_cents | usd }} · {{ event.capacity }} spots</p>
+      {% if event.registration_url %}
+      <p><a class="btn btn-primary" href="{{ event.registration_url }}">Register</a></p>
+      {% endif %}
+    </div>
+    <img class="media" src="{{ event.image }}" alt="{{ event.image_alt }}" loading="lazy" decoding="async">
+  </div>
+</section>
+
+<section class="section band">
+  <div class="container">
+    {% set formSource = "web_event_interest" %}
+    {% set formHeading = "Ask about this event" %}
+    {% set formSubmitLabel = "Keep me posted" %}
+    {% set showNotes = true %}
+    {% include "partials/capture-form.njk" %}
+  </div>
+</section>

@@ -150,3 +150,24 @@ test('the home page hosts the form the nav CTAs anchor to', () => {
     'home page must host the form the header CTAs link to',
   );
 });
+
+test('events page renders published CMS events and hides drafts', () => {
+  const html = readFileSync(join(outDir, 'events', 'index.html'), 'utf8');
+  assert.match(html, /Fall Founder Scramble/, 'published upcoming event should render');
+  assert.match(html, /Spring Networking Nine/, 'published past event should render');
+  assert.doesNotMatch(html, /Draft Member Preview/, 'unpublished event should not render');
+  assert.match(html, /Upcoming/, 'events page should label upcoming events');
+  assert.match(html, /Past/, 'events page should label past events');
+});
+
+test('published CMS events generate detail pages and drafts do not', () => {
+  const fall = readFileSync(join(outDir, 'events', 'fall-founder-scramble', 'index.html'), 'utf8');
+  assert.match(fall, /Fall Founder Scramble/);
+  assert.match(fall, /A business-first scramble/);
+
+  assert.throws(
+    () => readFileSync(join(outDir, 'events', 'draft-member-preview', 'index.html'), 'utf8'),
+    /ENOENT/,
+    'unpublished events must not generate public detail pages',
+  );
+});
