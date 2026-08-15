@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 
 const eventsData = JSON.parse(readFileSync('src/_data/events.json', 'utf8'));
 const events = eventsData.events;
-const content = JSON.parse(readFileSync('src/_data/content.json', 'utf8'));
+const siteContent = JSON.parse(readFileSync('src/_data/siteContent.json', 'utf8'));
 
 const requiredEventFields = [
   'slug',
@@ -44,11 +44,26 @@ test('events.json exposes a CMS-editable events array', () => {
   }
 });
 
-test('content.json exposes the events page hero singleton', () => {
-  assert.ok(content.eventsHero, 'content.json must define eventsHero');
-  assert.equal(typeof content.eventsHero.eyebrow, 'string');
-  assert.equal(typeof content.eventsHero.heading, 'string');
-  assert.equal(typeof content.eventsHero.lead, 'string');
-  assert.ok(content.eventsHero.heading.trim().length > 0, 'events hero heading is required');
-  assert.ok(content.eventsHero.lead.trim().length > 0, 'events hero lead is required');
+test('siteContent.json exposes the events page hero singleton', () => {
+  assert.ok(siteContent.eventsHero, 'siteContent.json must define eventsHero');
+  assert.equal(typeof siteContent.eventsHero.eyebrow, 'string');
+  assert.equal(typeof siteContent.eventsHero.heading, 'string');
+  assert.equal(typeof siteContent.eventsHero.lead, 'string');
+  assert.ok(siteContent.eventsHero.heading.trim().length > 0, 'events hero heading is required');
+  assert.ok(siteContent.eventsHero.lead.trim().length > 0, 'events hero lead is required');
+});
+
+test('publishedEvents contains only published event records', async () => {
+  const { default: publishedEvents } = await import('../src/_data/publishedEvents.js');
+  assert.ok(publishedEvents.length > 0, 'expected at least one published event');
+  assert.equal(
+    publishedEvents.some((event) => event.slug === 'draft-member-preview'),
+    false,
+    'unpublished events must not be exposed as publishedEvents',
+  );
+  assert.equal(
+    publishedEvents.every((event) => event.published === true),
+    true,
+    'publishedEvents may only include published records',
+  );
 });

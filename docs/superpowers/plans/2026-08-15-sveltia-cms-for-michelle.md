@@ -31,7 +31,7 @@
 - Create `src/admin/config.yml`: concrete Sveltia config for GitHub backend, editorial workflow, events collection, and page-content singleton.
 - Create `src/_data/events.json`: CMS-editable event list.
 - Create `src/_data/publishedEvents.js`: filters `events.json` to public events for templates and generated pages.
-- Create `src/_data/content.json`: CMS-editable page-content singleton with Events hero fields.
+- Create `src/_data/siteContent.json`: CMS-editable page-content singleton with Events hero fields.
 - Modify `src/events.njk`: render Events hero and event lists from data.
 - Create `src/events/detail.njk`: generated detail pages for each published event.
 - Modify `eleventy.config.js`: add date/event helper filters and passthrough-copy `src/admin/config.yml`.
@@ -46,11 +46,11 @@
 **Files:**
 - Create: `test/cms-content.test.js`
 - Create: `src/_data/events.json`
-- Create: `src/_data/content.json`
+- Create: `src/_data/siteContent.json`
 
 **Interfaces:**
 - Produces: `events.json` as an object with an `events` array of event objects.
-- Produces: `content.json.eventsHero` with `eyebrow`, `heading`, `lead`, `video`, and `poster`.
+- Produces: `siteContent.json.eventsHero` with `eyebrow`, `heading`, `lead`, `video`, and `poster`.
 
 - [ ] **Step 1: Write the failing data-shape tests**
 
@@ -63,7 +63,7 @@ import { readFileSync } from 'node:fs';
 
 const eventsData = JSON.parse(readFileSync('src/_data/events.json', 'utf8'));
 const events = eventsData.events;
-const content = JSON.parse(readFileSync('src/_data/content.json', 'utf8'));
+const siteContent = JSON.parse(readFileSync('src/_data/siteContent.json', 'utf8'));
 
 const requiredEventFields = [
   'slug',
@@ -103,13 +103,13 @@ test('events.json exposes a CMS-editable events array', () => {
   }
 });
 
-test('content.json exposes the events page hero singleton', () => {
-  assert.ok(content.eventsHero, 'content.json must define eventsHero');
-  assert.equal(typeof content.eventsHero.eyebrow, 'string');
-  assert.equal(typeof content.eventsHero.heading, 'string');
-  assert.equal(typeof content.eventsHero.lead, 'string');
-  assert.ok(content.eventsHero.heading.trim().length > 0, 'events hero heading is required');
-  assert.ok(content.eventsHero.lead.trim().length > 0, 'events hero lead is required');
+test('siteContent.json exposes the events page hero singleton', () => {
+  assert.ok(siteContent.eventsHero, 'siteContent.json must define eventsHero');
+  assert.equal(typeof siteContent.eventsHero.eyebrow, 'string');
+  assert.equal(typeof siteContent.eventsHero.heading, 'string');
+  assert.equal(typeof siteContent.eventsHero.lead, 'string');
+  assert.ok(siteContent.eventsHero.heading.trim().length > 0, 'events hero heading is required');
+  assert.ok(siteContent.eventsHero.lead.trim().length > 0, 'events hero lead is required');
 });
 ```
 
@@ -117,7 +117,7 @@ test('content.json exposes the events page hero singleton', () => {
 
 Run: `node --test test/cms-content.test.js`
 
-Expected: FAIL because `src/_data/events.json` and `src/_data/content.json` do not exist yet.
+Expected: FAIL because `src/_data/events.json` and `src/_data/siteContent.json` do not exist yet.
 
 - [ ] **Step 3: Add seed CMS data**
 
@@ -175,7 +175,7 @@ Create `src/_data/events.json`:
 }
 ```
 
-Create `src/_data/content.json`:
+Create `src/_data/siteContent.json`:
 
 ```json
 {
@@ -200,7 +200,7 @@ Expected: PASS.
 Run:
 
 ```powershell
-git add -- test/cms-content.test.js src/_data/events.json src/_data/content.json
+git add -- test/cms-content.test.js src/_data/events.json src/_data/siteContent.json
 git commit -m "Add CMS-editable content data"
 ```
 
@@ -320,7 +320,7 @@ git commit -m "Add event publishing helpers"
 - Modify: `test/build-output.test.js`
 
 **Interfaces:**
-- Consumes: `content.eventsHero`
+- Consumes: `siteContent.eventsHero`
 - Consumes: `publishedEvents`
 - Consumes filters: `eventDate`, `upcomingEvents`, `pastEvents`, `usd`
 - Produces public URLs `/events/`, `/events/fall-founder-scramble/`, `/events/spring-networking-nine/`
@@ -374,11 +374,11 @@ stickyHref: "#join-web_event_interest"
 {% from "partials/page-hero.njk" import pageHero %}
 
 {{ pageHero({
-  eyebrow: content.eventsHero.eyebrow,
-  heading: content.eventsHero.heading,
-  lead: content.eventsHero.lead,
-  video: content.eventsHero.video,
-  poster: content.eventsHero.poster
+  eyebrow: siteContent.eventsHero.eyebrow,
+  heading: siteContent.eventsHero.heading,
+  lead: siteContent.eventsHero.lead,
+  video: siteContent.eventsHero.video,
+  poster: siteContent.eventsHero.poster
 }) }}
 
 {% set upcoming = publishedEvents | upcomingEvents %}
@@ -570,7 +570,7 @@ test('admin route ships the Sveltia CMS boot page and config', () => {
   const config = readFileSync(join(outDir, 'admin', 'config.yml'), 'utf8');
   assert.match(config, /repo: pena6911-ship-it\/pwrhaus/);
   assert.match(config, /name: events/);
-  assert.match(config, /file: src\/_data\/content.json/);
+  assert.match(config, /file: src\/_data\/siteContent.json/);
 });
 ```
 
@@ -656,7 +656,7 @@ collections:
     files:
       - name: events_page
         label: Events Page
-        file: src/_data/content.json
+        file: src/_data/siteContent.json
         fields:
           - label: Events Hero
             name: eventsHero
@@ -736,7 +736,7 @@ Initial CMS implementation shipped with:
 - GitHub backend configuration for `pena6911-ship-it/pwrhaus`
 - Editorial workflow
 - `src/_data/events.json`
-- `src/_data/content.json`
+- `src/_data/siteContent.json`
 - CMS media folder at `src/img/cms/`
 - Data-driven `/events/` page and generated published event detail pages
 ```

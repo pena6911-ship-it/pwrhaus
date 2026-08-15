@@ -28,7 +28,7 @@ change CSS tokens, or modify navigation structure in this increment.
 
 Editable in Phase 2A:
 - Events in `src/_data/events.json`
-- Reusable page content in `src/_data/content.json`
+- Reusable page content in `src/_data/siteContent.json`
 - CMS-uploaded images under `src/img/cms/`
 
 Code-only in Phase 2A:
@@ -78,12 +78,12 @@ upcoming is derived from `starts_at`, not hand-entered.
 
 ### D5. Page Content Is A Narrow File Collection
 
-Add `src/_data/content.json` for copy that benefits from gentle editing without turning every
+Add `src/_data/siteContent.json` for copy that benefits from gentle editing without turning every
 template into a CMS page. Phase 2A includes only:
 - Events page hero eyebrow, heading, lead, video, poster
 - Home intro image alt text, if needed later
 
-Templates read from `content.json` with existing fallback copy so a missing field cannot blank
+Templates read from `siteContent.json` with existing fallback copy so a missing field cannot blank
 the site.
 
 ### D6. Media Storage Stays In The Repo
