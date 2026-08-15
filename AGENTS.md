@@ -75,6 +75,7 @@ Done and pushed (site work on `main`, everything on `poc/merch`):
 
 ## Key docs
 
+- **`docs/superpowers/specs/2026-08-14-phase-2-roadmap.md` — the authoritative "what's next" (supersedes scattered Phase 2 lists). Start here for roadmap/sequencing.**
 - `docs/superpowers/specs/2026-08-12-pwrhaus-marketing-site-design.md` — the site design spec (tokens, IA, rules).
 - `docs/superpowers/specs/2026-08-14-merch-stripe-printify-design.md` — merch commerce spec.
 - `docs/superpowers/specs/2026-08-14-member-portal-and-cms-architecture.md` — portal + CMS decisions.
