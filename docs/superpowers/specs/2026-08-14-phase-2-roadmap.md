@@ -28,7 +28,7 @@ with its real status, regardless of which label it wore.
 |---|---|---|---|
 | A. Site polish + go-live | — | 🟡 in progress | this doc |
 | B. Merch → production | Plan D | 🟢 **POC built**, needs productionizing | `2026-08-14-merch-stripe-printify-design.md` |
-| C. Member portal | Plan C | 🟡 **decided (GHL native)**, not built | `2026-08-14-member-portal-and-cms-architecture.md` |
+| C. Member portal | Plan C | 🟡 **designed (GHL native)**, not built | `2026-08-17-ghl-member-portal-design.md` |
 | D. Site CMS for Michelle | Phase 2 | 🟢 **built initial CMS**: events + events-page content editable via Sveltia | `2026-08-15-sveltia-cms-for-michelle-design.md` |
 | E. CRM/data hardening | Phase 2 | ⬜ not started | needs its own spec |
 | F. Sponsor pipeline automation | Phase 2 | ⬜ blocked on sponsor answers | needs its own spec |
@@ -73,10 +73,11 @@ From the working POC (`poc/merch`, Stripe test + Printify draft-only) to real sa
   which supersedes the static `products.json` described in the merch spec §4.
 
 ### C · Member portal (Plan C)  🟡
-Decision locked: **use GoHighLevel native** memberships/community/client-portal; the site
-captures on-site and links members into their GHL portal. Free + paid both get a login; paid
+Decision locked and designed: **use GoHighLevel native** memberships/community/client-portal; the
+site captures on-site and links members into their GHL portal. Free + paid both get a login; paid
 unlocks gated sections (directory, virtual lessons, perks, payment/address management).
-- Confirm Michelle's GHL plan includes Memberships/Communities/Courses; define invite + login.
+- GHL access confirmed: Michelle's account includes Memberships, Communities, Courses, and Client
+  Portal.
 - Decide auth/login entry points from the site; wire "sign up → free profile → portal" path.
 - **Member directory = opt-in, per-field privacy** (never on by default).
 - Reconcile what the portal reads from GHL vs Supabase so the two don't drift.
