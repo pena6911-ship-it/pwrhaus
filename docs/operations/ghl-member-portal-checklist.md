@@ -22,7 +22,7 @@
 - Free member area exists.
 - Paid member area exists.
 - Virtual lessons course area exists.
-- Community space exists.
+- Community space exists; sandbox community name is `PWRHAUS Business`.
 - Community cover image: `src/img/community-cover-16x9.jpg`
 - Directory or community profile fields exist with opt-in visibility.
 
@@ -107,6 +107,8 @@ against a custom field named `pwrhaus_tier`.
   cannot send email.
 - Logging into the portal with the exact test contact email exposed the expected member content
   after `pwrhaus_tier_member` granted `PWRHaus Member Access`.
+- `PWRHAUS Business` was visible from the member portal for
+  `pena6911+20260818020917@gmail.com` after member access was granted.
 - Existing contacts that were synced before tag production was added may need a one-time GHL
   tag/backfill operation.
 
