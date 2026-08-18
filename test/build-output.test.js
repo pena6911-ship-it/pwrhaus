@@ -15,6 +15,16 @@ before(() => {
   });
 });
 
+function buildWithEnv(extraEnv) {
+  const dir = mkdtempSync(join(tmpdir(), 'pwrhaus-build-env-'));
+  execFileSync('npx', ['@11ty/eleventy', '--output=' + dir], {
+    stdio: 'pipe',
+    shell: true,
+    env: { ...process.env, ...extraEnv },
+  });
+  return dir;
+}
+
 after(() => {
   if (outDir) rmSync(outDir, { recursive: true, force: true });
 });
@@ -153,6 +163,23 @@ test('the home page hosts the form the nav CTAs anchor to', () => {
     /id="join-web_free_profile"/,
     'home page must host the form the header CTAs link to',
   );
+});
+
+test('member login links are hidden until a GHL portal URL is configured', () => {
+  const html = readFileSync(join(outDir, 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /Member Login/, 'portal links should not render without GHL_PORTAL_URL');
+});
+
+test('member login links render when a GHL portal URL is configured', () => {
+  const dir = buildWithEnv({ GHL_PORTAL_URL: 'https://portal.example.com/pwrhaus' });
+  try {
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
+    const matches = html.match(/href="https:\/\/portal\.example\.com\/pwrhaus"/g) || [];
+    assert.ok(matches.length >= 2, 'header and footer should link to the configured portal URL');
+    assert.match(html, /Member Login/, 'configured portal link should use the approved label');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('events page renders published CMS events and hides drafts', () => {

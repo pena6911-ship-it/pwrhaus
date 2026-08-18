@@ -30,6 +30,9 @@
         {% for item in nav %}
         <li><a href="{{ item.url }}">{{ item.label }}</a></li>
         {% endfor %}
+        {% if site.portalUrl %}
+        <li><a href="{{ site.portalUrl }}">Member Login</a></li>
+        {% endif %}
       </ul>
     </nav>
   </div>
