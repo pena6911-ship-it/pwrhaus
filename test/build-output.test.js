@@ -190,6 +190,28 @@ test('member login links render when a GHL portal URL is configured', () => {
   }
 });
 
+test('membership page hides portal CTA until a GHL portal URL is configured', () => {
+  const html = readFileSync(join(outDir, 'membership', 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /Enter Member Portal/, 'membership page should not show portal CTA without GHL_PORTAL_URL');
+});
+
+test('membership page renders portal CTA when a GHL portal URL is configured', () => {
+  const dir = buildWithEnv({ GHL_PORTAL_URL: 'https://portal.example.com/pwrhaus' });
+  try {
+    const html = readFileSync(join(dir, 'membership', 'index.html'), 'utf8');
+    assert.match(html, /Enter Member Portal/);
+    assert.match(html, /href="https:\/\/portal\.example\.com\/pwrhaus"/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('thanks page mentions the portal invite email', () => {
+  const html = readFileSync(join(outDir, 'thanks', 'index.html'), 'utf8');
+  assert.match(html, /check your email/i);
+  assert.match(html, /portal invite/i);
+});
+
 test('events page renders published CMS events and hides drafts', () => {
   const html = readFileSync(join(outDir, 'events', 'index.html'), 'utf8');
   assert.match(html, /Fall Founder Scramble/, 'published upcoming event should render');
