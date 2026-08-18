@@ -26,6 +26,26 @@
 - Community cover image: `src/img/community-cover-16x9.jpg`
 - Directory or community profile fields exist with opt-in visibility.
 
+## Directory Privacy Model
+
+- Directory access is paid-member only.
+- Free members can access the welcome/community orientation area, but not the member directory.
+- No member appears in the directory by default.
+- A member appears only when `pwrhaus_directory_opt_in` is true.
+- Each directory field has its own visibility flag; never infer one visible field from another.
+- Safe optional fields:
+  - Display name: `pwrhaus_directory_display_name_visible`
+  - Company: `pwrhaus_directory_company_visible`
+  - Role or title: `pwrhaus_directory_role_visible`
+  - City: `pwrhaus_directory_city_visible`
+  - Website: `pwrhaus_directory_website_visible`
+  - LinkedIn URL: `pwrhaus_directory_linkedin_visible`
+- Sensitive optional fields:
+  - Email: `pwrhaus_directory_email_visible`
+  - Phone: `pwrhaus_directory_phone_visible`
+- Email and phone stay hidden unless the member explicitly enables each field.
+- Member-facing wording: `You control whether you appear and what others can see.`
+
 ## Contact Tags Or Fields
 
 The website produces these deterministic GHL contact tags. Do not configure the invite workflow
