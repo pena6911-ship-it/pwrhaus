@@ -13,10 +13,17 @@
 ## GHL Areas To Create Or Confirm
 
 - Client Portal login is enabled.
+- Client Portal branding is set to PWRHaus:
+  - Portal name: `PWRHaus Golf Society`
+  - Primary color: `#1A4D36`
+  - Secondary color: `#B8912A`
+  - Favicon: `src/img/favicon-mark.png`
+  - Portal image: `src/img/portal-image-8x9.png`
 - Free member area exists.
 - Paid member area exists.
 - Virtual lessons course area exists.
 - Community space exists.
+- Community cover image: `src/img/community-cover-16x9.jpg`
 - Directory or community profile fields exist with opt-in visibility.
 
 ## Contact Tags Or Fields
@@ -43,10 +50,16 @@ against a custom field named `pwrhaus_tier`.
 ## Workflows
 
 - New website contact tagged `pwrhaus_tier_free` receives a portal invite.
+- In sandbox agencies, GHL may enroll and run the workflow but block email delivery with
+  `Email sending is blocked for sandbox agencies`; treat enrollment and completion as the sandbox
+  proof, then verify actual email delivery in the real PWRHaus subaccount.
 - Existing GHL contact is updated, not duplicated.
 - Paid upgrade replaces the tier tag with `pwrhaus_tier_member` or `pwrhaus_tier_inner_circle`.
+- A member-access workflow triggered by `pwrhaus_tier_member` grants `PWRHaus Member Access`.
 - Failed invite or bounced email is visible for manual follow-up.
 - Portal invite workflow does not require a website deploy to change email wording.
+- Stripe/payment-provider wiring is deferred until checkout can be tested against the intended
+  PWRHaus payment provider. For sandbox access testing, use tags to grant member access.
 
 ## Manual Verification
 
@@ -54,16 +67,28 @@ against a custom field named `pwrhaus_tier`.
 - Confirm Supabase receives or updates the contact.
 - Confirm GHL receives or updates the contact.
 - Confirm the GHL contact has `pwrhaus_tier_free` and the expected `pwrhaus_source_*` tag.
-- Confirm the contact receives a portal invite.
-- Confirm the contact can log in.
+- Confirm the workflow enrolls the contact and reaches `Finished`.
+- Confirm the contact can log in with the exact email address on the GHL contact record.
 - Confirm free-only access cannot open paid member content.
-- Change the contact to `member`.
+- Add `pwrhaus_tier_member` to the contact or complete the paid-upgrade workflow.
 - Confirm paid member content unlocks.
+- Confirm the member can see `PWRHaus Welcome`, `Virtual Golf Lessons`, and `Member Perks`.
 - Confirm directory is hidden by default.
 - Turn on only display name and city.
 - Confirm the directory shows only display name and city.
 - Turn directory opt-in off.
 - Confirm the member no longer appears in the directory.
+
+## Sandbox Verification Notes
+
+- Verified in the GHL sandbox with `pena6911+20260818020917@gmail.com`: the website-created
+  contact enrolled in the free portal invite workflow from `pwrhaus_tier_free`.
+- The sandbox workflow reached `Finished`, but GHL blocked email delivery because sandbox agencies
+  cannot send email.
+- Logging into the portal with the exact test contact email exposed the expected member content
+  after `pwrhaus_tier_member` granted `PWRHaus Member Access`.
+- Existing contacts that were synced before tag production was added may need a one-time GHL
+  tag/backfill operation.
 
 ## Site Handoff Values
 
