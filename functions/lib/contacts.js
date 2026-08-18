@@ -32,6 +32,8 @@ export async function createContact({ db, ghl, log = console }, input) {
       email: contact.email,
       full_name: contact.full_name,
       phone: contact.phone,
+      tier: contact.tier,
+      source: contact.source,
     });
     // setContactGhlId returns null if the row vanished between read and update.
     return (await db.setContactGhlId(contact.id, ghlId)) ?? contact;

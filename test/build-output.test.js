@@ -199,8 +199,14 @@ test('membership page renders portal CTA when a GHL portal URL is configured', (
   const dir = buildWithEnv({ GHL_PORTAL_URL: 'https://portal.example.com/pwrhaus' });
   try {
     const html = readFileSync(join(dir, 'membership', 'index.html'), 'utf8');
-    assert.match(html, /Enter Member Portal/);
-    assert.match(html, /href="https:\/\/portal\.example\.com\/pwrhaus"/);
+    const portalCta = '<a class="btn btn-secondary" href="https://portal.example.com/pwrhaus">Enter Member Portal</a>';
+    const freeCard = html.match(/<li class="card">[\s\S]*?<\/li>/)?.[0];
+    const memberCard = html.match(/<li class="card card-featured">[\s\S]*?<\/li>/)?.[0];
+
+    assert.ok(freeCard, 'Free membership card should render');
+    assert.match(freeCard, new RegExp(portalCta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.ok(memberCard, 'Member membership card should render');
+    assert.match(memberCard, new RegExp(portalCta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

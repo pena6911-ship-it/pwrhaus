@@ -28,7 +28,7 @@ with its real status, regardless of which label it wore.
 |---|---|---|---|
 | A. Site polish + go-live | — | 🟡 in progress | this doc |
 | B. Merch → production | Plan D | 🟢 **POC built**, needs productionizing | `2026-08-14-merch-stripe-printify-design.md` |
-| C. Member portal | Plan C | 🟡 **site hooks planned; GHL configuration next** | `2026-08-17-ghl-member-portal-design.md` |
+| C. Member portal | Plan C | 🟡 **site hooks implemented; GHL configuration next** | `2026-08-17-ghl-member-portal-design.md` |
 | D. Site CMS for Michelle | Phase 2 | 🟢 **built initial CMS**: events + events-page content editable via Sveltia | `2026-08-15-sveltia-cms-for-michelle-design.md` |
 | E. CRM/data hardening | Phase 2 | ⬜ not started | needs its own spec |
 | F. Sponsor pipeline automation | Phase 2 | ⬜ blocked on sponsor answers | needs its own spec |
@@ -78,8 +78,8 @@ site captures on-site and links members into their GHL portal. Free + paid both 
 unlocks gated sections (directory, virtual lessons, perks, payment/address management).
 - GHL access confirmed: Michelle's account includes Memberships, Communities, Courses, and Client
   Portal.
-- Implementation plan exists: `docs/superpowers/plans/2026-08-17-ghl-member-portal.md`; GHL setup should happen before `GHL_PORTAL_URL` is enabled on the site.
-- Decide auth/login entry points from the site; wire "sign up → free profile → portal" path.
+- Site hooks are implemented: portal links and both membership CTAs render from `GHL_PORTAL_URL`, and signup confirmation tells new profiles to expect a portal invite.
+- Remaining GHL configuration: create the `pwrhaus_tier_free` tag-triggered invite workflow and complete the portal areas, access rules, courses, and community before enabling `GHL_PORTAL_URL`.
 - **Member directory = opt-in, per-field privacy** (never on by default).
 - Reconcile what the portal reads from GHL vs Supabase so the two don't drift.
 - **Acceptance:** a free signup can log into a portal; paid sections are gated; payment/address

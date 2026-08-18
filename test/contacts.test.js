@@ -18,7 +18,13 @@ test('createContact writes fact first, then pushes to GHL, then stores ghl id', 
   assert.equal(c.email, 'a@x.com');
   assert.equal(c.ghl_contact_id, 'ghl_new');
   assert.equal(ghl.calls.length, 1);
-  assert.equal(ghl.calls[0].email, 'a@x.com');
+  assert.deepEqual(ghl.calls[0], {
+    email: 'a@x.com',
+    full_name: 'A',
+    phone: '1',
+    tier: 'free',
+    source: 'site',
+  });
 });
 
 test('createContact is idempotent by email and does not re-push to GHL when ghl_contact_id is already set', async () => {

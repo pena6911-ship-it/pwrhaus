@@ -21,7 +21,14 @@
 
 ## Contact Tags Or Fields
 
-- `pwrhaus_tier`: `free`, `member`, `inner_circle`
+The website produces these deterministic GHL contact tags. Do not configure the invite workflow
+against a custom field named `pwrhaus_tier`.
+
+- `pwrhaus_tier_free`: produced for every public website signup; this is the portal-invite trigger.
+- `pwrhaus_source_<sanitized-source>`: produced for the validated website source, for example
+  `pwrhaus_source_web_free_profile`.
+- Paid upgrade workflows replace `pwrhaus_tier_free` with `pwrhaus_tier_member` or
+  `pwrhaus_tier_inner_circle`.
 - `pwrhaus_portal_invited`: boolean
 - `pwrhaus_directory_opt_in`: boolean, default false
 - `pwrhaus_directory_display_name_visible`: boolean, default false
@@ -35,9 +42,9 @@
 
 ## Workflows
 
-- New website contact with `pwrhaus_tier = free` receives a portal invite.
+- New website contact tagged `pwrhaus_tier_free` receives a portal invite.
 - Existing GHL contact is updated, not duplicated.
-- Paid upgrade changes `pwrhaus_tier` to `member` or `inner_circle`.
+- Paid upgrade replaces the tier tag with `pwrhaus_tier_member` or `pwrhaus_tier_inner_circle`.
 - Failed invite or bounced email is visible for manual follow-up.
 - Portal invite workflow does not require a website deploy to change email wording.
 
@@ -46,6 +53,7 @@
 - Submit a new free-profile form from the local website.
 - Confirm Supabase receives or updates the contact.
 - Confirm GHL receives or updates the contact.
+- Confirm the GHL contact has `pwrhaus_tier_free` and the expected `pwrhaus_source_*` tag.
 - Confirm the contact receives a portal invite.
 - Confirm the contact can log in.
 - Confirm free-only access cannot open paid member content.
