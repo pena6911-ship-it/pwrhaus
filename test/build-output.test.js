@@ -8,21 +8,22 @@ import { tmpdir } from 'node:os';
 let outDir;
 
 before(() => {
-  outDir = mkdtempSync(join(tmpdir(), 'pwrhaus-build-'));
-  execFileSync('npx', ['@11ty/eleventy', '--output=' + outDir], {
-    stdio: 'pipe',
-    shell: true,
-  });
+  outDir = buildWithEnv({ GHL_PORTAL_URL: '' });
 });
 
 function buildWithEnv(extraEnv) {
   const dir = mkdtempSync(join(tmpdir(), 'pwrhaus-build-env-'));
-  execFileSync('npx', ['@11ty/eleventy', '--output=' + dir], {
-    stdio: 'pipe',
-    shell: true,
-    env: { ...process.env, ...extraEnv },
-  });
-  return dir;
+  try {
+    execFileSync('npx', ['@11ty/eleventy', '--output=' + dir], {
+      stdio: 'pipe',
+      shell: true,
+      env: { ...process.env, ...extraEnv },
+    });
+    return dir;
+  } catch (error) {
+    rmSync(dir, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 after(() => {
@@ -174,9 +175,16 @@ test('member login links render when a GHL portal URL is configured', () => {
   const dir = buildWithEnv({ GHL_PORTAL_URL: 'https://portal.example.com/pwrhaus' });
   try {
     const html = readFileSync(join(dir, 'index.html'), 'utf8');
-    const matches = html.match(/href="https:\/\/portal\.example\.com\/pwrhaus"/g) || [];
-    assert.ok(matches.length >= 2, 'header and footer should link to the configured portal URL');
-    assert.match(html, /Member Login/, 'configured portal link should use the approved label');
+    const desktopNav = html.match(/<nav class="nav-desktop"[\s\S]*?<\/nav>/)?.[0];
+    const mobileNav = html.match(/<div class="nav-overlay"[\s\S]*?<\/nav>/)?.[0];
+    const footerNav = html.match(/<nav class="footer-nav"[\s\S]*?<\/nav>/)?.[0];
+
+    assert.ok(desktopNav, 'desktop navigation should render');
+    assert.match(desktopNav, /<a href="https:\/\/portal\.example\.com\/pwrhaus">Member Login<\/a>/);
+    assert.ok(mobileNav, 'mobile navigation should render');
+    assert.match(mobileNav, /<a href="https:\/\/portal\.example\.com\/pwrhaus">Member Login<\/a>/);
+    assert.ok(footerNav, 'footer navigation should render');
+    assert.match(footerNav, /<a href="https:\/\/portal\.example\.com\/pwrhaus">Member Login<\/a>/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
