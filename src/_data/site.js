@@ -7,4 +7,5 @@ export default {
   tagline: 'Claim your place on the green',
   description: 'A co-ed society of founders who use golf to find, build, and exit businesses.',
   url: process.env.URL || 'https://pwrhaus.netlify.app',
+  portalUrl: process.env.GHL_PORTAL_URL || '',
 };
