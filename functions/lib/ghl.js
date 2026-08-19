@@ -9,7 +9,7 @@ function tagSegment(value, fallback) {
 
 export function createGhlClient({ apiKey, locationId, baseUrl = 'https://services.leadconnectorhq.com', fetchImpl = fetch }) {
   return {
-    async upsertContact({ email, full_name, phone, tier, source }) {
+    async upsertContact({ email, full_name, phone, tier, source, signal }) {
       const res = await fetchImpl(`${baseUrl}/contacts/upsert`, {
         method: 'POST',
         headers: {
@@ -17,6 +17,7 @@ export function createGhlClient({ apiKey, locationId, baseUrl = 'https://service
           'Content-Type': 'application/json',
           Version: '2021-07-28',
         },
+        signal,
         body: JSON.stringify({
           locationId,
           email,

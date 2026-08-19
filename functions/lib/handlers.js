@@ -39,19 +39,20 @@ export function makeContactReconcileHandler({ reconcileContacts, deps, env = pro
   return async (req) => {
     if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
 
+    const expected = env.RECONCILE_ADMIN_TOKEN;
+    if (!expected || bearerToken(req) !== expected) return json({ error: 'unauthorized' }, 401);
+
     let body = {};
     try {
       const raw = await req.text();
-      body = raw ? JSON.parse(raw) : {};
+      body = raw ? JSON.parse(raw) ?? {} : {};
     } catch {
       return json({ error: 'invalid_json' }, 400);
     }
 
-    const expected = env.RECONCILE_ADMIN_TOKEN;
-    if (!expected || bearerToken(req) !== expected) return json({ error: 'unauthorized' }, 401);
-
     try {
-      const result = await reconcileContacts(deps, { limit: body.limit });
+      const resolvedDeps = typeof deps === 'function' ? deps() : deps;
+      const result = await reconcileContacts(resolvedDeps, { limit: body.limit });
       log.info?.('contact.reconcile_complete', result);
       return json(result, 200);
     } catch (err) {

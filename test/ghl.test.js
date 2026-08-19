@@ -39,3 +39,17 @@ test('upsertContact throws on a non-2xx response', async () => {
   const ghl = createGhlClient({ apiKey: 'k', locationId: 'loc_1', fetchImpl });
   await assert.rejects(() => ghl.upsertContact({ email: 'a@x.com' }), /GHL upsert failed: 401/);
 });
+
+test('upsertContact forwards an abort signal to fetch', async () => {
+  const { fetchImpl, calls } = fakeFetch({
+    ok: true,
+    status: 200,
+    json: async () => ({ contact: { id: 'ghl_123' } }),
+  });
+  const ghl = createGhlClient({ apiKey: 'k', locationId: 'loc_1', fetchImpl });
+  const controller = new AbortController();
+
+  await ghl.upsertContact({ email: 'a@x.com', signal: controller.signal });
+
+  assert.equal(calls[0].opts.signal, controller.signal);
+});

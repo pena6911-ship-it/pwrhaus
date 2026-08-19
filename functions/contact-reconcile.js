@@ -5,7 +5,7 @@ import { buildDeps } from './lib/deps.js';
 export default async (req) => {
   const handler = makeContactReconcileHandler({
     reconcileContacts,
-    deps: buildDeps(process.env),
+    deps: () => buildDeps(process.env),
     env: process.env,
   });
   return handler(req);
