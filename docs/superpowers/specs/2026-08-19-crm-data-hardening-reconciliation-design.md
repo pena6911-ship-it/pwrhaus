@@ -55,13 +55,18 @@ Extend `functions/lib/supabase.js` with:
 The query selects contact fields needed by GHL and orders by `created_at` ascending so the oldest
 stranded leads are retried first.
 
-Add a Netlify scheduled function:
+Add two thin Netlify function entrypoints:
 
 `functions/contact-reconcile.js`
 
-It runs daily with a small batch limit and exposes a protected manual path at
-`/api/admin/reconcile-contacts` for local/manual smoke testing. Manual runs require
-`RECONCILE_ADMIN_TOKEN` in the environment and an `Authorization: Bearer <token>` header.
+It exposes a protected manual path at `/api/admin/reconcile-contacts` for local/manual smoke
+testing. Manual runs require `RECONCILE_ADMIN_TOKEN` in the environment and an
+`Authorization: Bearer <token>` header.
+
+`functions/contact-reconcile-scheduled.js`
+
+It runs daily with the default batch limit. It has no public path and exists only for Netlify's
+scheduled invocation. Both entrypoints call the same reconciliation library.
 
 ## Runtime Behavior
 
@@ -122,7 +127,8 @@ stranded for the next run. Missing or invalid admin token returns HTTP 401 for t
 
 ## Security
 
-- The scheduled function can run without an admin token because Netlify invokes it internally.
+- The scheduled function can run without an admin token because it has no public path and Netlify
+  invokes it internally.
 - The manual endpoint requires `RECONCILE_ADMIN_TOKEN`.
 - The admin token is never committed. It belongs in local `.env` and later Netlify environment
   variables.
