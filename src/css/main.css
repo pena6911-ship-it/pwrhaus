@@ -60,6 +60,9 @@ p  { max-width: var(--prose-max); }
   padding: 14px 28px;
   font-family: var(--font-body); font-size: 1rem; font-weight: 600;
   text-decoration: none; cursor: pointer; border: 0;
+  max-width: 100%;
+  text-align: center;
+  white-space: nowrap;
 }
 .btn-primary {
   background: var(--forest); color: var(--paper);
@@ -131,7 +134,7 @@ p  { max-width: var(--prose-max); }
   min-height: var(--touch-min);
 }
 .nav-desktop { display: none; }
-.nav-cta { display: none; }
+.nav-cta { display: none; flex-shrink: 0; }
 
 .nav-toggle {
   width: var(--touch-min); height: var(--touch-min);
@@ -159,13 +162,18 @@ body.nav-open { overflow: hidden; }
   .nav-toggle { display: none; }
   .nav-overlay { display: none !important; }
   .nav-desktop { display: block; }
-  .nav-desktop ul { display: flex; gap: var(--space-5); list-style: none; padding: 0; }
+  .nav-desktop ul { display: flex; gap: var(--space-3); list-style: none; padding: 0; }
   .nav-desktop a {
     text-decoration: none; color: var(--ink); font-size: 0.9375rem;
     display: inline-flex; align-items: center; min-height: var(--touch-min);
   }
   .nav-desktop a:hover { color: var(--forest); }
-  .nav-cta { display: inline-flex; }
+  .nav-cta { display: inline-flex; padding-inline: var(--space-4); }
+}
+
+@media (min-width: 1180px) {
+  .nav-desktop ul { gap: var(--space-5); }
+  .nav-cta { padding-inline: 28px; }
 }
 
 /* Footer. White ground (like .band) so the full logo's white background is

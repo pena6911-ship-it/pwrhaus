@@ -96,6 +96,25 @@ test('the stylesheet never uses the decorative brass token for text colour', () 
   );
 });
 
+test('primary CTA buttons keep short labels on one line across breakpoints', () => {
+  const css = declarationsOnly('src/css/main.css');
+  const buttonRule = css.match(/\.btn\s*\{[^}]*\}/);
+  const navCtaRule = css.match(/\.nav-cta\s*\{[^}]*\}/);
+
+  assert.ok(buttonRule, 'expected a shared .btn rule');
+  assert.match(
+    buttonRule[0],
+    /white-space:\s*nowrap/,
+    'short CTA labels like "Create free profile" should not wrap inside buttons',
+  );
+  assert.ok(navCtaRule, 'expected a .nav-cta rule');
+  assert.match(
+    navCtaRule[0],
+    /flex-shrink:\s*0/,
+    'desktop nav CTA should not shrink into a wrapped label at laptop widths',
+  );
+});
+
 test('every rendered form posts a source the backend whitelists', async () => {
   const { ALLOWED_SOURCES } = await import('../functions/lib/sanitize.js');
   const pages = publicHtmlFiles(outDir);
