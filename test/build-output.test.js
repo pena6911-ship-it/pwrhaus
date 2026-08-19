@@ -127,6 +127,18 @@ test('header brand aligns the wordmark with the logo mark without a tagline', ()
   assert.match(brandNameRule[0], /justify-content:\s*center/, 'brand wordmark should height-align with the logo mark');
 });
 
+test('capture forms use the sitewide softened container corners', () => {
+  const css = declarationsOnly('src/css/main.css');
+  const captureFormRule = css.match(/\.capture-form\s*\{[^}]*\}/);
+
+  assert.ok(captureFormRule, 'expected a .capture-form rule');
+  assert.match(
+    captureFormRule[0],
+    /border-radius:\s*var\(--radius-media\)/,
+    'capture form container should use the same softened radius as cards and media',
+  );
+});
+
 test('every rendered form posts a source the backend whitelists', async () => {
   const { ALLOWED_SOURCES } = await import('../functions/lib/sanitize.js');
   const pages = publicHtmlFiles(outDir);
