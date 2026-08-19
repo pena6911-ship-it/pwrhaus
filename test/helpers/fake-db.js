@@ -23,6 +23,11 @@ export function createFakeDb() {
       c.ghl_contact_id = ghlContactId;
       return c;
     },
+    async findContactsMissingGhlId({ limit }) {
+      return contacts
+        .filter((c) => c.ghl_contact_id == null)
+        .slice(0, limit);
+    },
     async insertContactInquiry({ contact_id, source, notes }) {
       const row = { id: id('ci'), contact_id, source, notes: notes ?? null, created_at: nowIso() };
       contactInquiries.push(row);
