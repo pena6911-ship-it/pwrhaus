@@ -11,7 +11,7 @@
     <nav class="nav-desktop" aria-label="Primary">
       <ul>
         {% for item in nav %}
-        <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+        <li><a href="{{ item.url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
         {% endfor %}
         {% if site.portalUrl %}
         <li><a href="{{ site.portalUrl }}">Member Login</a></li>
@@ -32,7 +32,7 @@
     <nav aria-label="Mobile">
       <ul>
         {% for item in nav %}
-        <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+        <li><a href="{{ item.url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
         {% endfor %}
         {% if site.portalUrl %}
         <li><a href="{{ site.portalUrl }}">Member Login</a></li>

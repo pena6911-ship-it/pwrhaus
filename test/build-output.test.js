@@ -186,6 +186,25 @@ test('every navigation link resolves to a page that was actually built', () => {
   }
 });
 
+test('header navigation marks and highlights the current page', () => {
+  const html = readFileSync(join(outDir, 'membership', 'index.html'), 'utf8');
+  const desktopNav = html.match(/<nav class="nav-desktop"[\s\S]*?<\/nav>/)?.[0];
+  const mobileNav = html.match(/<div class="nav-overlay"[\s\S]*?<\/nav>/)?.[0];
+  const css = declarationsOnly('src/css/main.css');
+  const desktopActiveRule = css.match(/\.nav-desktop a:is\(:hover,\s*\[aria-current="page"\]\)\s*\{[^}]*\}/);
+  const mobileActiveRule = css.match(/\.nav-overlay a:is\(:hover,\s*\[aria-current="page"\]\)\s*\{[^}]*\}/);
+
+  assert.ok(desktopNav, 'desktop navigation should render');
+  assert.ok(mobileNav, 'mobile navigation should render');
+  assert.match(desktopNav, /<a href="\/membership\/" aria-current="page">Membership<\/a>/);
+  assert.match(mobileNav, /<a href="\/membership\/" aria-current="page">Membership<\/a>/);
+  assert.ok(desktopActiveRule, 'expected desktop nav hover/current-page rule');
+  assert.match(desktopActiveRule[0], /font-weight:\s*700/, 'desktop selected nav item should be bold');
+  assert.match(desktopActiveRule[0], /border-bottom-color:\s*var\(--brass-text\)/, 'desktop selected nav item should be highlighted');
+  assert.ok(mobileActiveRule, 'expected mobile nav hover/current-page rule');
+  assert.match(mobileActiveRule[0], /font-weight:\s*700/, 'mobile selected nav item should be bold');
+});
+
 test('the home page hosts the form the nav CTAs anchor to', () => {
   const html = readFileSync(join(outDir, 'index.html'), 'utf8');
   // Both header CTAs link to /#join-web_free_profile. The id is derived from
