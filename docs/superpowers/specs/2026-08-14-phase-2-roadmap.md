@@ -28,9 +28,9 @@ with its real status, regardless of which label it wore.
 |---|---|---|---|
 | A. Site polish + go-live | — | 🟡 in progress | this doc |
 | B. Merch → production | Plan D | 🟢 **POC built**, needs productionizing | `2026-08-14-merch-stripe-printify-design.md` |
-| C. Member portal | Plan C | 🟡 **site hooks implemented; GHL configuration next** | `2026-08-17-ghl-member-portal-design.md` |
+| C. Member portal | Plan C | 🟢 **live PWRHaus GHL sub-account configured and verified** | `2026-08-17-ghl-member-portal-design.md` + `docs/operations/ghl-member-portal-checklist.md` |
 | D. Site CMS for Michelle | Phase 2 | 🟢 **built initial CMS**: events + events-page content editable via Sveltia | `2026-08-15-sveltia-cms-for-michelle-design.md` |
-| E. CRM/data hardening | Phase 2 | ⬜ not started | needs its own spec |
+| E. CRM/data hardening | Phase 2 | 🟡 **reconciliation sweep specified** | `2026-08-19-crm-data-hardening-reconciliation-design.md` |
 | F. Sponsor pipeline automation | Phase 2 | ⬜ blocked on sponsor answers | needs its own spec |
 | G. Inner Circle ($5k) online flow | Phase 2 | ⬜ not started | needs its own spec |
 
@@ -72,18 +72,25 @@ From the working POC (`poc/merch`, Stripe test + Printify draft-only) to real sa
 - ⚠ POC note: storefront is **dynamic from Printify at build time** (`src/_data/products.js`),
   which supersedes the static `products.json` described in the merch spec §4.
 
-### C · Member portal (Plan C)  🟡
+### C · Member portal (Plan C)  🟢
 Decision locked and designed: **use GoHighLevel native** memberships/community/client-portal; the
 site captures on-site and links members into their GHL portal. Free + paid both get a login; paid
 unlocks gated sections (directory, virtual lessons, perks, payment/address management).
 - GHL access confirmed: Michelle's account includes Memberships, Communities, Courses, and Client
   Portal.
 - Site hooks are implemented: portal links and both membership CTAs render from `GHL_PORTAL_URL`, and signup confirmation tells new profiles to expect a portal invite.
-- Remaining GHL configuration: create the `pwrhaus_tier_free` tag-triggered invite workflow and complete the portal areas, access rules, courses, and community before enabling `GHL_PORTAL_URL`.
-- **Member directory = opt-in, per-field privacy** (never on by default).
-- Reconcile what the portal reads from GHL vs Supabase so the two don't drift.
-- **Acceptance:** a free signup can log into a portal; paid sections are gated; payment/address
-  edits work. Mostly configuration + linking, minimal custom code (that's the point).
+- Real PWRHaus sub-account is configured and verified:
+  - `GHL_LOCATION_ID=2xkWZPrCKFZbcXBhsGrB`
+  - `GHL_PORTAL_URL=https://2xkwzprckfzbcxbhsgrb.app.clientclub.net/`
+  - free invite workflow adds `pwrhaus_portal_invited`
+  - member workflow adds `pwrhaus_member_paid`
+  - actual `PWRHaus Free Access` and member access offers were visually verified in the portal.
+- **Member directory = deferred from GHL-native Phase 2.** The available GHL community UI does not
+  expose the required opt-in, per-field privacy controls. Do not represent the community Members
+  tab as a privacy-controlled directory.
+- **Acceptance:** free signup can log into the portal, free offer access is visible, paid sections
+  and the PWRHAUS Business community unlock after member access is granted. Payment-provider
+  testing remains separate because Stripe setup is still being finalized.
 
 ### D · Site CMS for Michelle (Phase 2)  🟢
 Decision locked: **git-based CMS, Sveltia recommended** (no backend; commits to the repo →
@@ -99,12 +106,13 @@ Netlify rebuild). Decap is the fallback (maintenance has slowed).
 - **Acceptance:** Michelle edits an event/copy via the CMS UI, it commits, Netlify rebuilds,
   the change is live — no developer involved.
 
-### E · CRM/data hardening (Phase 2)  ⬜  *(needs its own spec)*
+### E · CRM/data hardening (Phase 2)  🟡
 - **Reconciliation sweep:** nightly job that finds `contacts` with null `ghl_contact_id` and
   retries the GHL push (self-heal for CRM-outage stragglers; marketing spec §6 open gap).
 - **Unified Supabase financial/BI dashboard:** a view layer over the already-BI-ready schema
   (`orders`, `order_events`, `memberships`, `membership_events`, revenue = SUM(paid) − refunds).
 - Consider **rate limiting** on `/api/contacts` (currently none; honeypot + validation only).
+- Reconciliation sweep spec: `2026-08-19-crm-data-hardening-reconciliation-design.md`.
 
 ### F · Sponsor pipeline automation (Phase 2)  ⬜ *blocked*
 Blocked on the §4c sponsor answers (4 questions outstanding). Interim = manual GHL pipeline.
