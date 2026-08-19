@@ -112,6 +112,18 @@ against a custom field named `pwrhaus_tier`.
 - Existing contacts that were synced before tag production was added may need a one-time GHL
   tag/backfill operation.
 
+## PWRHaus Sub-Account Migration Notes
+
+- Real sub-account name: `Pwrhaus Golf Society`.
+- Real `GHL_LOCATION_ID`: `2xkWZPrCKFZbcXBhsGrB`.
+- Private Integration Token for the real sub-account must include contact write access; contact
+  read access is useful for API smoke checks.
+- API smoke test succeeded for `pwrhaus-live-smoke+20260819002557@example.com`.
+- Smoke contact ID: `udjxmdx8e2jm9qup6hVJ`.
+- Smoke contact tags confirmed by API read-back:
+  - `pwrhaus_tier_free`
+  - `pwrhaus_source_web_free_profile`
+
 ## Site Handoff Values
 
 - `GHL_PORTAL_URL`: the final login URL from GHL.
