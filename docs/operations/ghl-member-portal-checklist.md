@@ -123,6 +123,10 @@ against a custom field named `pwrhaus_tier`.
 - Smoke contact tags confirmed by API read-back:
   - `pwrhaus_tier_free`
   - `pwrhaus_source_web_free_profile`
+- Published free portal invite workflow was verified with
+  `pwrhaus-live-published+20260819005739@example.com`.
+- Workflow test contact ID: `TeuF8KEjawfQ2ZfNU9Ad`.
+- Workflow added `pwrhaus_portal_invited` after `pwrhaus_tier_free` was added.
 
 ## Site Handoff Values
 
