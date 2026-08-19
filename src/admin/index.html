@@ -2,11 +2,101 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex">
-    <title>PWRHaus CMS</title>
+    <meta name="theme-color" content="#123527">
+    <title>PWRHaus Dashboard</title>
+    <link rel="manifest" href="/admin/manifest.webmanifest">
+    <link rel="icon" href="/img/favicon-mark.png" type="image/png">
+    <link rel="apple-touch-icon" href="/img/pwa-icon-192.png">
+    <link rel="preload" href="/fonts/fraunces-variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/work-sans-variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/admin/admin.css">
+    <script>
+      window.__PWRHAUS = { supabaseUrl: "{{ admin.supabaseUrl }}", supabaseAnonKey: "{{ admin.supabaseAnonKey }}" };
+    </script>
   </head>
   <body>
-    <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+    <!-- LOGIN -->
+    <section id="login-view" class="login" hidden>
+      <div class="login-card">
+        <div class="ph-monogram" aria-hidden="true">PH</div>
+        <h1>PWRHaus</h1>
+        <p class="login-sub">Sign in to manage your events.</p>
+        <form id="login-form" novalidate>
+          <label>Email<input type="email" id="login-email" autocomplete="username" required></label>
+          <label>Password<input type="password" id="login-password" autocomplete="current-password" required></label>
+          <p class="form-error" id="login-error" role="alert" hidden></p>
+          <button class="btn btn-primary" type="submit">Sign in</button>
+          <button class="btn btn-link" type="button" id="forgot-btn">Forgot password?</button>
+        </form>
+        <form id="recover-form" hidden novalidate>
+          <p class="login-sub">Enter your email and we'll send a reset link.</p>
+          <label>Email<input type="email" id="recover-email" autocomplete="username" required></label>
+          <p class="form-error" id="recover-error" role="alert" hidden></p>
+          <button class="btn btn-primary" type="submit">Send reset link</button>
+          <button class="btn btn-link" type="button" id="recover-cancel">Back to sign in</button>
+        </form>
+        <form id="reset-form" hidden novalidate>
+          <p class="login-sub">Set a new password.</p>
+          <label>New password<input type="password" id="reset-password" autocomplete="new-password" required minlength="8"></label>
+          <p class="form-error" id="reset-error" role="alert" hidden></p>
+          <button class="btn btn-primary" type="submit">Save password</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- APP -->
+    <div id="app-view" class="app" hidden>
+      <aside id="sidebar" class="sidebar">
+        <div class="brand"><span class="ph-monogram sm" aria-hidden="true">PH</span> PWRHaus</div>
+        <nav class="side-nav" aria-label="Sections">
+          <button class="nav-item" data-view="events" aria-current="page">Dashboard</button>
+          <button class="nav-item" data-view="events">Events</button>
+          <button class="nav-item" data-view="settings">Site Content</button>
+          <button class="nav-item" disabled title="Coming soon">CRM</button>
+          <button class="nav-item" disabled title="Coming soon">Settings</button>
+        </nav>
+        <button class="btn btn-link install-btn" id="install-btn" hidden>Install app</button>
+        <button class="btn btn-link logout" id="logout-btn">Sign out</button>
+      </aside>
+
+      <header class="topbar">
+        <span class="brand-sm"><span class="ph-monogram sm" aria-hidden="true">PH</span></span>
+        <div class="account"><button class="btn btn-link" id="logout-btn-top">Sign out</button></div>
+      </header>
+
+      <main class="workspace">
+        <section id="view-events" class="view">
+          <div class="view-head">
+            <h2>Events</h2>
+            <button class="btn btn-primary" id="new-event-btn">New event</button>
+          </div>
+          <div class="stat-row" id="stat-row"><!-- stats injected --></div>
+          <div class="event-list" id="event-list" aria-live="polite"><!-- cards / skeleton injected --></div>
+        </section>
+
+        <section id="view-settings" class="view" hidden>
+          <div class="view-head"><h2>Events page</h2></div>
+          <form id="settings-form" class="settings-form"><!-- hero fields injected --></form>
+        </section>
+      </main>
+
+      <nav id="bottom-nav" class="bottom-nav" aria-label="Sections">
+        <button class="tab" data-view="events" aria-current="page">Events</button>
+        <button class="tab" data-view="settings">Page</button>
+        <button class="tab" id="new-event-tab">New</button>
+      </nav>
+    </div>
+
+    <!-- DRAWER (create/edit) -->
+    <div id="event-drawer" class="drawer" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Event editor">
+      <div class="drawer-scrim" data-close></div>
+      <form id="event-form" class="drawer-panel"><!-- fields injected --></form>
+    </div>
+
+    <div id="toasts" class="toasts" aria-live="assertive"></div>
+
+    <script type="module" src="/admin/app.js"></script>
   </body>
 </html>

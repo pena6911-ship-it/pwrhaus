@@ -35,7 +35,11 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('src/js');
   eleventyConfig.addPassthroughCopy('src/fonts');
   eleventyConfig.addPassthroughCopy('src/img');
-  eleventyConfig.addPassthroughCopy('src/admin/config.yml');
+  eleventyConfig.addPassthroughCopy('src/admin/admin.css');
+  eleventyConfig.addPassthroughCopy('src/admin/app.js');
+  eleventyConfig.addPassthroughCopy('src/admin/lib.js');
+  eleventyConfig.addPassthroughCopy('src/admin/sw.js');
+  eleventyConfig.addPassthroughCopy('src/admin/manifest.webmanifest');
 
   return {
     dir: {
