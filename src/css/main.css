@@ -532,7 +532,7 @@ body.has-sticky-cta {
   inset: 0;
   z-index: 90;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: var(--page-pad);
   background: rgba(18, 53, 39, 0.55);
@@ -541,25 +541,28 @@ body.has-sticky-cta {
 .gate[hidden] { display: none; }
 .gate-dialog {
   width: 100%;
-  max-width: 460px;
-  max-height: 92vh;
-  overflow-y: auto;
+  max-width: 430px;
+  margin-block: auto;
   background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  padding: var(--space-7) var(--space-6);
+  border-radius: var(--radius-media);
+  padding: var(--space-5);
   text-align: center;
 }
-.gate-logo { height: 84px; width: auto; margin: 0 auto var(--space-4); }
+.gate-logo { height: 64px; width: auto; margin: 0 auto var(--space-3); }
 .gate-sub {
   color: var(--ink-muted);
-  margin: var(--space-3) auto var(--space-5);
+  margin: var(--space-2) auto var(--space-4);
   max-width: 42ch;
 }
-.gate-form { text-align: left; }
+.gate-form {
+  gap: var(--space-3);
+  padding: var(--space-4);
+  text-align: left;
+}
 .gate-form .btn-primary { width: 100%; }
 .gate-skip {
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
   min-height: var(--touch-min);
   background: transparent;
   border: 0;
