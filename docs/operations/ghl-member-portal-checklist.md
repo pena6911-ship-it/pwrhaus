@@ -91,6 +91,15 @@ against a custom field named `pwrhaus_tier`.
 - Stripe/payment-provider wiring is deferred until checkout can be tested against the intended
   PWRHaus payment provider. For sandbox access testing, use tags to grant member access.
 
+## Temporary Live Sub-Account Safeguards
+
+- Public-facing test offers and courses in the real PWRHaus sub-account are currently turned off.
+- The GHL workflows remain in place for controlled testing and future activation.
+- Do not re-enable public access to test offers or courses until Michelle approves the portal/course
+  structure and the Stripe/payment path is ready for live testing.
+- If a live contact needs access before launch, grant it manually and record the contact, offer, and
+  reason in the sub-account notes or this checklist.
+
 ## Manual Verification
 
 - Submit a new free-profile form from the local website.
