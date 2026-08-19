@@ -28,11 +28,21 @@
 
 ## Directory Privacy Model
 
-- Directory access is paid-member only.
-- Free members can access the welcome/community orientation area, but not the member directory.
-- No member appears in the directory by default.
-- A member appears only when `pwrhaus_directory_opt_in` is true.
-- Each directory field has its own visibility flag; never infer one visible field from another.
+- Status: deferred from GHL-native Phase 2.
+- GHL does not currently expose the required member-directory privacy controls in the
+  available PWRHAUS Business community UI.
+- The community `Members` tab may remain visible; do not represent it as a privacy-controlled
+  member directory.
+- Do not ask members to publish phone, email, or sensitive profile details inside the GHL
+  community.
+- Future custom directory requirement: directory access is paid-member only.
+- Future custom directory requirement: free members can access the welcome/community orientation
+  area, but not the member directory.
+- Future custom directory requirement: no member appears in the directory by default.
+- Future custom directory requirement: a member appears only when `pwrhaus_directory_opt_in` is
+  true.
+- Future custom directory requirement: each directory field has its own visibility flag; never
+  infer one visible field from another.
 - Safe optional fields:
   - Display name: `pwrhaus_directory_display_name_visible`
   - Company: `pwrhaus_directory_company_visible`
