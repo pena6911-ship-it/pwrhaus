@@ -380,6 +380,10 @@ body.nav-open { overflow: hidden; }
 /* Action rows keep their larger separation; this must outrank the flow rule. */
 .card > .card-actions { margin-top: var(--space-4); }
 .cards-3 > .card > .card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
   margin-top: auto;
   padding-top: var(--space-4);
 }
