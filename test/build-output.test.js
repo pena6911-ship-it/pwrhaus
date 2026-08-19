@@ -237,6 +237,18 @@ test('membership and sponsor tier cards use the softer media radius', () => {
   );
 });
 
+test('membership tier cards align their action rows to a shared bottom layer', () => {
+  const css = declarationsOnly('src/css/main.css');
+  const tierCardRule = css.match(/\.cards-3\s*>\s*\.card\s*\{[^}]*\}/);
+  const tierActionsRule = css.match(/\.cards-3\s*>\s*\.card\s*>\s*\.card-actions\s*\{[^}]*\}/);
+
+  assert.ok(tierCardRule, 'expected a cards-3 tier card rule');
+  assert.match(tierCardRule[0], /display:\s*flex/, 'tier cards should be vertical layout containers');
+  assert.match(tierCardRule[0], /flex-direction:\s*column/, 'tier card content should stack vertically');
+  assert.ok(tierActionsRule, 'expected a tier card actions rule');
+  assert.match(tierActionsRule[0], /margin-top:\s*auto/, 'tier card action rows should align at the bottom');
+});
+
 test('membership page hides portal CTA until a GHL portal URL is configured', () => {
   const html = readFileSync(join(outDir, 'membership', 'index.html'), 'utf8');
   assert.doesNotMatch(html, /Enter Member Portal/, 'membership page should not show portal CTA without GHL_PORTAL_URL');
