@@ -309,7 +309,11 @@ body.nav-open { overflow: hidden; }
   border-radius: var(--radius-card);
   padding: var(--space-5);
 }
-.cards-3 > .card { border-radius: var(--radius-media); }
+.cards-3 > .card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-media);
+}
 .card-featured { border-color: var(--brass); }
 
 .price {
@@ -364,6 +368,10 @@ body.nav-open { overflow: hidden; }
 .card > * + * { margin-top: var(--space-3); }
 /* Action rows keep their larger separation; this must outrank the flow rule. */
 .card > .card-actions { margin-top: var(--space-4); }
+.cards-3 > .card > .card-actions {
+  margin-top: auto;
+  padding-top: var(--space-4);
+}
 
 /* Phones-only sticky CTA. Styled by default and hidden from 768px up — the
    desktop header already carries a persistent CTA, so a second one would be
