@@ -149,6 +149,11 @@ p  { max-width: var(--prose-max); }
   display: block; font-size: 1.125rem; padding-block: var(--space-4);
   text-decoration: none; border-bottom: 1px solid var(--line);
 }
+.nav-overlay a:is(:hover, [aria-current="page"]) {
+  color: var(--forest);
+  font-weight: 700;
+  border-bottom-color: var(--brass-text);
+}
 body.nav-open { overflow: hidden; }
 
 @media (min-width: 1024px) {
@@ -159,8 +164,13 @@ body.nav-open { overflow: hidden; }
   .nav-desktop a {
     text-decoration: none; color: var(--ink); font-size: 0.9375rem;
     display: inline-flex; align-items: center; min-height: var(--touch-min);
+    border-bottom: 2px solid transparent;
   }
-  .nav-desktop a:hover { color: var(--forest); }
+  .nav-desktop a:is(:hover, [aria-current="page"]) {
+    color: var(--forest);
+    font-weight: 700;
+    border-bottom-color: var(--brass-text);
+  }
   .nav-cta { display: inline-flex; padding-inline: var(--space-4); }
 }
 
