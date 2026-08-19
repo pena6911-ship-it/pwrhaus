@@ -3,6 +3,16 @@
   functions = "functions"
   publish   = "public"
 
+[build.environment]
+  # These env VALUES are public by design and legitimately appear in build output,
+  # so Netlify's secret scanner must not fail the build on them:
+  #   SUPABASE_ANON_KEY – public anon key (RLS-guarded); embedded in /admin/ + build reads
+  #   GHL_PORTAL_URL    – public member-portal link rendered on the site
+  #   GHL_LOCATION_ID   – public GHL location id used by capture forms
+  # Real secrets (SUPABASE_SERVICE_ROLE_KEY, STRIPE_SECRET_KEY, GHL_API_KEY,
+  # NETLIFY_BUILD_HOOK) are intentionally NOT listed and stay scanned.
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_ANON_KEY,GHL_PORTAL_URL,GHL_LOCATION_ID"
+
 # Env-var contexts: set the ACTUAL secret VALUES in the Netlify UI, scoped per
 # context. Sandbox/test creds -> deploy-preview + branch-deploy. Production
 # creds -> production. This file only documents the contract; no secrets here.
