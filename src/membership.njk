@@ -24,6 +24,9 @@ description: Three ways into PWRHaus. Free to start, $650 a year for full member
            No vetting, no commitment, no card.</p>
         <p class="card-actions">
           <a class="btn btn-secondary" href="#join-web_free_profile">Start here</a>
+          {% if site.portalUrl %}
+          <a class="btn btn-secondary" href="{{ site.portalUrl }}">Enter Member Portal</a>
+          {% endif %}
         </p>
       </li>
       <li class="card card-featured">
@@ -33,6 +36,9 @@ description: Three ways into PWRHaus. Free to start, $650 a year for full member
            the member directory. This is where most people land.</p>
         <p class="card-actions">
           <a class="btn btn-primary" href="#join-web_free_profile">Create a profile</a>
+          {% if site.portalUrl %}
+          <a class="btn btn-secondary" href="{{ site.portalUrl }}">Enter Member Portal</a>
+          {% endif %}
         </p>
       </li>
       <li class="card">

@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+
+backend:
+  name: github
+  repo: pena6911-ship-it/pwrhaus
+  branch: main
+  auth_methods: [oauth]
+  commit_messages:
+    create: 'cms: create {{collection}} "{{slug}}"'
+    update: 'cms: update {{collection}} "{{slug}}"'
+    delete: 'cms: delete {{collection}} "{{slug}}"'
+    uploadMedia: 'cms: upload "{{path}}"'
+    deleteMedia: 'cms: delete media "{{path}}"'
+
+publish_mode: editorial_workflow
+
+media_folder: src/img/cms
+public_folder: /img/cms
+
+collections:
+  - name: events
+    label: Events
+    label_singular: Event
+    files:
+      - name: event_list
+        label: Event List
+        file: src/_data/events.json
+        fields:
+          - label: Events
+            name: events
+            widget: list
+            summary: '{{fields.name}} - {{fields.city}}'
+            fields:
+              - { label: Slug, name: slug, widget: string, pattern: ['^[a-z0-9]+(?:-[a-z0-9]+)*$', 'Use lowercase letters, numbers, and hyphens only.'] }
+              - { label: Name, name: name, widget: string }
+              - { label: City, name: city, widget: string }
+              - { label: Venue, name: venue, widget: string }
+              - { label: Starts At, name: starts_at, widget: datetime }
+              - { label: Price Cents, name: price_cents, widget: number, value_type: int, min: 0 }
+              - { label: Capacity, name: capacity, widget: number, value_type: int, min: 0 }
+              - { label: Summary, name: summary, widget: text }
+              - { label: Body, name: body, widget: text }
+              - { label: Image, name: image, widget: image }
+              - { label: Image Alt Text, name: image_alt, widget: string }
+              - { label: Published, name: published, widget: boolean, default: false }
+              - { label: Registration URL, name: registration_url, widget: string, required: false }
+
+  - name: site_content
+    label: Site Content
+    files:
+      - name: events_page
+        label: Events Page
+        file: src/_data/siteContent.json
+        fields:
+          - label: Events Hero
+            name: eventsHero
+            widget: object
+            fields:
+              - { label: Eyebrow, name: eyebrow, widget: string }
+              - { label: Heading, name: heading, widget: string }
+              - { label: Lead, name: lead, widget: text }
+              - { label: Hero Video, name: video, widget: string, required: false }
+              - { label: Hero Poster, name: poster, widget: image, required: false }

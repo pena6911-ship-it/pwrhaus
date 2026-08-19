@@ -1,0 +1,49 @@
+{
+  "events": [
+    {
+      "slug": "fall-founder-scramble",
+      "name": "Fall Founder Scramble",
+      "city": "Fort Lauderdale",
+      "venue": "TPC Eagle Trace",
+      "starts_at": "2026-09-18T13:00:00-04:00",
+      "price_cents": 15000,
+      "capacity": 40,
+      "summary": "A business-first scramble for founders, operators, and investors.",
+      "body": "A relaxed competitive round built for warm introductions, smart pairings, and useful follow-up after the final putt.",
+      "image": "/img/groupgolf1.jpg",
+      "image_alt": "Golfers walking together across a green course",
+      "published": true,
+      "registration_url": null
+    },
+    {
+      "slug": "spring-networking-nine",
+      "name": "Spring Networking Nine",
+      "city": "Miami",
+      "venue": "The Tips Golf Miami",
+      "starts_at": "2026-04-22T17:30:00-04:00",
+      "price_cents": 8500,
+      "capacity": 24,
+      "summary": "Nine holes, one focused room of business owners, and enough time to actually talk.",
+      "body": "This evening-format event pairs golf with intentional introductions for members and prospective members.",
+      "image": "/img/corporate-hero.webp",
+      "image_alt": "PWRHaus members gathered at an indoor golf venue",
+      "published": true,
+      "registration_url": null
+    },
+    {
+      "slug": "draft-member-preview",
+      "name": "Draft Member Preview",
+      "city": "Miami",
+      "venue": "Private venue",
+      "starts_at": "2026-10-10T10:00:00-04:00",
+      "price_cents": 0,
+      "capacity": 12,
+      "summary": "Hidden seed event used to verify unpublished CMS records stay private.",
+      "body": "This event should not appear on the public site until Michelle marks it published.",
+      "image": "/img/corporate-hero.webp",
+      "image_alt": "Indoor golf venue lounge",
+      "published": false,
+      "registration_url": null
+    }
+  ]
+}

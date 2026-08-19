@@ -8,12 +8,23 @@ import { tmpdir } from 'node:os';
 let outDir;
 
 before(() => {
-  outDir = mkdtempSync(join(tmpdir(), 'pwrhaus-build-'));
-  execFileSync('npx', ['@11ty/eleventy', '--output=' + outDir], {
-    stdio: 'pipe',
-    shell: true,
-  });
+  outDir = buildWithEnv({ GHL_PORTAL_URL: '' });
 });
+
+function buildWithEnv(extraEnv) {
+  const dir = mkdtempSync(join(tmpdir(), 'pwrhaus-build-env-'));
+  try {
+    execFileSync('npx', ['@11ty/eleventy', '--output=' + dir], {
+      stdio: 'pipe',
+      shell: true,
+      env: { ...process.env, ...extraEnv },
+    });
+    return dir;
+  } catch (error) {
+    rmSync(dir, { recursive: true, force: true });
+    throw error;
+  }
+}
 
 after(() => {
   if (outDir) rmSync(outDir, { recursive: true, force: true });
@@ -29,8 +40,12 @@ function htmlFiles(dir) {
   return found;
 }
 
+function publicHtmlFiles(dir) {
+  return htmlFiles(dir).filter((page) => !page.replace(/\\/g, '/').includes('/admin/'));
+}
+
 test('every built page carries the Framework & Co. credit', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -40,7 +55,7 @@ test('every built page carries the Framework & Co. credit', () => {
 });
 
 test('every built page has exactly one h1', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -50,7 +65,7 @@ test('every built page has exactly one h1', () => {
 });
 
 test('every built page declares a viewport and a lang attribute', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -83,7 +98,7 @@ test('the stylesheet never uses the decorative brass token for text colour', () 
 
 test('every rendered form posts a source the backend whitelists', async () => {
   const { ALLOWED_SOURCES } = await import('../functions/lib/sanitize.js');
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
 
   let found = 0;
@@ -102,7 +117,7 @@ test('every rendered form posts a source the backend whitelists', async () => {
 });
 
 test('every built page declares canonical and Open Graph metadata', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -113,7 +128,7 @@ test('every built page declares canonical and Open Graph metadata', () => {
 });
 
 test('no shipped image has an empty alt attribute', () => {
-  const pages = htmlFiles(outDir);
+  const pages = publicHtmlFiles(outDir);
   assert.ok(pages.length > 0, 'build produced no HTML');
   for (const page of pages) {
     const html = readFileSync(page, 'utf8');
@@ -149,4 +164,88 @@ test('the home page hosts the form the nav CTAs anchor to', () => {
     /id="join-web_free_profile"/,
     'home page must host the form the header CTAs link to',
   );
+});
+
+test('member login links are hidden until a GHL portal URL is configured', () => {
+  const html = readFileSync(join(outDir, 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /Member Login/, 'portal links should not render without GHL_PORTAL_URL');
+});
+
+test('member login links render when a GHL portal URL is configured', () => {
+  const dir = buildWithEnv({ GHL_PORTAL_URL: 'https://portal.example.com/pwrhaus' });
+  try {
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
+    const desktopNav = html.match(/<nav class="nav-desktop"[\s\S]*?<\/nav>/)?.[0];
+    const mobileNav = html.match(/<div class="nav-overlay"[\s\S]*?<\/nav>/)?.[0];
+    const footerNav = html.match(/<nav class="footer-nav"[\s\S]*?<\/nav>/)?.[0];
+
+    assert.ok(desktopNav, 'desktop navigation should render');
+    assert.match(desktopNav, /<a href="https:\/\/portal\.example\.com\/pwrhaus">Member Login<\/a>/);
+    assert.ok(mobileNav, 'mobile navigation should render');
+    assert.match(mobileNav, /<a href="https:\/\/portal\.example\.com\/pwrhaus">Member Login<\/a>/);
+    assert.ok(footerNav, 'footer navigation should render');
+    assert.match(footerNav, /<a href="https:\/\/portal\.example\.com\/pwrhaus">Member Login<\/a>/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('membership page hides portal CTA until a GHL portal URL is configured', () => {
+  const html = readFileSync(join(outDir, 'membership', 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /Enter Member Portal/, 'membership page should not show portal CTA without GHL_PORTAL_URL');
+});
+
+test('membership page renders portal CTA when a GHL portal URL is configured', () => {
+  const dir = buildWithEnv({ GHL_PORTAL_URL: 'https://portal.example.com/pwrhaus' });
+  try {
+    const html = readFileSync(join(dir, 'membership', 'index.html'), 'utf8');
+    const portalCta = '<a class="btn btn-secondary" href="https://portal.example.com/pwrhaus">Enter Member Portal</a>';
+    const freeCard = html.match(/<li class="card">[\s\S]*?<\/li>/)?.[0];
+    const memberCard = html.match(/<li class="card card-featured">[\s\S]*?<\/li>/)?.[0];
+
+    assert.ok(freeCard, 'Free membership card should render');
+    assert.match(freeCard, new RegExp(portalCta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.ok(memberCard, 'Member membership card should render');
+    assert.match(memberCard, new RegExp(portalCta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('thanks page mentions the portal invite email', () => {
+  const html = readFileSync(join(outDir, 'thanks', 'index.html'), 'utf8');
+  assert.match(html, /check your email/i);
+  assert.match(html, /portal invite/i);
+});
+
+test('events page renders published CMS events and hides drafts', () => {
+  const html = readFileSync(join(outDir, 'events', 'index.html'), 'utf8');
+  assert.match(html, /Fall Founder Scramble/, 'published upcoming event should render');
+  assert.match(html, /Spring Networking Nine/, 'published past event should render');
+  assert.doesNotMatch(html, /Draft Member Preview/, 'unpublished event should not render');
+  assert.match(html, /Upcoming/, 'events page should label upcoming events');
+  assert.match(html, /Past/, 'events page should label past events');
+});
+
+test('published CMS events generate detail pages and drafts do not', () => {
+  const fall = readFileSync(join(outDir, 'events', 'fall-founder-scramble', 'index.html'), 'utf8');
+  assert.match(fall, /Fall Founder Scramble/);
+  assert.match(fall, /A business-first scramble/);
+
+  assert.throws(
+    () => readFileSync(join(outDir, 'events', 'draft-member-preview', 'index.html'), 'utf8'),
+    /ENOENT/,
+    'unpublished events must not generate public detail pages',
+  );
+});
+
+test('admin route ships the Sveltia CMS boot page and config', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  assert.match(html, /<meta name="robots" content="noindex">/, 'admin must not be indexed');
+  assert.match(html, /@sveltia\/cms/, 'admin page should load Sveltia CMS');
+
+  const config = readFileSync(join(outDir, 'admin', 'config.yml'), 'utf8');
+  assert.match(config, /repo: pena6911-ship-it\/pwrhaus/);
+  assert.match(config, /name: events/);
+  assert.match(config, /file: src\/_data\/siteContent.json/);
 });

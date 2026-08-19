@@ -9,12 +9,62 @@ stickyHref: "#join-web_event_interest"
 {% from "partials/page-hero.njk" import pageHero %}
 
 {{ pageHero({
-  eyebrow: "Events",
-  heading: "The next season is being finalised.",
-  lead: "Our scrambles and socials are planned well ahead. Tell us where you'd like to play and we'll make sure you hear about the calendar first.",
-  video: "/img/Dronegolfcourse.mp4",
-  poster: "/img/groupgolf1.jpg"
+  eyebrow: siteContent.eventsHero.eyebrow,
+  heading: siteContent.eventsHero.heading,
+  lead: siteContent.eventsHero.lead,
+  video: siteContent.eventsHero.video,
+  poster: siteContent.eventsHero.poster
 }) }}
+
+{% set upcoming = publishedEvents | upcomingEvents %}
+{% set past = publishedEvents | pastEvents %}
+
+<section class="section">
+  <div class="container stack">
+    <div class="section-heading">
+      <p class="eyebrow">Upcoming</p>
+      <h2>Next on the calendar</h2>
+    </div>
+    <div class="card-grid">
+      {% for event in upcoming %}
+      <article class="card event-card">
+        <img class="media" src="{{ event.image }}" alt="{{ event.image_alt }}" loading="lazy" decoding="async">
+        <div class="stack">
+          <p class="eyebrow">{{ event.city }} · {{ event.starts_at | eventDate }}</p>
+          <h3><a href="/events/{{ event.slug }}/">{{ event.name }}</a></h3>
+          <p>{{ event.summary }}</p>
+          <p>{{ event.venue }} · {{ event.price_cents | usd }} · {{ event.capacity }} spots</p>
+        </div>
+      </article>
+      {% else %}
+      <p>The next season is being finalised. Join the list and we will send the calendar first.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section band">
+  <div class="container stack">
+    <div class="section-heading">
+      <p class="eyebrow">Past</p>
+      <h2>Recent rounds</h2>
+    </div>
+    <div class="card-grid">
+      {% for event in past %}
+      <article class="card event-card">
+        <img class="media" src="{{ event.image }}" alt="{{ event.image_alt }}" loading="lazy" decoding="async">
+        <div class="stack">
+          <p class="eyebrow">{{ event.city }} · {{ event.starts_at | eventDate }}</p>
+          <h3><a href="/events/{{ event.slug }}/">{{ event.name }}</a></h3>
+          <p>{{ event.summary }}</p>
+        </div>
+      </article>
+      {% else %}
+      <p>Past events will appear here as the calendar grows.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
 
 <section class="section band">
   <div class="container">
