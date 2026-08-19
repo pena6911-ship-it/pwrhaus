@@ -101,7 +101,12 @@ p  { max-width: var(--prose-max); }
   background-size: 92.1px 92.1px;
   background-position: -23.4px -6.7px;
 }
-.brand-name { display: inline-flex; flex-direction: column; line-height: 1; }
+.brand-name {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
 /* Wordmark cropped from the logo (source x189–1863, y1439–1915 of the 2000²
    file) so the header type is IDENTICAL to the footer logo — same typeface,
    no font guessing. White ground is seamless on the white header. */
@@ -112,18 +117,6 @@ p  { max-width: var(--prose-max); }
   background-repeat: no-repeat;
   background-size: 174.2px 174.2px;
   background-position: -16.5px -125.3px;
-}
-/* Tagline under the brand. Hidden on the narrowest screens so it can't crowd
-   the menu button, revealed from 480px up (mobile-first: min-width only). */
-.brand-tagline {
-  display: none;
-  margin-top: 5px;
-  font-family: var(--font-display);
-  font-size: 0.8125rem; line-height: 1.2;
-  color: var(--forest);
-}
-@media (min-width: 480px) {
-  .brand-tagline { display: block; }
 }
 .wordmark {
   font-family: var(--font-body); font-weight: 800;
