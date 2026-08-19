@@ -141,6 +141,11 @@ against a custom field named `pwrhaus_tier`.
   `PWRHaus Free Access` offer.
 - Workflow debugging note: adding a tag named `pwrhaus free access` is not the same as granting
   the `PWRHaus Free Access` offer.
+- Member portal access was visually verified from the email-confirmed
+  `https://2xkwzprckfzbcxbhsgrb.app.clientclub.net/` portal after granting member access.
+- Portal URL debugging note: the local site had previously linked to
+  `https://xvd2qxmb2qww31ht8pwz.app.clientclub.net/`, which showed `Courses: 0` and
+  `Communities: 0`; use the email-confirmed `bhsgrb` URL for site links.
 
 ## Site Handoff Values
 
