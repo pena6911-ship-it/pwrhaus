@@ -129,6 +129,10 @@ against a custom field named `pwrhaus_tier`.
 - Workflow added `pwrhaus_portal_invited` after `pwrhaus_tier_free` was added.
 - Real portal URL: `https://xvd2qxmb2qww31ht8pwz.app.clientclub.net/`.
 - Portal URL resolves to `Sign in | PWRHAUS` and displays `Member Zone`.
+- Published member access workflow was verified with
+  `pwrhaus-live-member+20260819013625@example.com`.
+- Member workflow test contact ID: `xmjKjckViOeW6GwZG1Vt`.
+- Member workflow added `pwrhaus_member_paid` after `pwrhaus_tier_member` was added.
 
 ## Site Handoff Values
 
