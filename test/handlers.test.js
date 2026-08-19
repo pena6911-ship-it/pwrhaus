@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { makeContactCreateHandler, makeStripeWebhookHandler } from '../functions/lib/handlers.js';
+import { makeContactCreateHandler, makeContactReconcileHandler, makeStripeWebhookHandler } from '../functions/lib/handlers.js';
 
 function req(method, body, headers = {}) {
   return new Request('http://local/fn', {
@@ -140,4 +140,54 @@ test('stripe-webhook handler returns 503 and calls log.warn when no_order', asyn
   assert.equal(res.status, 503);
   assert.deepEqual(await res.json(), { status: 'no_order' });
   assert.equal(warns.length, 1); // log.warn was called once
+});
+
+test('contact-reconcile handler rejects missing and wrong bearer tokens', async () => {
+  const handler = makeContactReconcileHandler({
+    reconcileContacts: async () => ({ processed: 0, linked: 0, failed: 0, failures: [] }),
+    deps: {},
+    env: { RECONCILE_ADMIN_TOKEN: 'secret' },
+    log: silentLog,
+  });
+
+  const missing = await handler(req('POST', {}));
+  assert.equal(missing.status, 401);
+  assert.deepEqual(await missing.json(), { error: 'unauthorized' });
+
+  const wrong = await handler(req('POST', {}, { Authorization: 'Bearer wrong' }));
+  assert.equal(wrong.status, 401);
+  assert.deepEqual(await wrong.json(), { error: 'unauthorized' });
+});
+
+test('contact-reconcile handler runs with a valid bearer token and passes limit', async () => {
+  let receivedLimit;
+  const handler = makeContactReconcileHandler({
+    reconcileContacts: async (_deps, options) => {
+      receivedLimit = options.limit;
+      return { processed: 1, linked: 1, failed: 0, failures: [] };
+    },
+    deps: {},
+    env: { RECONCILE_ADMIN_TOKEN: 'secret' },
+    log: silentLog,
+  });
+
+  const res = await handler(req('POST', { limit: 7 }, { Authorization: 'Bearer secret' }));
+
+  assert.equal(res.status, 200);
+  assert.equal(receivedLimit, 7);
+  assert.deepEqual(await res.json(), { processed: 1, linked: 1, failed: 0, failures: [] });
+});
+
+test('contact-reconcile handler returns 500 when the pre-batch query fails', async () => {
+  const handler = makeContactReconcileHandler({
+    reconcileContacts: async () => { throw new Error('database unavailable'); },
+    deps: {},
+    env: { RECONCILE_ADMIN_TOKEN: 'secret' },
+    log: silentLog,
+  });
+
+  const res = await handler(req('POST', {}, { Authorization: 'Bearer secret' }));
+
+  assert.equal(res.status, 500);
+  assert.deepEqual(await res.json(), { error: 'reconcile_failed' });
 });

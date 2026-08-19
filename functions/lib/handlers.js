@@ -29,6 +29,38 @@ export function makeContactCreateHandler({ createContact, deps, log = console })
   };
 }
 
+function bearerToken(req) {
+  const header = req.headers.get('authorization') ?? '';
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match?.[1] ?? '';
+}
+
+export function makeContactReconcileHandler({ reconcileContacts, deps, env = process.env, log = console }) {
+  return async (req) => {
+    if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+
+    let body = {};
+    try {
+      const raw = await req.text();
+      body = raw ? JSON.parse(raw) : {};
+    } catch {
+      return json({ error: 'invalid_json' }, 400);
+    }
+
+    const expected = env.RECONCILE_ADMIN_TOKEN;
+    if (!expected || bearerToken(req) !== expected) return json({ error: 'unauthorized' }, 401);
+
+    try {
+      const result = await reconcileContacts(deps, { limit: body.limit });
+      log.info?.('contact.reconcile_complete', result);
+      return json(result, 200);
+    } catch (err) {
+      log.error?.('contact.reconcile_failed', { err: err?.message });
+      return json({ error: 'reconcile_failed' }, 500);
+    }
+  };
+}
+
 export function makeStripeWebhookHandler({ recordStripeEvent, deps, verify, log = console }) {
   return async (req) => {
     if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
