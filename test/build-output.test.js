@@ -115,6 +115,18 @@ test('primary CTA buttons keep short labels on one line across breakpoints', () 
   );
 });
 
+test('header brand aligns the wordmark with the logo mark without a tagline', () => {
+  const html = readFileSync(join(outDir, 'index.html'), 'utf8');
+  const header = html.match(/<header class="site-header">[\s\S]*?<\/header>/)?.[0];
+  const css = declarationsOnly('src/css/main.css');
+  const brandNameRule = css.match(/\.brand-name\s*\{[^}]*\}/);
+
+  assert.ok(header, 'header should render');
+  assert.doesNotMatch(header, /brand-tagline/, 'header brand should not render a tagline under the logo');
+  assert.ok(brandNameRule, 'expected a .brand-name rule');
+  assert.match(brandNameRule[0], /justify-content:\s*center/, 'brand wordmark should height-align with the logo mark');
+});
+
 test('every rendered form posts a source the backend whitelists', async () => {
   const { ALLOWED_SOURCES } = await import('../functions/lib/sanitize.js');
   const pages = publicHtmlFiles(outDir);
