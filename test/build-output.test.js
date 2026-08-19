@@ -303,6 +303,9 @@ test('membership tier cards align their action rows to a shared bottom layer', (
   assert.match(tierCardRule[0], /flex-direction:\s*column/, 'tier card content should stack vertically');
   assert.ok(tierActionsRule, 'expected a tier card actions rule');
   assert.match(tierActionsRule[0], /margin-top:\s*auto/, 'tier card action rows should align at the bottom');
+  assert.match(tierActionsRule[0], /display:\s*flex/, 'tier card action rows should be layout containers');
+  assert.match(tierActionsRule[0], /flex-direction:\s*column/, 'tier card actions should stack vertically');
+  assert.match(tierActionsRule[0], /align-items:\s*flex-start/, 'tier card actions should stay left aligned');
 });
 
 test('membership page hides portal CTA until a GHL portal URL is configured', () => {
