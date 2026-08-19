@@ -16,8 +16,8 @@ stickyHref: "#join-web_event_interest"
   poster: siteContent.eventsHero.poster
 }) }}
 
-{% set upcoming = publishedEvents | upcomingEvents %}
-{% set past = publishedEvents | pastEvents %}
+{% set upcoming = events | upcomingEvents %}
+{% set past = events | pastEvents %}
 
 <section class="section">
   <div class="container stack">

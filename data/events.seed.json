@@ -13,7 +13,8 @@
       "image": "/img/groupgolf1.jpg",
       "image_alt": "Golfers walking together across a green course",
       "published": true,
-      "registration_url": null
+      "registration_url": null,
+      "sort_order": 0
     },
     {
       "slug": "spring-networking-nine",
@@ -28,7 +29,8 @@
       "image": "/img/corporate-hero.webp",
       "image_alt": "PWRHaus members gathered at an indoor golf venue",
       "published": true,
-      "registration_url": null
+      "registration_url": null,
+      "sort_order": 1
     },
     {
       "slug": "draft-member-preview",
@@ -43,7 +45,8 @@
       "image": "/img/corporate-hero.webp",
       "image_alt": "Indoor golf venue lounge",
       "published": false,
-      "registration_url": null
+      "registration_url": null,
+      "sort_order": 2
     }
   ]
 }

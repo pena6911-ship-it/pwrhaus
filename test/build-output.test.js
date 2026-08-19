@@ -303,6 +303,9 @@ test('membership tier cards align their action rows to a shared bottom layer', (
   assert.match(tierCardRule[0], /flex-direction:\s*column/, 'tier card content should stack vertically');
   assert.ok(tierActionsRule, 'expected a tier card actions rule');
   assert.match(tierActionsRule[0], /margin-top:\s*auto/, 'tier card action rows should align at the bottom');
+  assert.match(tierActionsRule[0], /display:\s*flex/, 'tier card action rows should be layout containers');
+  assert.match(tierActionsRule[0], /flex-direction:\s*column/, 'tier card actions should stack vertically');
+  assert.match(tierActionsRule[0], /align-items:\s*flex-start/, 'tier card actions should stay left aligned');
 });
 
 test('membership page hides portal CTA until a GHL portal URL is configured', () => {
@@ -354,13 +357,12 @@ test('published CMS events generate detail pages and drafts do not', () => {
   );
 });
 
-test('admin route ships the Sveltia CMS boot page and config', () => {
+test('admin route ships the bespoke dashboard shell, not Sveltia', () => {
   const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
   assert.match(html, /<meta name="robots" content="noindex">/, 'admin must not be indexed');
-  assert.match(html, /@sveltia\/cms/, 'admin page should load Sveltia CMS');
-
-  const config = readFileSync(join(outDir, 'admin', 'config.yml'), 'utf8');
-  assert.match(config, /repo: pena6911-ship-it\/pwrhaus/);
-  assert.match(config, /name: events/);
-  assert.match(config, /file: src\/_data\/siteContent.json/);
+  assert.doesNotMatch(html, /@sveltia\/cms/, 'Sveltia must be retired');
+  assert.match(html, /window\.__PWRHAUS\s*=/, 'admin must inject public Supabase config');
+  assert.match(html, /src="\/admin\/app\.js"/, 'admin must load the dashboard app');
+  assert.match(html, /rel="manifest"/, 'admin must be installable');
+  assert.match(html, /id="login-view"/, 'admin must render the login view');
 });
