@@ -133,6 +133,10 @@ against a custom field named `pwrhaus_tier`.
   `pwrhaus-live-member+20260819013625@example.com`.
 - Member workflow test contact ID: `xmjKjckViOeW6GwZG1Vt`.
 - Member workflow added `pwrhaus_member_paid` after `pwrhaus_tier_member` was added.
+- Free portal access was visually verified with `pena6911@gmail.com` after granting the actual
+  `PWRHaus Free Access` offer.
+- Workflow debugging note: adding a tag named `pwrhaus free access` is not the same as granting
+  the `PWRHaus Free Access` offer.
 
 ## Site Handoff Values
 
