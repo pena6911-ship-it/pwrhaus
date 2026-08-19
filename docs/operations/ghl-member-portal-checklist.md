@@ -163,3 +163,28 @@ against a custom field named `pwrhaus_tier`.
 - Preferred header label: `Member Login`.
 - Preferred footer label: `Member Login`.
 - Preferred membership-page label: `Enter Member Portal`.
+
+## CRM Reconciliation Sweep
+
+- Purpose: retry Supabase contacts whose `ghl_contact_id` is null after a prior GHL outage.
+- Manual function: `functions/contact-reconcile.js`.
+- Scheduled function: `functions/contact-reconcile-scheduled.js`.
+- Manual endpoint: `POST /api/admin/reconcile-contacts`.
+- Scheduled cadence: `@daily`.
+- Required manual-run env var: `RECONCILE_ADMIN_TOKEN`.
+- Default batch limit: `25`.
+- Maximum batch limit: `100`.
+- Local smoke command:
+
+```bash
+curl -X POST http://localhost:8888/api/admin/reconcile-contacts \
+  -H "Authorization: Bearer $RECONCILE_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"limit\":25}"
+```
+
+- Expected response shape:
+
+```json
+{"processed":0,"linked":0,"failed":0,"failures":[]}
+```
