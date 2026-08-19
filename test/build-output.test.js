@@ -139,6 +139,19 @@ test('capture forms use the sitewide softened container corners', () => {
   );
 });
 
+test('lead gate uses a compact dialog without internal scrolling', () => {
+  const css = declarationsOnly('src/css/main.css');
+  const gateDialogRule = css.match(/\.gate-dialog\s*\{[^}]*\}/);
+  const gateFormRule = css.match(/\.gate-form\s*\{[^}]*\}/);
+
+  assert.ok(gateDialogRule, 'expected a .gate-dialog rule');
+  assert.doesNotMatch(gateDialogRule[0], /overflow-y:\s*auto/, 'gate dialog should not create an internal scrollbar');
+  assert.doesNotMatch(gateDialogRule[0], /max-height:/, 'gate dialog should not force an internal scroll viewport');
+  assert.match(gateDialogRule[0], /padding:\s*var\(--space-5\)/, 'gate dialog should use tighter padding');
+  assert.ok(gateFormRule, 'expected a .gate-form rule');
+  assert.match(gateFormRule[0], /gap:\s*var\(--space-3\)/, 'gate form should use tighter field spacing');
+});
+
 test('every rendered form posts a source the backend whitelists', async () => {
   const { ALLOWED_SOURCES } = await import('../functions/lib/sanitize.js');
   const pages = publicHtmlFiles(outDir);
