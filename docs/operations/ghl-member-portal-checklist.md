@@ -127,10 +127,12 @@ against a custom field named `pwrhaus_tier`.
   `pwrhaus-live-published+20260819005739@example.com`.
 - Workflow test contact ID: `TeuF8KEjawfQ2ZfNU9Ad`.
 - Workflow added `pwrhaus_portal_invited` after `pwrhaus_tier_free` was added.
+- Real portal URL: `https://xvd2qxmb2qww31ht8pwz.app.clientclub.net/`.
+- Portal URL resolves to `Sign in | PWRHAUS` and displays `Member Zone`.
 
 ## Site Handoff Values
 
-- `GHL_PORTAL_URL`: the final login URL from GHL.
+- `GHL_PORTAL_URL`: `https://xvd2qxmb2qww31ht8pwz.app.clientclub.net/`.
 - Preferred header label: `Member Login`.
 - Preferred footer label: `Member Login`.
 - Preferred membership-page label: `Enter Member Portal`.
