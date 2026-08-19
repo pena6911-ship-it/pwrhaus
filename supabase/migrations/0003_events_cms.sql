@@ -41,7 +41,7 @@ create policy site_content_admin_all on site_content
 -- 4) Public-read media bucket; authenticated writes.
 insert into storage.buckets (id, name, public)
 values ('event-media', 'event-media', true)
-on conflict (id) do nothing;
+on conflict (id) do update set public = true;
 
 drop policy if exists event_media_public_read on storage.objects;
 drop policy if exists event_media_admin_write on storage.objects;
