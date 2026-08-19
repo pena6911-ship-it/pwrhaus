@@ -309,6 +309,7 @@ body.nav-open { overflow: hidden; }
   border-radius: var(--radius-card);
   padding: var(--space-5);
 }
+.cards-3 > .card { border-radius: var(--radius-media); }
 .card-featured { border-color: var(--brass); }
 
 .price {
