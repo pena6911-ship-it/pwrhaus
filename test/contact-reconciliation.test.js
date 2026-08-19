@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import { reconcileContacts } from '../functions/lib/contact-reconciliation.js';
 import { createFakeDb } from './helpers/fake-db.js';
 
+test('normalizeReconcileLimit defaults invalid limits and caps large limits', async () => {
+  const { normalizeReconcileLimit } = await import('../functions/lib/contact-reconciliation.js');
+
+  assert.equal(normalizeReconcileLimit(undefined), 25);
+  assert.equal(normalizeReconcileLimit('bad'), 25);
+  assert.equal(normalizeReconcileLimit(0), 25);
+  assert.equal(normalizeReconcileLimit(7), 7);
+  assert.equal(normalizeReconcileLimit(500), 100);
+});
+
 function fakeGhl({ failEmails = new Set() } = {}) {
   const calls = [];
   return {

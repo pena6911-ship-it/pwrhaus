@@ -9,6 +9,14 @@ export function createSupabaseDb(env) {
 
   return {
     findContactByEmail: (email) => maybe(sb.from('contacts').select('*').eq('email', email)),
+    findContactsMissingGhlId: ({ limit }) => one(
+      sb
+        .from('contacts')
+        .select('id,email,full_name,phone,tier,source,ghl_contact_id,created_at')
+        .is('ghl_contact_id', null)
+        .order('created_at', { ascending: true })
+        .limit(limit)
+    ),
     insertContact: (input) => one(sb.from('contacts').insert(input).select().single()),
     setContactGhlId: (id, ghlId) => one(sb.from('contacts').update({ ghl_contact_id: ghlId }).eq('id', id).select().single()),
     insertContactInquiry: (input) => one(sb.from('contact_inquiries').insert(input).select().single()),
