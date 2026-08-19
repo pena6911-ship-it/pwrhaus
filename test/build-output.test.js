@@ -209,6 +209,22 @@ test('member login links render when a GHL portal URL is configured', () => {
   }
 });
 
+test('footer navigation sits above social links in a wrapping horizontal row', () => {
+  const html = readFileSync(join(outDir, 'index.html'), 'utf8');
+  const footer = html.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)?.[0];
+  const css = declarationsOnly('src/css/main.css');
+  const footerNavListRule = css.match(/\.footer-nav ul\s*\{[^}]*\}/);
+
+  assert.ok(footer, 'footer should render');
+  assert.ok(
+    footer.indexOf('class="footer-nav"') < footer.indexOf('class="footer-social"'),
+    'footer page links should render before social icons',
+  );
+  assert.ok(footerNavListRule, 'expected a .footer-nav ul rule');
+  assert.match(footerNavListRule[0], /display:\s*flex/, 'footer links should read left to right');
+  assert.match(footerNavListRule[0], /flex-wrap:\s*wrap/, 'footer links should wrap when space is tight');
+});
+
 test('membership page hides portal CTA until a GHL portal URL is configured', () => {
   const html = readFileSync(join(outDir, 'membership', 'index.html'), 'utf8');
   assert.doesNotMatch(html, /Enter Member Portal/, 'membership page should not show portal CTA without GHL_PORTAL_URL');

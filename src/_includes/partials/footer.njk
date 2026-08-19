@@ -5,6 +5,18 @@
            alt="{{ site.name }}">
       <p class="footer-tagline">{{ site.tagline }}</p>
       <p class="footer-blurb">{{ site.description }}</p>
+
+      <nav class="footer-nav" aria-label="Footer">
+        <ul>
+          {% for item in nav %}
+          <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+          {% endfor %}
+          {% if site.portalUrl %}
+          <li><a href="{{ site.portalUrl }}">Member Login</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+
       <ul class="footer-social" aria-label="Social media">
         <li>
           <a href="https://www.instagram.com/pwrhausgolfsociety" rel="noopener"
@@ -24,17 +36,6 @@
         </li>
       </ul>
     </div>
-
-    <nav class="footer-nav" aria-label="Footer">
-      <ul>
-        {% for item in nav %}
-        <li><a href="{{ item.url }}">{{ item.label }}</a></li>
-        {% endfor %}
-        {% if site.portalUrl %}
-        <li><a href="{{ site.portalUrl }}">Member Login</a></li>
-        {% endif %}
-      </ul>
-    </nav>
   </div>
 
   <div class="container footer-credit">
