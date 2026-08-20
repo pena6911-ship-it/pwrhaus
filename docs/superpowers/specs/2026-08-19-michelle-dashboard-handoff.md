@@ -56,3 +56,30 @@ projects, or set live secrets), and should be done on a **deploy preview first**
   update the import in `src/admin/app.js`.
 - **Sveltia teardown:** the GitHub OAuth app previously used by Sveltia can be
   removed from the GitHub account — it's no longer referenced.
+
+## 5 · Operational must-dos (learned at launch, 2026-08-19)
+
+These three bit us during go-live. Keep them true or the dashboard silently breaks.
+
+1. **Netlify auto-publishing MUST stay ON.**
+   Netlify → Deploys shows a "Stop auto publishing" toggle (if it reads "Start auto
+   publishing", it is currently OFF — turn it on). The dashboard's whole publish flow
+   depends on it: Michelle clicks Publish → `/api/publish` fires the build hook →
+   Netlify rebuilds → **auto-publishing is what promotes that rebuild to the live URL.**
+   With it off, her edits build but never go live, and production serves a stale deploy
+   (this exact confusion cost us an hour: production looked like an older, buggy build).
+
+2. **Supabase Auth URL configuration (required for password recovery).**
+   Supabase → Authentication → URL Configuration:
+   - **Site URL** = `https://pwrhaus.netlify.app` (the default is `http://localhost:3000`,
+     which is where recovery emails wrongly pointed until this was set).
+   - **Redirect URLs** (allowlist — must exactly match where the app sends people):
+     `https://pwrhaus.netlify.app/admin/` and `http://localhost:8888/admin/` (local dev).
+   The recovery token arrives in the URL hash and only `/admin/` has code to catch it, so
+   the `/admin/` redirect must be both requested (it is, in `app.js`) and allowlisted.
+
+3. **Custom SMTP for production auth emails.**
+   Supabase's built-in email sender is rate-limited to a few messages/hour ("email rate
+   limit exceeded") and is test-only. Before Michelle relies on password reset / invites,
+   configure custom SMTP (Resend, Postmark, SendGrid, or SES) under
+   Supabase → Authentication → Emails / SMTP Settings.
