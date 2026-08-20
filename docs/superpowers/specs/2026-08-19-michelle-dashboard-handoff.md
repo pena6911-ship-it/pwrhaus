@@ -24,6 +24,11 @@ projects, or set live secrets), and should be done on a **deploy preview first**
    (locks down PII reads to authenticated users only).
 3. **Invite Michelle** as an Auth user (email + password) — Authentication →
    Users → Invite. Only she gets an account, so *authenticated = admin*.
+3a. **Disable public signups (required — protects lead PII):** Supabase →
+    Authentication → Sign In / Providers → Email → turn OFF "Allow new users to
+    sign up." *Authenticated = admin* only holds if nobody else can create an
+    account, and the CRM's RLS policies grant `contacts`/`contact_inquiries`
+    reads to any authenticated user, not just Michelle.
 4. Copy the project's **anon key** (Settings → API) for the env vars below.
 5. Schedule the **one-time GHL → Supabase contact import** to run on launch day (build
    near launch; see CRM spec §1).
@@ -51,7 +56,11 @@ projects, or set live secrets), and should be done on a **deploy preview first**
 12. Drag to reorder → confirm the order persists and matches public ordering.
 13. Test the recovery flow: "Forgot password?" → email → set new password → log in.
 14. **RLS spot-check:** with the anon key only (logged out / a curl using the anon
-    key), confirm you cannot read draft events or write any row.
+    key), confirm you cannot read draft events or write any row. Also confirm
+    `GET /rest/v1/contacts` and `GET /rest/v1/contact_inquiries` return empty/denied
+    with the anon key alone — applying `0005_lock_down_pii.sql` **and** disabling
+    public signups (step 3a) are both hard gates before the CRM view goes to
+    production; either one missing means a stranger can read the lead database.
 
 ## 4 · Follow-ups (non-blocking)
 - ~~**PWA icons**~~ — DONE: replaced with a brand maskable SVG (`src/img/pwa-icon.svg`).

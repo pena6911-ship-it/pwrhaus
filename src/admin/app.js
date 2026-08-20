@@ -641,6 +641,8 @@ async function onSettingsSubmit(e) {
 const CRM_PAGE_SIZE = 100;
 
 let crmWired = false;
+let listReq = 0;
+let contactReq = 0;
 function wireCrm() {
   if (crmWired) return;
   crmWired = true;
@@ -690,6 +692,7 @@ function renderCrmStats(s) {
 async function loadContactList() {
   const list = $('#contact-list');
   list.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+  const req = ++listReq;
   let q = sb.from('contacts')
     .select('id,email,full_name,phone,tier,source,notes,created_at,ghl_contact_id,contact_inquiries(count)')
     .order('created_at', { ascending: false })
@@ -701,6 +704,7 @@ async function loadContactList() {
   const source = $('#crm-source').value;
   if (source) q = q.eq('source', source);
   const { data, error } = await q;
+  if (req !== listReq) return; // a newer search/filter superseded this request
   if (error) { toast('Could not load contacts.', 'error'); list.innerHTML = ''; return; }
   state.contacts = data || [];
   populateSourceFilter(state.contacts);
@@ -756,6 +760,7 @@ function renderContactList() {
 }
 
 async function openContactDrawer(c) {
+  const req = ++contactReq;
   const panel = $('#contact-panel');
   const ghlLoc = cfg.ghlLocationId;
   const ghlLink = c.ghl_contact_id && ghlLoc
@@ -778,6 +783,7 @@ async function openContactDrawer(c) {
     .select('source,notes,created_at')
     .eq('contact_id', c.id)
     .order('created_at', { ascending: false });
+  if (req !== contactReq) return; // a newer contact was opened
   const box = $('#inquiry-list');
   if (error) { box.innerHTML = '<p class="meta">Could not load inquiries.</p>'; return; }
   box.innerHTML = '';
