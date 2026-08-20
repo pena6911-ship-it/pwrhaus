@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -39,6 +39,12 @@ test('sortByOrder + nextSortOrder', () => {
   assert.deepEqual(sortByOrder(list).map((e) => e.sort_order), [0, 1, 2]);
   assert.equal(nextSortOrder(list), 3);
   assert.equal(nextSortOrder([]), 0);
+});
+
+test('escapeAttr escapes & so entity-bearing values survive an attribute round-trip', () => {
+  assert.equal(escapeAttr('Co-ed &middot; Fort Lauderdale &amp; Miami'), 'Co-ed &amp;middot; Fort Lauderdale &amp;amp; Miami');
+  assert.equal(escapeAttr('a "quote"'), 'a &quot;quote&quot;');
+  assert.equal(escapeHtml('x & <br>'), 'x &amp; &lt;br&gt;');
 });
 
 test('moveInOrder swaps an event with its neighbor and renumbers', () => {

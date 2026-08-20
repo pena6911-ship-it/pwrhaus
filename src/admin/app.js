@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -578,15 +578,13 @@ function heroFields(page, hero) {
          `<div class="drawer-actions"><button class="btn btn-primary" type="submit">Save page</button></div>`;
 }
 
-function escapeHtml(s) { return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
-function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
-
 async function selectPage(key) {
   state.currentPageKey = key;
   state.pendingHeroFile = null;
   $$('.page-item').forEach((b) => b.classList.toggle('active', b.dataset.key === key));
   const page = PAGES.find((p) => p.key === key);
-  const { data } = await sb.from('site_content').select('value').eq('key', key).maybeSingle();
+  const { data, error } = await sb.from('site_content').select('value').eq('key', key).maybeSingle();
+  if (error) toast('Could not load page content.', 'error');
   const hero = data?.value?.hero ?? data?.value?.eventsHero ?? {};
   $('#settings-form').innerHTML = heroFields(page, hero);
   if (page.media === 'image') {
