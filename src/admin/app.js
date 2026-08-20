@@ -1,7 +1,9 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats } from '/admin/lib.js';
+
+// supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
+const { createClient } = window.supabase;
 
 const cfg = window.__PWRHAUS || {};
 const $ = (s, r = document) => r.querySelector(s);
