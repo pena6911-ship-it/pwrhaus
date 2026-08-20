@@ -10,7 +10,7 @@ body {
   line-height: 1.65;
 }
 img, picture, svg { display: block; max-width: 100%; }
-a { color: var(--forest); }
+a { color: var(--brass-text); }
 
 /* Focus — --brass-text, not --brass. WCAG 2.2 SC 1.4.11 requires 3:1 for a
    focus indicator; --brass is 2.9:1 on paper and fails, --brass-text is 5.9:1. */
@@ -65,17 +65,17 @@ p  { max-width: var(--prose-max); }
   white-space: nowrap;
 }
 .btn-primary {
-  background: var(--forest); color: var(--paper);
+  background: var(--forest-deep); color: var(--paper);
   border-radius: var(--radius-pill);
 }
 .btn-secondary {
-  background: transparent; color: var(--forest);
+  background: transparent; color: var(--brass-text);
   border-bottom: 2px solid var(--brass); padding: 14px 4px;
 }
 @media (prefers-reduced-motion: no-preference) {
   .btn { transition: background-color var(--t-hover) ease-out; }
 }
-.btn-primary:hover { background: var(--forest-deep); }
+.btn-primary:hover { background: var(--forest); }
 
 /* Header. White (not paper) so the logo's white ground is seamless — the
    logo art is centred with only ~8% margins, so it reads well at header size

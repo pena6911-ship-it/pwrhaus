@@ -34,7 +34,7 @@
   --forest:       #028A0F;   /* deck green — brand accent: links, buttons, headings */
   --forest-deep:  #026A0C;   /* derived: darker green for button hover + dark sections */
   --brass:        #028A0F;   /* deck has ONE accent — decorative accents use the green */
-  --brass-text:   #026A0C;   /* AA-safe green for accent TEXT (eyebrows, selected nav) */
+  --brass-text:   #4A3B32;   /* deep brown for accent TEXT (links, eyebrows, selected nav) — ~8:1 on cream, readable */
   --line:         #E7DECB;   /* derived: warm hairline from the cream */
   --error:        #8C2F1E;   /* form validation messages (unchanged) */
 

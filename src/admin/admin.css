@@ -10,7 +10,7 @@
   --forest:       #028A0F;   /* deck green — brand accent */
   --forest-deep:  #026A0C;   /* derived darker green — hovers / dark surfaces */
   --brass:        #028A0F;   /* one accent — decorative uses the green */
-  --brass-text:   #026A0C;   /* AA-safe green for accent text */
+  --brass-text:   #4A3B32;   /* deep brown for accent text (links, labels) — readable on cream */
   --line:         #E7DECB;   /* warm hairline */
   --error:        #8C2F1E;
 
@@ -61,9 +61,9 @@ button { font-family: inherit; }
   background: transparent; color: var(--ink);
 }
 .btn:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
-.btn-primary { background: var(--forest); color: #fff; }
-.btn-primary:hover { background: var(--forest-deep); }
-.btn-secondary { background: var(--paper-raised); color: var(--forest); border-color: var(--line); }
+.btn-primary { background: var(--forest-deep); color: #fff; }
+.btn-primary:hover { background: var(--forest); }
+.btn-secondary { background: var(--paper-raised); color: var(--brass-text); border-color: var(--line); }
 .btn-secondary:hover { border-color: var(--forest); }
 .btn-link { background: transparent; color: var(--brass-text); padding: 0 var(--space-3); min-height: var(--touch); }
 .btn-link:hover { text-decoration: underline; }
