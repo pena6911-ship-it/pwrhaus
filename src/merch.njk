@@ -1,0 +1,53 @@
+---
+layout: base.njk
+title: Merch — PWRHaus Golf Society
+description: PWRHaus Golf Society gear — printed on demand and shipped to your door.
+---
+{% from "partials/page-hero.njk" import pageHero %}
+
+{{ pageHero({
+  eyebrow: "Merch",
+  heading: "Wear the society.",
+  lead: "PWRHaus gear, printed on demand and shipped to your door.",
+  image: "/img/sponsors-hero.jpg",
+  position: "50% 55%"
+}) }}
+
+<section class="section">
+  <div class="container">
+    {% if products.length %}
+    <ul class="cards-3">
+      {% for p in products %}
+      <li class="card">
+        {% if p.image %}
+        <img class="media" src="{{ p.image }}" alt="{{ p.name }}"
+             width="600" height="600" loading="lazy" decoding="async"
+             style="aspect-ratio: 1 / 1;">
+        {% endif %}
+        <h2>{{ p.name }}</h2>
+        <p class="price">{{ p.priceCents | usd }}{% if p.variants.length > 1 %}+{% endif %}</p>
+        {% if p.summary %}<p>{{ p.summary }}</p>{% endif %}
+        <div class="card-actions">
+          {% if p.variants.length > 1 %}
+          <select class="merch-variant" data-variant aria-label="Choose an option for {{ p.name }}">
+            {% for v in p.variants %}
+            <option value="{{ v.id }}">{{ v.label }} — {{ v.priceCents | usd }}</option>
+            {% endfor %}
+          </select>
+          {% endif %}
+          <button class="btn btn-primary" type="button"
+                  data-buy data-product="{{ p.productId }}"
+                  data-variant="{{ p.variants[0].id }}">Buy</button>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="prose center">No products are published yet. Add one in Printify and it appears here on the next build.</p>
+    {% endif %}
+    <p class="prose center" style="margin-top: var(--space-6); color: var(--ink-muted);">
+      Live from Printify. POC — checkout runs in Stripe <strong>test mode</strong>; orders
+      create Printify <strong>drafts only</strong>.
+    </p>
+  </div>
+</section>
