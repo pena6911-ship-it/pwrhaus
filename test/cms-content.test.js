@@ -24,10 +24,10 @@ test('seed events fixture is CMS-shaped and URL-safe', () => {
   }
 });
 
-test('seed siteContent fixture exposes the events hero singleton', () => {
-  assert.ok(siteContent.eventsHero);
-  assert.ok(siteContent.eventsHero.heading.trim().length > 0);
-  assert.ok(siteContent.eventsHero.lead.trim().length > 0);
+test('seed siteContent fixture exposes a hero per page', () => {
+  assert.ok(siteContent.pages, 'seed must expose pages');
+  assert.ok(siteContent.pages.events.hero.heading.trim(), 'events hero heading is required');
+  assert.ok(siteContent.pages.home.hero.lead.trim(), 'home hero lead is required');
 });
 
 test('events.js exposes only published records (seed fallback)', async () => {
