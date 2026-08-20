@@ -564,16 +564,23 @@ function heroFields(page, hero) {
   let media = '';
   if (page.media === 'image') {
     media =
+      `<p class="field-hint">The current hero media is served from the site. You only need this if you want to swap the photo.</p>` +
       `<label>Hero image<input id="s-image-file" type="file" accept="image/*"></label>` +
       `<img id="s-image-preview" class="img-preview" alt=""${hero.image ? '' : ' hidden'}${hero.image ? ` src="${escapeAttr(hero.image)}"` : ''}>` +
-      t('s-position', 'Focal position (e.g. 50% 55%)', hero.position);
+      t('s-position', 'Focal position', hero.position) +
+      `<p class="field-hint">Which part of the photo stays in view when it's cropped to the hero. Left–right, then top–bottom — <strong>50% 50%</strong> is centered; lower the second number to show more of the top (e.g. <strong>50% 30%</strong>), raise it to show more of the bottom.</p>`;
   } else {
-    media = t('s-video', 'Hero video path', hero.video) + t('s-poster', 'Poster image path', hero.poster);
+    media =
+      `<p class="field-hint">The hero video and its poster still are served from the site; edit these paths only if a developer has added a new file.</p>` +
+      t('s-video', 'Hero video path', hero.video) + t('s-poster', 'Poster image path', hero.poster);
   }
+  // Text is the everyday edit; media is tucked behind an optional toggle so the
+  // default view is clean. The fields still exist (populated) so an untouched
+  // save preserves the current image/video/poster/position.
   return t('s-eyebrow', 'Eyebrow', hero.eyebrow) +
          t('s-heading', 'Heading', hero.heading, true) +
          t('s-lead', 'Lead', hero.lead, true) +
-         media +
+         `<details class="media-advanced"><summary>Replace hero media (optional)</summary>${media}</details>` +
          `<p class="form-error" id="settings-error" role="alert" hidden></p>` +
          `<div class="drawer-actions"><button class="btn btn-primary" type="submit">Save page</button></div>`;
 }
