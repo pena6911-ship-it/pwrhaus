@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PWRHaus">
+  <!-- Full-bleed brand ground so any maskable crop stays on-brand. -->
+  <rect width="512" height="512" fill="#123527"/>
+  <!-- Mark sits within the maskable safe zone (inner ~80%). -->
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#B8912A" stroke-width="12"/>
+  <text x="256" y="262" text-anchor="middle" dominant-baseline="central"
+        font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="150"
+        fill="#B8912A">PH</text>
+</svg>

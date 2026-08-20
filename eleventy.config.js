@@ -38,6 +38,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('src/admin/admin.css');
   eleventyConfig.addPassthroughCopy('src/admin/app.js');
   eleventyConfig.addPassthroughCopy('src/admin/lib.js');
+  eleventyConfig.addPassthroughCopy('src/admin/vendor');
   eleventyConfig.addPassthroughCopy('src/admin/sw.js');
   eleventyConfig.addPassthroughCopy('src/admin/manifest.webmanifest');
 

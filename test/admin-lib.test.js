@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -39,4 +39,26 @@ test('sortByOrder + nextSortOrder', () => {
   assert.deepEqual(sortByOrder(list).map((e) => e.sort_order), [0, 1, 2]);
   assert.equal(nextSortOrder(list), 3);
   assert.equal(nextSortOrder([]), 0);
+});
+
+test('moveInOrder swaps an event with its neighbor and renumbers', () => {
+  const list = [
+    { id: 'a', sort_order: 0 },
+    { id: 'b', sort_order: 1 },
+    { id: 'c', sort_order: 2 },
+  ];
+  const up = moveInOrder(list, 'b', 'up');
+  assert.deepEqual(up.map((e) => e.id), ['b', 'a', 'c']);
+  assert.deepEqual(up.map((e) => e.sort_order), [0, 1, 2]);
+
+  const down = moveInOrder(list, 'b', 'down');
+  assert.deepEqual(down.map((e) => e.id), ['a', 'c', 'b']);
+  assert.deepEqual(down.map((e) => e.sort_order), [0, 1, 2]);
+
+  // Boundaries are no-ops (order unchanged).
+  assert.deepEqual(moveInOrder(list, 'a', 'up').map((e) => e.id), ['a', 'b', 'c']);
+  assert.deepEqual(moveInOrder(list, 'c', 'down').map((e) => e.id), ['a', 'b', 'c']);
+
+  // Unknown id → unchanged, still renumbered.
+  assert.deepEqual(moveInOrder(list, 'z', 'up').map((e) => e.id), ['a', 'b', 'c']);
 });

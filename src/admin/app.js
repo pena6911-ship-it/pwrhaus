@@ -1,7 +1,9 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder } from '/admin/lib.js';
+
+// supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
+const { createClient } = window.supabase;
 
 const cfg = window.__PWRHAUS || {};
 const $ = (s, r = document) => r.querySelector(s);
@@ -215,6 +217,8 @@ function eventCard(ev) {
   const actions = document.createElement('div');
   actions.className = 'actions';
   actions.append(
+    actionBtn('↑', 'move-up', ev.id, 'btn-secondary btn-icon', 'Move up'),
+    actionBtn('↓', 'move-down', ev.id, 'btn-secondary btn-icon', 'Move down'),
     actionBtn('Edit', 'edit', ev.id, 'btn-secondary'),
     actionBtn(ev.published ? 'Unpublish' : 'Publish', 'publish', ev.id, 'btn-secondary'),
     actionBtn('Duplicate', 'duplicate', ev.id, 'btn-secondary'),
@@ -225,13 +229,14 @@ function eventCard(ev) {
   return card;
 }
 
-function actionBtn(label, action, id, cls) {
+function actionBtn(label, action, id, cls, ariaLabel) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'btn ' + cls;
   b.dataset.action = action;
   b.dataset.id = id;
   b.textContent = label;
+  if (ariaLabel) { b.setAttribute('aria-label', ariaLabel); b.title = ariaLabel; }
   return b;
 }
 
@@ -246,6 +251,24 @@ function wireList() {
     const action = btn.dataset.action;
 
     if (action === 'edit') { openDrawer(ev); return; }
+
+    if (action === 'move-up' || action === 'move-down') {
+      const reordered = moveInOrder(state.events, ev.id, action === 'move-up' ? 'up' : 'down');
+      const changed = reordered.filter((r) => {
+        const cur = state.events.find((x) => x.id === r.id);
+        return cur && cur.sort_order !== r.sort_order;
+      });
+      if (!changed.length) return; // already at the boundary
+      for (const r of changed) {
+        await sb.from('events').update({ sort_order: r.sort_order, updated_at: new Date().toISOString() }).eq('id', r.id);
+      }
+      toast('Order updated.', 'info');
+      await refresh();
+      // Keep focus on the same control so it can be pressed repeatedly by keyboard.
+      document.querySelector(`button[data-action="${action}"][data-id="${ev.id}"]`)?.focus();
+      triggerPublish();
+      return;
+    }
 
     if (action === 'publish') {
       const { error } = await sb.from('events').update({ published: !ev.published, updated_at: new Date().toISOString() }).eq('id', ev.id);

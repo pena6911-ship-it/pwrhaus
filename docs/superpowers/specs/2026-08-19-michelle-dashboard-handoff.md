@@ -47,15 +47,13 @@ projects, or set live secrets), and should be done on a **deploy preview first**
     key), confirm you cannot read draft events or write any row.
 
 ## 4 · Follow-ups (non-blocking)
-- **PWA icons:** `src/img/pwa-icon-192.png` / `-512.png` are currently copies of the
-  brand favicon mark. Replace with exact-size (192×192, 512×512, maskable-safe) art
-  for a crisp installed icon.
-- **CDN dependency:** the browser dashboard imports `@supabase/supabase-js` from
-  `https://esm.sh/@supabase/supabase-js@2` (matches the retired Sveltia CDN pattern).
-  If you prefer no runtime CDN, vendor a pinned copy under `src/admin/vendor/` and
-  update the import in `src/admin/app.js`.
+- ~~**PWA icons**~~ — DONE: replaced with a brand maskable SVG (`src/img/pwa-icon.svg`).
+- ~~**CDN dependency**~~ — DONE: `supabase-js` is vendored at `src/admin/vendor/supabase.js`
+  (UMD global) and loaded locally; no runtime CDN. To update it, re-copy the bundle from
+  `node_modules/@supabase/supabase-js/dist/umd/supabase.js` after bumping the package.
 - **Sveltia teardown:** the GitHub OAuth app previously used by Sveltia can be
   removed from the GitHub account — it's no longer referenced.
+- **Reorder:** both drag-and-drop and keyboard **Move up/down** buttons now write `sort_order`.
 
 ## 5 · Operational must-dos (learned at launch, 2026-08-19)
 

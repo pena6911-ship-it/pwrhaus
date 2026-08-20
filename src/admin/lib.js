@@ -42,6 +42,21 @@ export function nextSortOrder(events = []) {
   return events.length ? Math.max(...events.map((e) => e.sort_order ?? 0)) + 1 : 0;
 }
 
+// Keyboard-accessible reorder: move `id` one slot up/down among its peers and
+// renumber sort_order sequentially. Boundaries and unknown ids are safe no-ops
+// (still returned renumbered 0..n). Returns a fresh array of shallow copies.
+export function moveInOrder(events = [], id, direction) {
+  const list = sortByOrder(events);
+  const renumber = (arr) => arr.map((e, idx) => ({ ...e, sort_order: idx }));
+  const i = list.findIndex((e) => e.id === id);
+  if (i === -1) return renumber(list);
+  const j = direction === 'up' ? i - 1 : i + 1;
+  if (j < 0 || j >= list.length) return renumber(list);
+  const swapped = [...list];
+  [swapped[i], swapped[j]] = [swapped[j], swapped[i]];
+  return renumber(swapped);
+}
+
 export function computeStats(events = []) {
   const now = Date.now();
   return {

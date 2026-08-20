@@ -363,6 +363,8 @@ test('admin route ships the bespoke dashboard shell, not Sveltia', () => {
   assert.doesNotMatch(html, /@sveltia\/cms/, 'Sveltia must be retired');
   assert.match(html, /window\.__PWRHAUS\s*=/, 'admin must inject public Supabase config');
   assert.match(html, /src="\/admin\/app\.js"/, 'admin must load the dashboard app');
+  assert.match(html, /src="\/admin\/vendor\/supabase\.js"/, 'admin must load the vendored supabase-js bundle');
+  assert.doesNotMatch(html, /esm\.sh/, 'supabase-js must be vendored locally, not loaded from a runtime CDN');
   assert.match(html, /rel="manifest"/, 'admin must be installable');
   assert.match(html, /id="login-view"/, 'admin must render the login view');
 });
