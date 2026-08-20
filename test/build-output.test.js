@@ -384,3 +384,8 @@ test('admin route ships the bespoke dashboard shell, not Sveltia', () => {
   assert.match(html, /rel="manifest"/, 'admin must be installable');
   assert.match(html, /id="login-view"/, 'admin must render the login view');
 });
+
+test('admin Site Content view lists the editable pages', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  assert.match(html, /id="page-list"/, 'Site Content must render a page list');
+});
