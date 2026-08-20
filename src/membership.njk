@@ -7,11 +7,11 @@ description: Three ways into PWRHaus. Free to start, $650 a year for full member
 {% from "partials/page-hero.njk" import pageHero %}
 
 {{ pageHero({
-  eyebrow: "Membership",
-  heading: "Three ways in.",
-  lead: "Start free and look around. Join when it's obviously worth it.",
-  image: "/img/membership-hero.jpg",
-  position: "50% 65%"
+  eyebrow: siteContent.pages.membership.hero.eyebrow,
+  heading: siteContent.pages.membership.hero.heading,
+  lead: siteContent.pages.membership.hero.lead,
+  image: siteContent.pages.membership.hero.image,
+  position: siteContent.pages.membership.hero.position
 }) }}
 
 <section class="section band">

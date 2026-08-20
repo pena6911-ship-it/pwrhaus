@@ -357,6 +357,22 @@ test('published CMS events generate detail pages and drafts do not', () => {
   );
 });
 
+test('every page renders its hero heading from site content', () => {
+  const cases = [
+    ['index.html', 'Never golfed?'],
+    ['events/index.html', 'Rooms where the right people already have something in common.'],
+    ['membership/index.html', 'Three ways in.'],
+    ['lessons/index.html', "You don't need to know how to play."],
+    ['corporate/index.html', 'Bring the simulator to your conference.'],
+    ['sponsors/index.html', 'Put your brand in the room.'],
+    ['about/index.html', "We started because the deals were happening somewhere we weren't."],
+  ];
+  for (const [rel, needle] of cases) {
+    const html = readFileSync(join(outDir, rel), 'utf8');
+    assert.ok(html.includes(needle), `${rel} should render its hero heading (${needle})`);
+  }
+});
+
 test('admin route ships the bespoke dashboard shell, not Sveltia', () => {
   const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
   assert.match(html, /<meta name="robots" content="noindex">/, 'admin must not be indexed');
@@ -367,4 +383,9 @@ test('admin route ships the bespoke dashboard shell, not Sveltia', () => {
   assert.doesNotMatch(html, /esm\.sh/, 'supabase-js must be vendored locally, not loaded from a runtime CDN');
   assert.match(html, /rel="manifest"/, 'admin must be installable');
   assert.match(html, /id="login-view"/, 'admin must render the login view');
+});
+
+test('admin Site Content view lists the editable pages', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  assert.match(html, /id="page-list"/, 'Site Content must render a page list');
 });
