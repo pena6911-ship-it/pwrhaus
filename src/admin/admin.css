@@ -79,6 +79,11 @@ button { font-family: inherit; }
 }
 .ph-monogram.sm { width: 32px; height: 32px; font-size: 13px; border-width: 1.5px; }
 
+/* Real brand logo in the dashboard. */
+.login-logo { width: 180px; height: auto; margin-bottom: var(--space-2); }
+.brand-logo-sm { width: 28px; height: 28px; object-fit: contain; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 /* ---------- Login ---------- */
 .login {
   min-height: 100vh; min-height: 100dvh;

@@ -42,7 +42,7 @@ function renderUnconfigured() {
   const login = $('#login-view');
   show(login, true);
   $('.login-card').innerHTML =
-    '<div class="ph-monogram" aria-hidden="true">PH</div>' +
+    '<img class="login-logo" src="/img/logo.png" alt="PWRHAUS Golf Society">' +
     '<h1>Dashboard not configured</h1>' +
     '<p class="login-sub">This preview has no Supabase connection. Set SUPABASE_URL and SUPABASE_ANON_KEY to enable the dashboard.</p>';
 }
