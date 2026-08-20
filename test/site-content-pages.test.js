@@ -35,3 +35,13 @@ test('siteContent.js returns pages.<slug>.hero for every page (seed fallback)', 
   }
   assert.equal(content.pages.events.hero.heading, 'Rooms where the right people already have something in common.');
 });
+
+test('0004 pre-seeds a site_content row for each new page', () => {
+  const sql = readFileSync(new URL('../supabase/migrations/0004_site_content_pages.sql', import.meta.url), 'utf8').toLowerCase();
+  for (const key of ['home_page', 'membership_page', 'lessons_page', 'corporate_page', 'sponsors_page', 'about_page']) {
+    assert.ok(sql.includes(`'${key}'`), `missing seed for ${key}`);
+  }
+  assert.match(sql, /insert into site_content/);
+  assert.match(sql, /on conflict \(key\) do nothing/);
+  assert.match(sql, /jsonb_build_object\('hero'/);
+});
