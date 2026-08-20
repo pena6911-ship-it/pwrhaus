@@ -20,9 +20,13 @@ projects, or set live secrets), and should be done on a **deploy preview first**
 2a. Apply the migration `supabase/migrations/0004_site_content_pages.sql` (pre-seeds
    a `site_content` row per page so the dashboard's Site Content view can edit every
    page's hero, not just events).
+2b. Apply the migration `supabase/migrations/0005_lock_down_pii.sql` (if not already applied)
+   (locks down PII reads to authenticated users only).
 3. **Invite Michelle** as an Auth user (email + password) — Authentication →
    Users → Invite. Only she gets an account, so *authenticated = admin*.
 4. Copy the project's **anon key** (Settings → API) for the env vars below.
+5. Schedule the **one-time GHL → Supabase contact import** to run on launch day (build
+   near launch; see CRM spec §1).
 
 ## 2 · Netlify
 5. Create a **build hook** (Site config → Build & deploy → Build hooks) →
