@@ -7,11 +7,11 @@ description: A co-ed society of founders and business owners who use golf to fin
 {% from "partials/page-hero.njk" import pageHero %}
 
 {{ pageHero({
-  eyebrow: "Co-ed &middot; Fort Lauderdale &amp; Miami",
-  heading: "Never golfed?<br>Perfect.",
-  lead: "Most of our members hadn't either. They came for the business. They stayed for the game.",
-  video: "/img/Golfmiami_aerial.mp4",
-  poster: "/img/groupgolf1.jpg",
+  eyebrow: siteContent.pages.home.hero.eyebrow,
+  heading: siteContent.pages.home.hero.heading,
+  lead: siteContent.pages.home.hero.lead,
+  video: siteContent.pages.home.hero.video,
+  poster: siteContent.pages.home.hero.poster,
   actions: [
     { label: "Create free profile", href: "#join-web_free_profile", class: "btn-primary" },
     { label: "How membership works", href: "/membership/", class: "btn-secondary" }

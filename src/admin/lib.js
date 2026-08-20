@@ -57,6 +57,9 @@ export function moveInOrder(events = [], id, direction) {
   return renumber(swapped);
 }
 
+export function escapeHtml(s) { return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+export function escapeAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+
 export function computeStats(events = []) {
   const now = Date.now();
   return {

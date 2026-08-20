@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -42,7 +42,7 @@ function renderUnconfigured() {
   const login = $('#login-view');
   show(login, true);
   $('.login-card').innerHTML =
-    '<div class="ph-monogram" aria-hidden="true">PH</div>' +
+    '<img class="login-logo" src="/img/logo.png" alt="PWRHAUS Golf Society">' +
     '<h1>Dashboard not configured</h1>' +
     '<p class="login-sub">This preview has no Supabase connection. Set SUPABASE_URL and SUPABASE_ANON_KEY to enable the dashboard.</p>';
 }
@@ -116,7 +116,6 @@ async function boot() {
   await loadEvents();
   renderStats();
   renderList();
-  loadSettings();
 }
 
 function wireNav() {
@@ -528,56 +527,109 @@ function localInputToIso(v) {
   return Number.isNaN(d.getTime()) ? '' : d.toISOString();
 }
 
-/* ============================ page settings ============================ */
+/* ============================ site content (page heroes) ============================ */
 
-function settingsFields() {
-  return `
-    <label>Eyebrow<input id="s-eyebrow" type="text"></label>
-    <label>Heading<textarea id="s-heading"></textarea></label>
-    <label>Lead<textarea id="s-lead"></textarea></label>
-    <label>Hero video path<input id="s-video" type="text" placeholder="/img/....mp4"></label>
-    <label>Hero poster path<input id="s-poster" type="text" placeholder="/img/....jpg"></label>
-    <p class="form-error" id="settings-error" role="alert" hidden></p>
-    <div class="drawer-actions"><button class="btn btn-primary" type="submit">Save page</button></div>`;
-}
+const PAGES = [
+  { key: 'home_page',       slug: 'home',       label: 'Home',       media: 'video' },
+  { key: 'events_page',     slug: 'events',     label: 'Events',     media: 'video' },
+  { key: 'membership_page', slug: 'membership', label: 'Membership', media: 'image' },
+  { key: 'lessons_page',    slug: 'lessons',    label: 'Lessons',    media: 'image' },
+  { key: 'corporate_page',  slug: 'corporate',  label: 'Corporate',  media: 'image' },
+  { key: 'sponsors_page',   slug: 'sponsors',   label: 'Sponsors',   media: 'image' },
+  { key: 'about_page',      slug: 'about',      label: 'About',      media: 'image' },
+];
 
 let settingsWired = false;
 function wireSettings() {
-  const form = $('#settings-form');
-  form.innerHTML = settingsFields();
+  const list = $('#page-list');
+  list.innerHTML = '';
+  for (const p of PAGES) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'page-item'; b.dataset.key = p.key;
+    b.textContent = p.label;
+    b.addEventListener('click', () => selectPage(p.key));
+    list.appendChild(b);
+  }
   if (!settingsWired) {
     settingsWired = true;
-    form.addEventListener('submit', onSettingsSubmit);
+    $('#settings-form').addEventListener('submit', onSettingsSubmit);
   }
+  selectPage(PAGES[0].key); // default to Home
 }
 
-async function loadSettings() {
-  const { data } = await sb.from('site_content').select('value').eq('key', 'events_page').maybeSingle();
-  const hero = data?.value?.eventsHero || {};
-  $('#s-eyebrow').value = hero.eyebrow || '';
-  $('#s-heading').value = hero.heading || '';
-  $('#s-lead').value = hero.lead || '';
-  $('#s-video').value = hero.video || '';
-  $('#s-poster').value = hero.poster || '';
+function heroFields(page, hero) {
+  const t = (id, label, val, area) => area
+    ? `<label>${label}<textarea id="${id}">${escapeHtml(val || '')}</textarea></label>`
+    : `<label>${label}<input id="${id}" type="text" value="${escapeAttr(val || '')}"></label>`;
+  let media = '';
+  if (page.media === 'image') {
+    media =
+      `<p class="field-hint">The current hero media is served from the site. You only need this if you want to swap the photo.</p>` +
+      `<label>Hero image<input id="s-image-file" type="file" accept="image/*"></label>` +
+      `<img id="s-image-preview" class="img-preview" alt=""${hero.image ? '' : ' hidden'}${hero.image ? ` src="${escapeAttr(hero.image)}"` : ''}>` +
+      t('s-position', 'Focal position', hero.position) +
+      `<p class="field-hint">Which part of the photo stays in view when it's cropped to the hero. Left–right, then top–bottom — <strong>50% 50%</strong> is centered; lower the second number to show more of the top (e.g. <strong>50% 30%</strong>), raise it to show more of the bottom.</p>`;
+  } else {
+    media =
+      `<p class="field-hint">The hero video and its poster still are served from the site; edit these paths only if a developer has added a new file.</p>` +
+      t('s-video', 'Hero video path', hero.video) + t('s-poster', 'Poster image path', hero.poster);
+  }
+  // Text is the everyday edit; media is tucked behind an optional toggle so the
+  // default view is clean. The fields still exist (populated) so an untouched
+  // save preserves the current image/video/poster/position.
+  return t('s-eyebrow', 'Eyebrow', hero.eyebrow) +
+         t('s-heading', 'Heading', hero.heading, true) +
+         t('s-lead', 'Lead', hero.lead, true) +
+         `<details class="media-advanced"><summary>Replace hero media (optional)</summary>${media}</details>` +
+         `<p class="form-error" id="settings-error" role="alert" hidden></p>` +
+         `<div class="drawer-actions"><button class="btn btn-primary" type="submit">Save page</button></div>`;
+}
+
+async function selectPage(key) {
+  state.currentPageKey = key;
+  state.pendingHeroFile = null;
+  $$('.page-item').forEach((b) => b.classList.toggle('active', b.dataset.key === key));
+  const page = PAGES.find((p) => p.key === key);
+  const { data, error } = await sb.from('site_content').select('value').eq('key', key).maybeSingle();
+  if (error) toast('Could not load page content.', 'error');
+  const hero = data?.value?.hero ?? data?.value?.eventsHero ?? {};
+  $('#settings-form').innerHTML = heroFields(page, hero);
+  if (page.media === 'image') {
+    $('#s-image-file').addEventListener('change', () => {
+      const file = $('#s-image-file').files[0];
+      state.pendingHeroFile = file || null;
+      const prev = $('#s-image-preview');
+      if (file) { prev.src = URL.createObjectURL(file); prev.hidden = false; }
+    });
+  }
 }
 
 async function onSettingsSubmit(e) {
   e.preventDefault();
   const err = $('#settings-error');
-  show(err, false);
-  const value = { eventsHero: {
+  err.hidden = true;
+  const page = PAGES.find((p) => p.key === state.currentPageKey);
+  const hero = {
     eyebrow: $('#s-eyebrow').value.trim(),
     heading: $('#s-heading').value.trim(),
     lead: $('#s-lead').value.trim(),
-    video: $('#s-video').value.trim(),
-    poster: $('#s-poster').value.trim(),
-  } };
-  if (!value.eventsHero.heading || !value.eventsHero.lead) {
-    err.textContent = 'Heading and lead are required.'; show(err, true); return;
+  };
+  if (!hero.heading || !hero.lead) { err.textContent = 'Heading and lead are required.'; err.hidden = false; return; }
+  if (page.media === 'image') {
+    hero.position = $('#s-position').value.trim() || '50% 50%';
+    hero.image = $('#s-image-preview').getAttribute('src') || '';
+    if (state.pendingHeroFile) {
+      try { hero.image = await uploadImage(state.pendingHeroFile, page.slug); }
+      catch (uErr) { err.textContent = 'Image upload failed: ' + uErr.message; err.hidden = false; return; }
+    }
+    if (!hero.image) { err.textContent = 'A hero image is required.'; err.hidden = false; return; }
+  } else {
+    hero.video = $('#s-video').value.trim();
+    hero.poster = $('#s-poster').value.trim();
   }
-  const { error } = await sb.from('site_content').upsert({ key: 'events_page', value, updated_at: new Date().toISOString() });
-  if (error) { err.textContent = error.message; show(err, true); return; }
-  toast('Events page saved.', 'info');
+  const { error } = await sb.from('site_content').upsert({ key: page.key, value: { hero }, updated_at: new Date().toISOString() });
+  if (error) { err.textContent = error.message; err.hidden = false; return; }
+  toast(`${page.label} page saved.`, 'info');
   triggerPublish();
 }
 

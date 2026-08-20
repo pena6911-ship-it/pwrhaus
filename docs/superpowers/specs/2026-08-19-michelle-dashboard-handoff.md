@@ -17,6 +17,9 @@ projects, or set live secrets), and should be done on a **deploy preview first**
    - If your project restricts direct `insert into storage.buckets`, create the
      **`event-media`** bucket in the Supabase Storage UI (public read) and apply
      only the object policies from section 4 of the migration.
+2a. Apply the migration `supabase/migrations/0004_site_content_pages.sql` (pre-seeds
+   a `site_content` row per page so the dashboard's Site Content view can edit every
+   page's hero, not just events).
 3. **Invite Michelle** as an Auth user (email + password) — Authentication →
    Users → Invite. Only she gets an account, so *authenticated = admin*.
 4. Copy the project's **anon key** (Settings → API) for the env vars below.

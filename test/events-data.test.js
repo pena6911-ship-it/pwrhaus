@@ -23,14 +23,14 @@ test('events.js falls back to the published seed rows when Supabase env is absen
   }
 });
 
-test('siteContent.js falls back to the seed hero when Supabase env is absent', async () => {
+test('siteContent.js falls back to the seed heroes when Supabase env is absent', async () => {
   const prevUrl = process.env.SUPABASE_URL, prevKey = process.env.SUPABASE_ANON_KEY;
   delete process.env.SUPABASE_URL; delete process.env.SUPABASE_ANON_KEY;
   try {
     const content = await load('siteContent', 'seed');
-    assert.ok(content.eventsHero, 'must expose eventsHero');
-    assert.equal(typeof content.eventsHero.heading, 'string');
-    assert.ok(content.eventsHero.heading.trim().length > 0);
+    assert.ok(content.pages, 'must expose pages');
+    assert.ok(content.pages.events.hero.heading.trim());
+    assert.ok(content.pages.home.hero.heading.trim());
   } finally {
     if (prevUrl === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = prevUrl;
     if (prevKey === undefined) delete process.env.SUPABASE_ANON_KEY; else process.env.SUPABASE_ANON_KEY = prevKey;

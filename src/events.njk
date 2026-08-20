@@ -9,11 +9,11 @@ stickyHref: "#join-web_event_interest"
 {% from "partials/page-hero.njk" import pageHero %}
 
 {{ pageHero({
-  eyebrow: siteContent.eventsHero.eyebrow,
-  heading: siteContent.eventsHero.heading,
-  lead: siteContent.eventsHero.lead,
-  video: siteContent.eventsHero.video,
-  poster: siteContent.eventsHero.poster
+  eyebrow: siteContent.pages.events.hero.eyebrow,
+  heading: siteContent.pages.events.hero.heading,
+  lead: siteContent.pages.events.hero.lead,
+  video: siteContent.pages.events.hero.video,
+  poster: siteContent.pages.events.hero.poster
 }) }}
 
 {% set upcoming = events | upcomingEvents %}
