@@ -9,11 +9,11 @@ stickyHref: "#join-web_corporate"
 {% from "partials/page-hero.njk" import pageHero %}
 
 {{ pageHero({
-  eyebrow: "Corporate",
-  heading: "Bring the simulator to your conference.",
-  lead: "We run golf experiences at corporate events &mdash; sales conferences, offsites, client days. It works because it gives people something to do together that isn't a name badge and a canap&eacute;.",
-  image: "/img/corporate-hero.webp",
-  position: "50% 40%"
+  eyebrow: siteContent.pages.corporate.hero.eyebrow,
+  heading: siteContent.pages.corporate.hero.heading,
+  lead: siteContent.pages.corporate.hero.lead,
+  image: siteContent.pages.corporate.hero.image,
+  position: siteContent.pages.corporate.hero.position
 }) }}
 
 <div class="container">

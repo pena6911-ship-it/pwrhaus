@@ -9,11 +9,11 @@ stickyHref: "#join-web_sponsor"
 {% from "partials/page-hero.njk" import pageHero %}
 
 {{ pageHero({
-  eyebrow: "Sponsorship",
-  heading: "Put your brand in the room.",
-  lead: "PWRHaus events are founders, owners and operators &mdash; the audience most sponsorship budgets are aiming at and usually miss.",
-  image: "/img/sponsors-hero.jpg",
-  position: "50% 55%"
+  eyebrow: siteContent.pages.sponsors.hero.eyebrow,
+  heading: siteContent.pages.sponsors.hero.heading,
+  lead: siteContent.pages.sponsors.hero.lead,
+  image: siteContent.pages.sponsors.hero.image,
+  position: siteContent.pages.sponsors.hero.position
 }) }}
 
 <section class="section band">

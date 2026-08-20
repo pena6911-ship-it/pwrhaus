@@ -9,11 +9,11 @@ stickyHref: "#join-web_lessons"
 {% from "partials/page-hero.njk" import pageHero %}
 
 {{ pageHero({
-  eyebrow: "Lessons",
-  heading: "You don't need to know how to play.",
-  lead: "Most PWRHaus members had never held a club before joining. Now they play. That is the entire point of this.",
-  image: "/img/lessons-hero.jpg",
-  position: "50% 55%"
+  eyebrow: siteContent.pages.lessons.hero.eyebrow,
+  heading: siteContent.pages.lessons.hero.heading,
+  lead: siteContent.pages.lessons.hero.lead,
+  image: siteContent.pages.lessons.hero.image,
+  position: siteContent.pages.lessons.hero.position
 }) }}
 
 <section class="section band">
