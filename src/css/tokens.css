@@ -18,21 +18,25 @@
 }
 
 :root {
+  /* REBRAND (2026): official PWRHAUS Golf Society brand deck — cream base, brown
+     text, green (#028A0F) as the single accent. Token NAMES kept so the fully
+     tokenised stylesheet re-themes by value alone. */
+
   /* Ground */
-  --paper:        #FAF8F3;
-  --paper-raised: #FFFFFF;
+  --paper:        #FDF9EE;   /* deck cream */
+  --paper-raised: #FFFFFF;   /* deck white */
 
   /* Text */
-  --ink:          #14201A;
-  --ink-muted:    #55645B;
+  --ink:          #2E2623;   /* deck brown — primary text (~15:1 on cream) */
+  --ink-muted:    #6E625A;   /* derived: lightened brown, ~4.7:1 on cream (AA) */
 
   /* Brand */
-  --forest:       #1A4D36;
-  --forest-deep:  #123527;
-  --brass:        #B8912A;   /* decorative ONLY — 2.9:1 on paper */
-  --brass-text:   #7D6218;   /* brass-coloured TEXT — 5.9:1, passes AA */
-  --line:         #E6E1D6;
-  --error:        #8C2F1E;   /* form validation messages */
+  --forest:       #028A0F;   /* deck green — brand accent: links, buttons, headings */
+  --forest-deep:  #026A0C;   /* derived: darker green for button hover + dark sections */
+  --brass:        #028A0F;   /* deck has ONE accent — decorative accents use the green */
+  --brass-text:   #026A0C;   /* AA-safe green for accent TEXT (eyebrows, selected nav) */
+  --line:         #E7DECB;   /* derived: warm hairline from the cream */
+  --error:        #8C2F1E;   /* form validation messages (unchanged) */
 
   /* Type families */
   --font-display: "Fraunces", Georgia, serif;

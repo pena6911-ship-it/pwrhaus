@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PWRHaus">
   <!-- Full-bleed brand ground so any maskable crop stays on-brand. -->
-  <rect width="512" height="512" fill="#1A4D36"/>
-  <!-- The real PWRHaus mark (from favicon.svg), scaled + centred in the maskable safe zone. -->
+  <rect width="512" height="512" fill="#028A0F"/>
+  <!-- Placeholder mark (from favicon.svg) in deck colors, centred in the maskable safe zone. -->
   <g transform="translate(48,41.5) scale(13)">
-    <circle cx="16" cy="12" r="6" fill="#FAF8F3"/>
-    <rect x="14.5" y="16" width="3" height="11" rx="1.5" fill="#B8912A"/>
+    <circle cx="16" cy="12" r="6" fill="#FDF9EE"/>
+    <rect x="14.5" y="16" width="3" height="11" rx="1.5" fill="#2E2623"/>
   </g>
 </svg>

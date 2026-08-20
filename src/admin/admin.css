@@ -2,15 +2,16 @@
    Distinct from the marketing site: its own token block, soft shadow allowed. */
 
 :root {
-  --paper:        #FAF8F3;
-  --paper-raised: #FFFFFF;
-  --ink:          #14201A;
-  --ink-muted:    #55645B;
-  --forest:       #1A4D36;
-  --forest-deep:  #123527;
-  --brass:        #B8912A;   /* decorative only */
-  --brass-text:   #7D6218;   /* text */
-  --line:         #E6E1D6;
+  /* REBRAND (2026): official PWRHAUS brand deck — cream / brown / green (#028A0F). */
+  --paper:        #FDF9EE;   /* deck cream */
+  --paper-raised: #FFFFFF;   /* deck white */
+  --ink:          #2E2623;   /* deck brown */
+  --ink-muted:    #6E625A;   /* derived muted brown (AA on cream) */
+  --forest:       #028A0F;   /* deck green — brand accent */
+  --forest-deep:  #026A0C;   /* derived darker green — hovers / dark surfaces */
+  --brass:        #028A0F;   /* one accent — decorative uses the green */
+  --brass-text:   #026A0C;   /* AA-safe green for accent text */
+  --line:         #E7DECB;   /* warm hairline */
   --error:        #8C2F1E;
 
   --font-display: "Fraunces", Georgia, serif;
