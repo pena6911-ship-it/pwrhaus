@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -67,4 +67,19 @@ test('moveInOrder swaps an event with its neighbor and renumbers', () => {
 
   // Unknown id → unchanged, still renumbered.
   assert.deepEqual(moveInOrder(list, 'z', 'up').map((e) => e.id), ['a', 'b', 'c']);
+});
+
+test('weekAgoIso returns the ISO instant 7 days before the reference', () => {
+  const ref = Date.parse('2026-08-20T12:00:00.000Z');
+  assert.equal(weekAgoIso(ref), '2026-08-13T12:00:00.000Z');
+  // Default reference is "now": result must parse and sit ~7 days back.
+  const ms = Date.now() - Date.parse(weekAgoIso());
+  assert.ok(ms > 6.9 * 864e5 && ms < 7.1 * 864e5);
+});
+
+test('tierLabel maps known tiers and passes unknown through', () => {
+  assert.equal(tierLabel('free'), 'Free');
+  assert.equal(tierLabel('member'), 'Member');
+  assert.equal(tierLabel('inner_circle'), 'Inner circle');
+  assert.equal(tierLabel('mystery'), 'mystery');
 });

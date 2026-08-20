@@ -68,3 +68,11 @@ export function computeStats(events = []) {
     draft: events.filter((e) => e.published !== true).length,
   };
 }
+
+export function weekAgoIso(nowMs = Date.now()) {
+  return new Date(nowMs - 7 * 864e5).toISOString();
+}
+
+export function tierLabel(tier) {
+  return { free: 'Free', member: 'Member', inner_circle: 'Inner circle' }[tier] ?? String(tier ?? '');
+}
