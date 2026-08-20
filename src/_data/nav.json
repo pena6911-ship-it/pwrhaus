@@ -4,5 +4,6 @@
   { "label": "Lessons",    "url": "/lessons/" },
   { "label": "Sponsors",   "url": "/sponsors/" },
   { "label": "Corporate",  "url": "/corporate/" },
+  { "label": "Merch",      "url": "/merch/" },
   { "label": "About",      "url": "/about/" }
 ]
