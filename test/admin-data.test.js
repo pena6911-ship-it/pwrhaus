@@ -23,3 +23,15 @@ test('admin config reads the public Supabase url + anon key', async () => {
   assert.equal(admin.supabaseUrl, 'https://proj.supabase.co');
   assert.equal(admin.supabaseAnonKey, 'anon-abc');
 });
+
+test('admin config exposes the public GHL location id (empty when absent)', async () => {
+  const prev = process.env.GHL_LOCATION_ID;
+  delete process.env.GHL_LOCATION_ID;
+  try {
+    assert.equal((await load('ghl-empty')).ghlLocationId, '');
+    process.env.GHL_LOCATION_ID = 'loc-123';
+    assert.equal((await load('ghl-set')).ghlLocationId, 'loc-123');
+  } finally {
+    if (prev === undefined) delete process.env.GHL_LOCATION_ID; else process.env.GHL_LOCATION_ID = prev;
+  }
+});
