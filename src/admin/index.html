@@ -13,7 +13,7 @@
     <link rel="preload" href="/fonts/work-sans-variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/admin/admin.css">
     <script>
-      window.__PWRHAUS = { supabaseUrl: "{{ admin.supabaseUrl }}", supabaseAnonKey: "{{ admin.supabaseAnonKey }}" };
+      window.__PWRHAUS = { supabaseUrl: "{{ admin.supabaseUrl }}", supabaseAnonKey: "{{ admin.supabaseAnonKey }}", ghlLocationId: "{{ admin.ghlLocationId }}" };
     </script>
   </head>
   <body>
@@ -54,7 +54,7 @@
           <button class="nav-item" data-view="events" aria-current="page">Dashboard</button>
           <button class="nav-item" data-view="events">Events</button>
           <button class="nav-item" data-view="settings">Site Content</button>
-          <button class="nav-item" disabled title="Coming soon">CRM</button>
+          <button class="nav-item" data-view="crm">CRM</button>
           <button class="nav-item" disabled title="Coming soon">Settings</button>
         </nav>
         <button class="btn btn-link install-btn" id="install-btn" hidden>Install app</button>
@@ -83,11 +83,28 @@
             <form id="settings-form" class="settings-form"><!-- hero fields injected --></form>
           </div>
         </section>
+
+        <section id="view-crm" class="view" hidden>
+          <div class="view-head"><h2>Leads</h2></div>
+          <div class="stat-row" id="crm-stat-row"><!-- stats injected --></div>
+          <div class="crm-controls" id="crm-controls">
+            <input type="search" id="crm-search" placeholder="Search name or email" aria-label="Search contacts">
+            <select id="crm-tier" aria-label="Filter by tier">
+              <option value="">All tiers</option>
+              <option value="free">Free</option>
+              <option value="member">Member</option>
+              <option value="inner_circle">Inner circle</option>
+            </select>
+            <select id="crm-source" aria-label="Filter by source"><option value="">All sources</option></select>
+          </div>
+          <div class="contact-list" id="contact-list" aria-live="polite"><!-- rows injected --></div>
+        </section>
       </main>
 
       <nav id="bottom-nav" class="bottom-nav" aria-label="Sections">
         <button class="tab" data-view="events" aria-current="page">Events</button>
         <button class="tab" data-view="settings">Page</button>
+        <button class="tab" data-view="crm">CRM</button>
         <button class="tab" id="new-event-tab">New</button>
       </nav>
     </div>
@@ -96,6 +113,11 @@
     <div id="event-drawer" class="drawer" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Event editor">
       <div class="drawer-scrim" data-close></div>
       <form id="event-form" class="drawer-panel"><!-- fields injected --></form>
+    </div>
+
+    <div id="contact-drawer" class="drawer" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Contact details">
+      <div class="drawer-scrim" data-close-contact></div>
+      <div class="drawer-panel" id="contact-panel"><!-- contact detail injected --></div>
     </div>
 
     <div id="toasts" class="toasts" aria-live="assertive"></div>

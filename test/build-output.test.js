@@ -389,3 +389,12 @@ test('admin Site Content view lists the editable pages', () => {
   const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
   assert.match(html, /id="page-list"/, 'Site Content must render a page list');
 });
+
+test('admin ships the enabled CRM view', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  assert.match(html, /data-view="crm"/, 'CRM nav must be enabled');
+  assert.doesNotMatch(html, /disabled title="Coming soon">CRM/, 'CRM must no longer be a disabled placeholder');
+  assert.match(html, /id="view-crm"/, 'CRM view container must ship');
+  assert.match(html, /id="contact-list"/, 'contact list container must ship');
+  assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
+});
