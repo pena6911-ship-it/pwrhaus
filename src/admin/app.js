@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -10,7 +10,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const show = (el, on) => { if (el) el.hidden = !on; };
 
-const state = { events: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null };
+const state = { events: [], contacts: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null };
 
 let sb = null;
 
@@ -112,6 +112,7 @@ async function boot() {
   wireList();
   wireDrawer();
   wireSettings();
+  wireCrm();
   renderSkeleton();
   await loadEvents();
   renderStats();
@@ -122,6 +123,8 @@ function wireNav() {
   const go = (view) => {
     show($('#view-events'), view === 'events');
     show($('#view-settings'), view === 'settings');
+    show($('#view-crm'), view === 'crm');
+    if (view === 'crm') loadCrm();
     $$('.nav-item[data-view], .tab[data-view]').forEach((b) => {
       if (b.dataset.view === view) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
@@ -631,6 +634,169 @@ async function onSettingsSubmit(e) {
   if (error) { err.textContent = error.message; err.hidden = false; return; }
   toast(`${page.label} page saved.`, 'info');
   triggerPublish();
+}
+
+/* ============================ CRM (read-only lead intake) ============================ */
+
+const CRM_PAGE_SIZE = 100;
+
+let crmWired = false;
+function wireCrm() {
+  if (crmWired) return;
+  crmWired = true;
+  let t = null;
+  $('#crm-search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(loadContactList, 250); });
+  $('#crm-tier').addEventListener('change', loadContactList);
+  $('#crm-source').addEventListener('change', loadContactList);
+  $('#contact-drawer').addEventListener('click', (e) => { if (e.target.closest('[data-close-contact]')) closeContactDrawer(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#contact-drawer').hidden) closeContactDrawer(); });
+}
+
+async function loadCrm() {
+  renderCrmStats(null); // skeleton state
+  await Promise.all([loadCrmStats(), loadContactList()]);
+}
+
+async function loadCrmStats() {
+  const count = (q) => q.then(({ count: n, error }) => (error ? null : n));
+  const [total, fresh, members, inner] = await Promise.all([
+    count(sb.from('contacts').select('*', { count: 'exact', head: true })),
+    count(sb.from('contacts').select('*', { count: 'exact', head: true }).gte('created_at', weekAgoIso())),
+    count(sb.from('contacts').select('*', { count: 'exact', head: true }).eq('tier', 'member')),
+    count(sb.from('contacts').select('*', { count: 'exact', head: true }).eq('tier', 'inner_circle')),
+  ]);
+  renderCrmStats({ total, fresh, members, inner });
+}
+
+function renderCrmStats(s) {
+  const tiles = [
+    { k: 'Contacts', n: s?.total },
+    { k: 'New this week', n: s?.fresh },
+    { k: 'Members', n: s?.members },
+    { k: 'Inner circle', n: s?.inner },
+  ];
+  const row = $('#crm-stat-row');
+  row.innerHTML = '';
+  for (const tdef of tiles) {
+    const el = document.createElement('div');
+    el.className = 'stat';
+    const n = document.createElement('div'); n.className = 'n'; n.textContent = tdef.n == null ? '—' : String(tdef.n);
+    const k = document.createElement('div'); k.className = 'k'; k.textContent = tdef.k;
+    el.append(n, k);
+    row.appendChild(el);
+  }
+}
+
+async function loadContactList() {
+  const list = $('#contact-list');
+  list.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+  let q = sb.from('contacts')
+    .select('id,email,full_name,phone,tier,source,notes,created_at,ghl_contact_id,contact_inquiries(count)')
+    .order('created_at', { ascending: false })
+    .limit(CRM_PAGE_SIZE);
+  const term = $('#crm-search').value.trim().replace(/[,()]/g, ' ').trim();
+  if (term) q = q.or(`email.ilike.%${term}%,full_name.ilike.%${term}%`);
+  const tier = $('#crm-tier').value;
+  if (tier) q = q.eq('tier', tier);
+  const source = $('#crm-source').value;
+  if (source) q = q.eq('source', source);
+  const { data, error } = await q;
+  if (error) { toast('Could not load contacts.', 'error'); list.innerHTML = ''; return; }
+  state.contacts = data || [];
+  populateSourceFilter(state.contacts);
+  renderContactList();
+}
+
+// Fill the source dropdown from sources seen so far; never remove the current pick.
+function populateSourceFilter(rows) {
+  const sel = $('#crm-source');
+  const have = new Set($$('option', sel).map((o) => o.value));
+  for (const r of rows) {
+    if (r.source && !have.has(r.source)) {
+      have.add(r.source);
+      const o = document.createElement('option');
+      o.value = r.source; o.textContent = r.source;
+      sel.appendChild(o);
+    }
+  }
+}
+
+function renderContactList() {
+  const list = $('#contact-list');
+  list.innerHTML = '';
+  if (!state.contacts.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = 'No contacts match.';
+    list.appendChild(empty);
+    return;
+  }
+  for (const c of state.contacts) {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'contact-row';
+    row.dataset.id = c.id;
+
+    const who = document.createElement('div'); who.className = 'who';
+    const name = document.createElement('span'); name.className = 'name';
+    name.textContent = c.full_name || c.email;
+    const badge = document.createElement('span');
+    badge.className = `badge tier-${c.tier}`;
+    badge.textContent = tierLabel(c.tier);
+    who.append(name, badge);
+
+    const meta = document.createElement('div'); meta.className = 'meta';
+    const inquiries = c.contact_inquiries?.[0]?.count ?? 0;
+    meta.textContent = `${c.email} · ${c.source || 'site'} · joined ${eventDateLabel(c.created_at)} · ${inquiries} ${inquiries === 1 ? 'inquiry' : 'inquiries'}`;
+
+    row.append(who, meta);
+    row.addEventListener('click', () => openContactDrawer(c));
+    list.appendChild(row);
+  }
+}
+
+async function openContactDrawer(c) {
+  const panel = $('#contact-panel');
+  const ghlLoc = cfg.ghlLocationId;
+  const ghlLink = c.ghl_contact_id && ghlLoc
+    ? `<p><a href="https://app.gohighlevel.com/v2/location/${escapeAttr(ghlLoc)}/contacts/detail/${escapeAttr(c.ghl_contact_id)}" target="_blank" rel="noopener">View in GHL</a></p>`
+    : (c.ghl_contact_id ? '<p class="meta">Synced to GHL</p>' : '');
+  panel.innerHTML =
+    `<h3>${escapeHtml(c.full_name || c.email)}</h3>` +
+    `<p class="meta">${escapeHtml(c.email)}${c.phone ? ' · ' + escapeHtml(c.phone) : ''}</p>` +
+    `<p><span class="badge tier-${escapeAttr(c.tier)}">${escapeHtml(tierLabel(c.tier))}</span></p>` +
+    `<p class="meta">Source: ${escapeHtml(c.source || 'site')} · joined ${escapeHtml(eventDateLabel(c.created_at))}</p>` +
+    (c.notes ? `<p>${escapeHtml(c.notes)}</p>` : '') +
+    ghlLink +
+    `<h3>Inquiries</h3><div id="inquiry-list"><div class="skeleton"></div></div>` +
+    `<div class="drawer-actions"><button class="btn btn-secondary" type="button" data-close-contact>Close</button></div>`;
+  const drawer = $('#contact-drawer');
+  drawer.hidden = false;
+  drawer.setAttribute('aria-hidden', 'false');
+
+  const { data, error } = await sb.from('contact_inquiries')
+    .select('source,notes,created_at')
+    .eq('contact_id', c.id)
+    .order('created_at', { ascending: false });
+  const box = $('#inquiry-list');
+  if (error) { box.innerHTML = '<p class="meta">Could not load inquiries.</p>'; return; }
+  box.innerHTML = '';
+  if (!data.length) { box.innerHTML = '<p class="meta">No inquiries recorded.</p>'; return; }
+  for (const i of data) {
+    const item = document.createElement('div');
+    item.className = 'inquiry-item';
+    const meta = document.createElement('p'); meta.className = 'meta';
+    meta.textContent = `${i.source} · ${eventDateLabel(i.created_at)}`;
+    item.appendChild(meta);
+    if (i.notes) { const p = document.createElement('p'); p.textContent = i.notes; item.appendChild(p); }
+    box.appendChild(item);
+  }
+}
+
+function closeContactDrawer() {
+  const drawer = $('#contact-drawer');
+  drawer.hidden = true;
+  drawer.setAttribute('aria-hidden', 'true');
 }
 
 /* ============================ publish indicator ============================ */
