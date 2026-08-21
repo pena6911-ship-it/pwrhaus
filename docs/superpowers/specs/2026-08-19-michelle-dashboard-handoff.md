@@ -52,6 +52,43 @@ projects, or set live secrets), and should be done on a **deploy preview first**
    undone. Also check whether GHL has already split the `name` we push; if the
    personalisation need lives in GHL campaigns, no change may be required on our side.
 
+7. **Pre-launch database reset (launch day, BEFORE the GHL import).** Testing on Netlify
+   generated real rows in Supabase — test purchases, test tickets, test contacts. Clear the
+   transactional data so Michelle starts from zero, but **do not blanket-wipe every table**:
+   the live site's capture forms have been collecting *genuine* leads throughout, and
+   `events`/`site_content` hold her real content.
+
+   | Data | Action |
+   |---|---|
+   | `event_attendance`, `tickets`, `orders`, `order_events` | **Clear** — all of it is test purchase data |
+   | `contacts`, `contact_inquiries` | **Curate** — delete test rows by email/date; keep real captured leads. Export first |
+   | `events`, `site_content` | **Curate** — remove test events; keep her real content |
+
+   **Order matters** (foreign keys): `event_attendance` → `tickets` → `orders` → `order_events`.
+   Deleting `orders` before `tickets` will fail on the FK.
+
+   ```sql
+   -- Transactional test data only. Run in this order.
+   delete from event_attendance;
+   delete from tickets;
+   delete from order_events;
+   delete from orders;
+
+   -- Real ticket numbers should start at 000-0001-00001, not continue the test count.
+   alter sequence event_order_seq restart with 1;
+   ```
+
+   For contacts, inspect before deleting — do NOT truncate:
+   ```sql
+   -- Review what is test vs real first.
+   select id, email, full_name, source, created_at from contacts order by created_at;
+   -- Then delete only the test addresses you identify, e.g.:
+   -- delete from contact_inquiries where contact_id in (select id from contacts where email in ('...'));
+   -- delete from contacts where email in ('...');
+   ```
+
+   Afterwards, re-check each event's `tickets_enabled`, prices and `sales_end_at` before sales open.
+
 ## 2 · Netlify
 5. Create a **build hook** (Site config → Build & deploy → Build hooks) →
    copy its URL into `NETLIFY_BUILD_HOOK` (server-side only).
