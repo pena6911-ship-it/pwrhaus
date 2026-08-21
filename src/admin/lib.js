@@ -95,3 +95,9 @@ export function resolveJsqr(global) {
   if (g && typeof g.default === 'function') return g.default;
   return null;
 }
+
+// Native QR support can report true while detect() returns no codes forever.
+// Give the vendored decoder a chance after a short, frame-producing wait.
+export function shouldFallbackToJsqr(decoder, hasJsqr, elapsedMs, thresholdMs = 3500) {
+  return decoder === 'native' && hasJsqr && elapsedMs >= thresholdMs;
+}

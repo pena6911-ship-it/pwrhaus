@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -1183,12 +1183,14 @@ async function startScanning() {
   showCheckinResult('info', 'Scanning \u2014 point the camera at the ticket QR. '
     + decoderDiagnostics(native));
 
-  const detector = checkinDecoder === 'native' ? new window.BarcodeDetector({ formats: ['qr_code'] }) : null;
+  let detector = checkinDecoder === 'native' ? new window.BarcodeDetector({ formats: ['qr_code'] }) : null;
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   let last = '';
   let errorsShown = false;
   let frames = 0;
+  let fallbackShown = false;
+  const decoderStartedAt = Date.now();
 
   // Black-screen watchdog: a stream can be granted and still never produce a
   // frame (camera held by another app). Without this it just looks broken.
@@ -1204,6 +1206,15 @@ async function startScanning() {
     if (detector) {
       if (video.videoWidth) clearWatchdog();
       const codes = await detector.detect(video);
+      if (codes.length === 0 && video.videoWidth
+        && shouldFallbackToJsqr(checkinDecoder, Boolean(jsqr), Date.now() - decoderStartedAt)) {
+        checkinDecoder = 'jsqr';
+        detector = null;
+        if (!fallbackShown) {
+          fallbackShown = true;
+          showCheckinResult('info', 'Built-in QR scanning did not find a code. Switching to the backup scanner...');
+        }
+      }
       return codes.length ? codes[0].rawValue : '';
     }
     // jsQR needs pixels, so draw the current frame and hand over the buffer.
