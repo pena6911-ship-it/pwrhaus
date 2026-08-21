@@ -40,7 +40,12 @@ export function makeTicketsWebhookHandler({ env, verify, db, email, now = Date.n
       current_status: oversold ? 'needs_attention' : 'paid',
       manage_token: randomToken(),
     });
-    await db.insertOrderEvent({ stripe_event_id: event.id, order_id: order.id, type: event.type });
+    await db.insertOrderEvent({
+      stripe_event_id: event.id,
+      order_id: order.id,
+      event_type: 'paid',
+      amount_cents: s.amount_total ?? unitCents * quantity,
+    });
 
     if (oversold) {
       // Paid but unfulfillable: flag for refund. The one case Michelle must see.

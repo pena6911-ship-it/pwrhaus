@@ -54,6 +54,10 @@ test('issues one ticket per seat and auto-assigns the buyer their own', async ()
   assert.match(state.tickets[0].ticket_no, /^000-0088-00001$/);
   assert.notEqual(state.tickets[0].qr_token, state.tickets[1].qr_token);
   assert.equal(state.emails.length, 1);
+
+  assert.equal(state.events.length, 1);
+  assert.equal(state.events[0].event_type, 'paid', 'must be a legal order_events.event_type value');
+  assert.equal(state.events[0].type, undefined, 'order_events has no "type" column');
 });
 
 test('a replayed Stripe event issues nothing further', async () => {
@@ -70,4 +74,8 @@ test('over-capacity flags for attention rather than overselling', async () => {
   assert.equal(res.status, 200);
   assert.equal(state.tickets.length, 0, 'must not oversell');
   assert.equal(state.orders[0].current_status, 'needs_attention');
+
+  assert.equal(state.events.length, 1, 'the flagged order is still recorded as an order_event');
+  assert.equal(state.events[0].event_type, 'paid', 'must be a legal order_events.event_type value');
+  assert.equal(state.events[0].type, undefined, 'order_events has no "type" column');
 });
