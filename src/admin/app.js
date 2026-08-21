@@ -1156,7 +1156,16 @@ async function startScanning() {
   }
   video.srcObject = checkinStream;
   video.hidden = false;
-  await video.play();
+  // play() rejects on some Android builds even when the stream is perfectly good.
+  // Letting it throw here aborts the rest of this function, leaving a visible
+  // black <video> and no message - the exact "camera opened and did nothing"
+  // symptom. Report it and carry on; the decode loop tolerates empty frames.
+  try {
+    await video.play();
+  } catch (err) {
+    showCheckinResult('warn', 'Video playback was blocked ('
+      + ((err && err.name) || 'unknown') + '). Still trying to read the camera...');
+  }
 
   const native = await nativeSupportsQr();
   const jsqr = resolveJsqr(window);
@@ -1181,13 +1190,25 @@ async function startScanning() {
   let errorsShown = false;
   let frames = 0;
 
+  // Black-screen watchdog: a stream can be granted and still never produce a
+  // frame (camera held by another app). Without this it just looks broken.
+  let watchdog = setTimeout(() => {
+    if (!video.hidden && !video.videoWidth) {
+      showCheckinResult('err', 'The camera turned on but is not sending any picture. '
+        + 'Close other apps using the camera and reload, or use the ticket number below.');
+    }
+  }, 4000);
+  const clearWatchdog = () => { if (watchdog) { clearTimeout(watchdog); watchdog = null; } };
+
   const readFrame = async () => {
     if (detector) {
+      if (video.videoWidth) clearWatchdog();
       const codes = await detector.detect(video);
       return codes.length ? codes[0].rawValue : '';
     }
     // jsQR needs pixels, so draw the current frame and hand over the buffer.
     if (!video.videoWidth) return '';
+    clearWatchdog();
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -1197,7 +1218,7 @@ async function startScanning() {
   };
 
   const tick = async () => {
-    if (video.hidden) return;
+    if (video.hidden) { clearWatchdog(); return; }
     try {
       const raw = await readFrame();
       frames += 1;
