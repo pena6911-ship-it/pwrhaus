@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -1120,51 +1120,66 @@ function stopScanning() {
 let checkinDecoder = '';
 
 // BarcodeDetector is absent on iOS Safari, and on some Android builds the
-// constructor succeeds while qr_code is NOT actually supported — detect() then
-// silently never fires. So we ask what it supports rather than whether it exists,
-// and fall back to jsQR (vendored, pure JS) which works everywhere.
-async function pickDecoder() {
+// constructor exists while qr_code is NOT actually supported - detect() then
+// silently never fires. Ask what it supports, not whether it exists.
+async function nativeSupportsQr() {
   try {
     if (window.BarcodeDetector && window.BarcodeDetector.getSupportedFormats) {
       const formats = await window.BarcodeDetector.getSupportedFormats();
-      if (formats.includes('qr_code')) return 'native';
+      return formats.includes('qr_code');
     }
-  } catch { /* fall through to jsQR */ }
-  return typeof window.jsQR === 'function' ? 'jsqr' : '';
+  } catch { /* treat as unsupported */ }
+  return false;
 }
 
+// The door phone has no console, so the state that explains a failure has to be
+// legible on screen.
+function decoderDiagnostics(native) {
+  return 'QR decoder: ' + (resolveJsqr(window) ? 'loaded' : 'MISSING')
+    + ' \u00b7 built-in: ' + (native ? 'yes' : 'no');
+}
 
 async function startScanning() {
-  stopScanning(); // a second click restarts cleanly instead of leaking a stream
+  stopScanning(); // a second tap restarts cleanly instead of leaking a stream
   const video = $('#checkin-video');
 
-  const decoder = await pickDecoder();
-  if (!decoder) {
-    showCheckinResult('warn', 'Camera scanning is not available on this device. Use the ticket number below.');
-    $('#checkin-ticket-no').focus();
-    return;
-  }
-  checkinDecoder = decoder;
-
+  // Camera FIRST. Choosing a decoder before opening the camera makes a decoder
+  // problem present as a dead camera, sending debugging in the wrong direction.
   try {
     checkinStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-  } catch {
-    showCheckinResult('err', 'Camera unavailable. Use the ticket number below.');
+  } catch (err) {
+    const name = (err && err.name) || 'unknown';
+    showCheckinResult('err', name === 'NotAllowedError'
+      ? 'Camera permission denied. Tap the lock icon in the address bar, allow Camera, then reload. Or use the ticket number below.'
+      : 'Camera unavailable (' + name + '). Use the ticket number below.');
     return;
   }
   video.srcObject = checkinStream;
   video.hidden = false;
   await video.play();
 
-  showCheckinResult('info', decoder === 'native'
-    ? 'Scanning — point the camera at the ticket QR. (native detector)'
-    : 'Scanning — point the camera at the ticket QR. (JS decoder)');
+  const native = await nativeSupportsQr();
+  const jsqr = resolveJsqr(window);
+  checkinDecoder = native ? 'native' : (jsqr ? 'jsqr' : '');
 
-  const detector = decoder === 'native' ? new window.BarcodeDetector({ formats: ['qr_code'] }) : null;
+  if (!checkinDecoder) {
+    // The camera demonstrably worked - say so, so this is not mistaken for one.
+    stopScanning();
+    showCheckinResult('warn', 'Camera works, but no QR decoder is available. Use the ticket number below. '
+      + decoderDiagnostics(native));
+    $('#checkin-ticket-no').focus();
+    return;
+  }
+
+  showCheckinResult('info', 'Scanning \u2014 point the camera at the ticket QR. '
+    + decoderDiagnostics(native));
+
+  const detector = checkinDecoder === 'native' ? new window.BarcodeDetector({ formats: ['qr_code'] }) : null;
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   let last = '';
   let errorsShown = false;
+  let frames = 0;
 
   const readFrame = async () => {
     if (detector) {
@@ -1177,7 +1192,7 @@ async function startScanning() {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const found = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'dontInvert' });
+    const found = jsqr(image.data, image.width, image.height, { inversionAttempts: 'attemptBoth' });
     return found ? found.data : '';
   };
 
@@ -1185,18 +1200,28 @@ async function startScanning() {
     if (video.hidden) return;
     try {
       const raw = await readFrame();
+      frames += 1;
       if (raw) {
         const t = tokenFromScan(raw);
-        // Ignore the same code repeating across frames while it sits in view.
-        if (t && t !== last) { last = t; await submitCheckin({ qr_token: t }); }
+        if (t && t !== last) {
+          // Ignore the same code repeating across frames while it sits in view.
+          last = t;
+          await submitCheckin({ qr_token: t });
+        } else if (!t) {
+          showCheckinResult('warn', 'Scanned a code, but it is not a PWRHAUS ticket.');
+        }
+      } else if (frames === 150) {
+        // ~5 seconds of clean frames with no read: say so rather than sit mute.
+        showCheckinResult('info', 'Scanning \u2014 no QR detected yet. Fill the frame with the code, '
+          + 'or use the ticket number below. ' + decoderDiagnostics(native));
       }
     } catch (err) {
-      // Never swallow this silently — a decoder failing every frame is exactly
-      // the symptom that looks like "the camera works but nothing happens".
+      // Never swallow this - a decoder throwing every frame is exactly the
+      // symptom that looks like "the camera works but nothing happens".
       if (!errorsShown) {
         errorsShown = true;
-        showCheckinResult('err', 'Scanner error: ' + (err && err.message ? err.message : String(err)) +
-          ' — use the ticket number below.');
+        showCheckinResult('err', 'Scanner error: ' + ((err && err.message) || String(err))
+          + ' \u2014 use the ticket number below.');
       }
     }
     requestAnimationFrame(tick);

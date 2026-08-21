@@ -85,3 +85,13 @@ export function tokenFromScan(raw) {
   if (marker === -1) return '';
   return decodeURIComponent(text.slice(marker + 3).split('&')[0]);
 }
+
+// jsQR ships a UMD bundle whose global can be either the decode function itself
+// or a module object wrapping it as `default`, depending on how it is loaded.
+// Accepting only one shape is how a perfectly good decoder reads as "missing".
+export function resolveJsqr(global) {
+  const g = global && global.jsQR;
+  if (typeof g === 'function') return g;
+  if (g && typeof g.default === 'function') return g.default;
+  return null;
+}
