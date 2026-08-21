@@ -16,7 +16,7 @@ export function makeTicketsAssignHandler({ db, createContact, deps, email, now =
       for (const t of tickets) {
         const attendee = t.contact_id ? await db.findContactById(t.contact_id) : null;
         rows.push({
-          id: t.id, ticket_no: t.ticket_no, tier_sold: t.tier_sold,
+          id: t.id, ticket_no: t.ticket_no, tier_sold: t.tier_sold, qr_token: t.qr_token,
           attendee: attendee ? { full_name: attendee.full_name, email: attendee.email } : null,
         });
       }

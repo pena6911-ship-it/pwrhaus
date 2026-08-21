@@ -431,3 +431,15 @@ test('the manage-tickets page ships', () => {
   assert.match(html, /id="manage-root"/, 'assignment page must render its mount point');
   assert.match(html, /src="\/js\/tickets-manage\.js"/, 'assignment page must load its script');
 });
+
+test('the check-in landing page ships and does nothing but instruct', () => {
+  const html = readFileSync(join(outDir, 'checkin', 'index.html'), 'utf8');
+  assert.match(html, /Present this ticket/i, 'a stray camera scan must land somewhere harmless');
+  assert.doesNotMatch(html, /api\/tickets\/checkin/, 'the landing page must never call the check-in API');
+});
+
+test('the manage page ships the QR renderer', () => {
+  const html = readFileSync(join(outDir, 'tickets', 'manage', 'index.html'), 'utf8');
+  assert.match(html, /src="\/js\/vendor\/qrcode\.js"/);
+  assert.match(html, /src="\/js\/ticket-qr\.js"/);
+});
