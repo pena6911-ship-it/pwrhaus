@@ -9,6 +9,10 @@
 
   function render(data) {
     if (!data.tickets.length) { root.textContent = 'No tickets found for this link.'; return; }
+    if (data.assignment_open === false) {
+      root.innerHTML = '<p>This event has passed. Tickets for it have expired and can no longer be named or changed.</p>';
+      return;
+    }
     var html = '<ul class="list-stack ticket-list">';
     data.tickets.forEach(function (t) {
       html += '<li class="card ticket-row"><p class="eyebrow">Ticket ' + esc(t.ticket_no) + ' &middot; ' +

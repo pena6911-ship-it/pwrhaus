@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isMemberTier, priceForTier, salesOpen, remainingCapacity, computeOrder, ticketNumber, randomToken } from '../functions/lib/ticketing.js';
+import { isMemberTier, priceForTier, salesOpen, remainingCapacity, computeOrder, ticketNumber, randomToken, assignmentDeadline, assignmentOpen } from '../functions/lib/ticketing.js';
 
 const EVENT = {
   price_cents: 7500, member_price_cents: 6500, nonmember_price_cents: 7500,
@@ -63,4 +63,24 @@ test('ticketNumber is stable and zero padded; randomToken is unguessable', () =>
   assert.notEqual(a, b);
   assert.ok(a.length >= 32, 'token must be long enough to resist guessing');
   assert.match(a, /^[A-Za-z0-9_-]+$/, 'token must be URL-safe');
+});
+
+test('assignmentDeadline is three hours after the event starts', () => {
+  const ev = { starts_at: '2026-08-21T15:30:00-04:00' };
+  assert.equal(assignmentDeadline(ev), Date.parse('2026-08-21T18:30:00-04:00'));
+  assert.equal(assignmentDeadline({}), null, 'no start time means no deadline to enforce');
+});
+
+test('assignmentOpen closes at the deadline and stays closed', () => {
+  const ev = { starts_at: '2026-08-21T15:30:00-04:00' };
+  const before = Date.parse('2026-08-21T15:00:00-04:00');
+  const during = Date.parse('2026-08-21T17:00:00-04:00');
+  const after  = Date.parse('2026-08-21T18:31:00-04:00');
+
+  assert.deepEqual(assignmentOpen(ev, before), { open: true, reason: null });
+  // The roster stays editable during play — the cutoff is 3h after the start.
+  assert.deepEqual(assignmentOpen(ev, during), { open: true, reason: null });
+  assert.deepEqual(assignmentOpen(ev, after), { open: false, reason: 'assignment_closed' });
+  // Exactly at the deadline is closed: the window is up to, not including.
+  assert.equal(assignmentOpen(ev, assignmentDeadline(ev)).open, false);
 });

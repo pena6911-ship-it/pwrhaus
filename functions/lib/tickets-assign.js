@@ -1,7 +1,8 @@
 import { json } from './http.js';
+import { assignmentOpen, assignmentDeadline } from './ticketing.js';
 
 // /api/tickets/assign — the token grants access to ONE order, never the database.
-export function makeTicketsAssignHandler({ db, createContact, deps, email }) {
+export function makeTicketsAssignHandler({ db, createContact, deps, email, now = Date.now }) {
   const load = async (token) => (token ? db.findOrderByManageToken(token) : null);
 
   return async (req) => {
@@ -19,7 +20,13 @@ export function makeTicketsAssignHandler({ db, createContact, deps, email }) {
           attendee: attendee ? { full_name: attendee.full_name, email: attendee.email } : null,
         });
       }
-      return json({ event: { name: event.name, starts_at: event.starts_at, venue: event.venue, city: event.city }, tickets: rows });
+      const open = assignmentOpen(event, now());
+      return json({
+        event: { name: event.name, starts_at: event.starts_at, venue: event.venue, city: event.city },
+        assignment_open: open.open,
+        assignment_deadline: assignmentDeadline(event),
+        tickets: rows,
+      });
     }
 
     if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
@@ -29,6 +36,10 @@ export function makeTicketsAssignHandler({ db, createContact, deps, email }) {
 
     const order = await load(body.token);
     if (!order) return json({ error: 'not_found' }, 404);
+
+    const event = await db.findEventById(order.event_id);
+    // One deadline governs everything: no new names and no reassignment after it.
+    if (!assignmentOpen(event, now()).open) return json({ error: 'assignment_closed' }, 409);
 
     const tickets = await db.listTicketsByOrder(order.id);
     const ticket = tickets.find((t) => t.id === body.ticket_id);
@@ -45,7 +56,6 @@ export function makeTicketsAssignHandler({ db, createContact, deps, email }) {
 
     await db.assignTicket(ticket.id, contact.id);
 
-    const event = await db.findEventById(order.event_id);
     await email.sendAttendeeTicket({
       to: attendeeEmail, attendeeName: fullName,
       eventName: event.name, startsAt: event.starts_at, venue: event.venue, city: event.city,
