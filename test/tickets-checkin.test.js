@@ -59,6 +59,7 @@ test('an unassigned ticket asks for a name, then checks in with one', async () =
   const un = { ...TICKET, contact_id: null };
   const ask = harness({ ticket: un });
   const res1 = await ask.handler(post({ qr_token: 'good-token', event_id: 'evt-1' }));
+  assert.equal(res1.status, 200, 'needs_attendee is a prompt, not a failure');
   assert.equal((await res1.json()).code, 'needs_attendee');
   assert.equal(ask.state.inserted.length, 0);
 
@@ -75,6 +76,7 @@ test('an unassigned ticket asks for a name, then checks in with one', async () =
 test('a ticket for another event is refused', async () => {
   const { handler, state } = harness();
   const res = await handler(post({ qr_token: 'good-token', event_id: 'evt-other' }));
+  assert.equal(res.status, 400);
   assert.equal((await res.json()).code, 'wrong_event');
   assert.equal(state.inserted.length, 0);
 });
@@ -82,6 +84,7 @@ test('a ticket for another event is refused', async () => {
 test('an unknown token is refused', async () => {
   const { handler } = harness();
   const res = await handler(post({ qr_token: 'nope', event_id: 'evt-1' }));
+  assert.equal(res.status, 400);
   assert.equal((await res.json()).code, 'unknown_ticket');
 });
 

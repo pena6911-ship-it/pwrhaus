@@ -31,7 +31,7 @@ export function makeTicketsCheckinHandler({ verifySession, db, createContact, de
         outcome.code === 'already_checked_in'
           ? { ok: false, code: outcome.code, attended_at: outcome.attended_at }
           : { ok: false, code: outcome.code },
-        soft ? 200 : 200,
+        soft ? 200 : 400,
       );
     }
 
