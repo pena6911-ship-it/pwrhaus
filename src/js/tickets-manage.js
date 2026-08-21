@@ -18,7 +18,9 @@
       html += '<li class="card ticket-row"><p class="eyebrow">Ticket ' + esc(t.ticket_no) + ' &middot; ' +
         (t.tier_sold === 'member' ? 'PWRHAUS Member' : 'Non-Member') + '</p>';
       if (t.attendee) {
-        html += '<p><strong>' + esc(t.attendee.full_name) + '</strong><br>' + esc(t.attendee.email) + '</p>';
+        html += '<p><strong>' + esc(t.attendee.full_name) + '</strong><br>' + esc(t.attendee.email) + '</p>' +
+          '<div class="ticket-qr" data-qr-token="' + esc(t.qr_token || '') + '"></div>' +
+          '<p class="ticket-note">Ticket ' + esc(t.ticket_no) + ' — show this at the door.</p>';
       } else {
         html += '<form data-ticket="' + esc(t.id) + '" class="stack">' +
           '<div class="field">' +
@@ -35,6 +37,7 @@
       html += '</li>';
     });
     root.innerHTML = html + '</ul>';
+    if (window.renderTicketQrs) window.renderTicketQrs();
 
     root.querySelectorAll('form[data-ticket]').forEach(function (form) {
       form.addEventListener('submit', function (e) {

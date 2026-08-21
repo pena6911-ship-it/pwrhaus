@@ -10,7 +10,32 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const show = (el, on) => { if (el) el.hidden = !on; };
 
-const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null };
+const CHECKIN_QUEUE_STORAGE_KEY = 'pwrhaus.checkinQueue';
+
+// A reload or an iOS background-tab eviction must not silently lose a queued
+// check-in — the queue is small (token/number + a door-captured name/email)
+// and lives in localStorage so it survives both. A private-mode failure here
+// must not break check-in, so every access is wrapped.
+function loadPersistedCheckinQueue() {
+  try {
+    const raw = localStorage.getItem(CHECKIN_QUEUE_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistCheckinQueue() {
+  try {
+    localStorage.setItem(CHECKIN_QUEUE_STORAGE_KEY, JSON.stringify(state.checkinQueue));
+  } catch {
+    // Storage unavailable (private mode, full disk, etc). The in-memory
+    // queue still drives this session; it just won't survive a reload.
+  }
+}
+
+const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: loadPersistedCheckinQueue() };
 
 let sb = null;
 
@@ -113,6 +138,7 @@ async function boot() {
   wireDrawer();
   wireSettings();
   wireCrm();
+  wireCheckin();
   renderSkeleton();
   await loadEvents();
   await loadRosters();
@@ -125,7 +151,10 @@ function wireNav() {
     show($('#view-events'), view === 'events');
     show($('#view-settings'), view === 'settings');
     show($('#view-crm'), view === 'crm');
+    show($('#view-checkin'), view === 'checkin');
     if (view === 'crm') loadCrm();
+    if (view === 'checkin') loadCheckin();
+    if (view !== 'checkin') stopScanning();
     $$('.nav-item[data-view], .tab[data-view]').forEach((b) => {
       if (b.dataset.view === view) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
@@ -851,6 +880,277 @@ function closeContactDrawer() {
   const drawer = $('#contact-drawer');
   drawer.hidden = true;
   drawer.setAttribute('aria-hidden', 'true');
+}
+
+/* ============================ check-in ============================ */
+
+let checkinWired = false;
+let checkinStream = null;
+
+function wireCheckin() {
+  if (checkinWired) return;
+  checkinWired = true;
+  $('#checkin-scan-btn').addEventListener('click', startScanning);
+  $('#checkin-manual').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const no = $('#checkin-ticket-no').value.trim();
+    if (!no) return;
+    await submitCheckin({ ticket_no: no });
+    $('#checkin-ticket-no').value = '';
+  });
+  $('#checkin-event').addEventListener('change', loadRoster);
+  // A queue built while standing on this view (network dead the whole time)
+  // never drains on its own otherwise — only loadCheckin() called flushQueue.
+  window.addEventListener('online', flushQueue);
+  // Reflect a queue restored from a previous session immediately, rather
+  // than waiting for the first flush attempt to render it.
+  renderQueue();
+}
+
+async function loadCheckin() {
+  const sel = $('#checkin-event');
+  sel.innerHTML = '';
+  // Today's event first — that is the one she is standing at.
+  const sorted = [...state.events].sort((a, b) =>
+    Math.abs(new Date(a.starts_at) - Date.now()) - Math.abs(new Date(b.starts_at) - Date.now()));
+  for (const ev of sorted) {
+    const o = document.createElement('option');
+    o.value = ev.id;
+    o.textContent = `${ev.name} — ${eventDateLabel(ev.starts_at)}`;
+    sel.appendChild(o);
+  }
+  await loadRoster();
+  flushQueue();
+}
+
+async function loadRoster() {
+  const eventId = $('#checkin-event').value;
+  if (!eventId) return;
+  const { data } = await sb.from('event_attendance')
+    .select('ticket_id,attended_at,contacts(full_name,email)').eq('event_id', eventId);
+  const rows = data || [];
+  const ev = state.events.find((e) => e.id === eventId);
+  $('#checkin-count').textContent = `${rows.length} of ${ev?.capacity ?? '?'} checked in`;
+  const box = $('#checkin-roster');
+  box.innerHTML = '';
+  for (const r of rows) {
+    const p = document.createElement('p');
+    p.className = 'meta';
+    p.textContent = `${r.contacts?.full_name || r.contacts?.email || 'Guest'} · ${eventDateLabel(r.attended_at)}`;
+    box.appendChild(p);
+  }
+}
+
+function showCheckinResult(kind, text) {
+  const box = $('#checkin-result');
+  box.className = `checkin-result ${kind}`;
+  box.textContent = text;
+}
+
+// A refused check-in is a real server answer, not an ambiguous failure — the
+// operator must know which ticket it was about, so every message here is
+// built with the ticket label in front of it.
+const REFUSAL_REASONS = {
+  wrong_event: 'is for a different event.',
+  ticket_refunded: 'was refunded.',
+  ticket_expired: 'has expired.',
+  unknown_ticket: 'is not recognised.',
+  already_checked_in: 'was already checked in.',
+  needs_attendee: 'needs a name — check in manually.',
+};
+
+function ticketLabel(body) {
+  return body?.ticket_no || body?.qr_token || 'That ticket';
+}
+
+function refusalMessage(body, code) {
+  return `${ticketLabel(body)} ${REFUSAL_REASONS[code] || 'could not be checked in.'}`;
+}
+
+function queueCheckin(body) {
+  state.checkinQueue.push(body);
+  renderQueue();
+}
+
+// The scanner posts { qr_token } from a camera scan, or { ticket_no } typed by
+// hand. Both go through the same server validation.
+async function submitCheckin(payload, attendee) {
+  const eventId = $('#checkin-event').value;
+  const { data } = await sb.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) { showCheckinResult('err', 'Session expired — sign in again.'); return; }
+
+  const body = { ...payload, event_id: eventId, ...(attendee || {}) };
+
+  let res;
+  try {
+    res = await fetch('/api/tickets/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    // Transport failure — a dead spot must not stop the line: hold it and
+    // retry when signal returns.
+    queueCheckin(body);
+    showCheckinResult('warn', 'No signal — saved, will sync automatically.');
+    return;
+  }
+
+  if (res.status >= 500) {
+    // A server error is not a real answer either — treat it the same as no
+    // signal at all, rather than dropping the check-in.
+    queueCheckin(body);
+    showCheckinResult('warn', 'No signal — saved, will sync automatically.');
+    return;
+  }
+
+  const out = await res.json().catch(() => null);
+  if (!out) {
+    showCheckinResult('err', `${ticketLabel(body)} could not be checked in.`);
+    return;
+  }
+
+  if (out.ok) {
+    showCheckinResult('ok', `${out.attendee_name} · ${out.tier_sold === 'member' ? 'Member' : 'Non-member'} · checked in`);
+    await loadRoster();
+    await flushQueue();
+    return;
+  }
+  if (out.code === 'already_checked_in') {
+    showCheckinResult('warn', `Already checked in at ${eventDateLabel(out.attended_at)}`);
+    return;
+  }
+  if (out.code === 'needs_attendee') {
+    promptForAttendee(payload);
+    return;
+  }
+  showCheckinResult('err', refusalMessage(body, out.code));
+}
+
+function promptForAttendee(payload) {
+  const box = $('#checkin-result');
+  box.className = 'checkin-result info';
+  box.innerHTML = '';
+  const form = document.createElement('form');
+  form.innerHTML =
+    '<p>This ticket has no name yet. Who is arriving?</p>' +
+    '<label>Name<input name="full_name" type="text" required></label>' +
+    '<label>Email<input name="email" type="email" required></label>' +
+    '<button class="btn btn-primary" type="submit">Check in</button>';
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitCheckin(payload, { full_name: form.full_name.value, email: form.email.value });
+  });
+  box.appendChild(form);
+}
+
+function renderQueue() {
+  persistCheckinQueue();
+  const el = $('#checkin-queue');
+  const n = state.checkinQueue.length;
+  el.hidden = n === 0;
+  el.textContent = n ? `${n} waiting to sync` : '';
+}
+
+async function flushQueue() {
+  if (!state.checkinQueue.length) return;
+
+  const { data } = await sb.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) {
+    // No session — do not POST "Bearer undefined". Leave the queue intact
+    // and try again on the next flush.
+    showCheckinResult('warn', 'Session expired — sign in again to sync queued check-ins.');
+    return;
+  }
+
+  const pending = state.checkinQueue.splice(0, state.checkinQueue.length);
+  const refusedMessages = [];
+  for (const body of pending) {
+    let res;
+    try {
+      res = await fetch('/api/tickets/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      // Still offline (transport failure) — keep it for the next flush.
+      state.checkinQueue.push(body);
+      continue;
+    }
+
+    if (res.status >= 500) {
+      // A server error is not a real answer — keep it for the next flush,
+      // same as a transport failure. Do not drop it.
+      state.checkinQueue.push(body);
+      continue;
+    }
+
+    const out = await res.json().catch(() => null);
+    // Only an unambiguous success clears the item. Anything that reached the
+    // server and was refused (hard refusal, already_checked_in, needs_attendee)
+    // is a real answer — it must not be dropped silently, and must not be
+    // re-queued forever either. It is pulled out and surfaced to the operator,
+    // named, so an unattributable "could not be checked in" never happens.
+    if (out && out.ok === true) continue;
+    refusedMessages.push(refusalMessage(body, out?.code));
+  }
+  renderQueue();
+  if (refusedMessages.length) {
+    showCheckinResult('warn', `${refusedMessages.length} queued check-in${refusedMessages.length === 1 ? '' : 's'} could not sync — ${refusedMessages.join('; ')}`);
+  }
+  await loadRoster();
+}
+
+function stopScanning() {
+  if (checkinStream) {
+    checkinStream.getTracks().forEach((t) => t.stop());
+    checkinStream = null;
+  }
+  const video = $('#checkin-video');
+  if (video) {
+    video.srcObject = null;
+    video.hidden = true; // the detect loop checks this and exits on its own
+  }
+}
+
+async function startScanning() {
+  stopScanning(); // a second click restarts cleanly instead of leaking a stream
+  const video = $('#checkin-video');
+  if (!('BarcodeDetector' in window)) {
+    // iOS Safari has no BarcodeDetector — manual entry is the path there.
+    showCheckinResult('warn', 'Camera scanning is not supported on this device. Use the ticket number below.');
+    $('#checkin-ticket-no').focus();
+    return;
+  }
+  try {
+    checkinStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch {
+    showCheckinResult('err', 'Camera unavailable. Use the ticket number below.');
+    return;
+  }
+  video.srcObject = checkinStream;
+  video.hidden = false;
+  await video.play();
+
+  const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+  let last = '';
+  const tick = async () => {
+    if (video.hidden) return;
+    try {
+      const codes = await detector.detect(video);
+      if (codes.length) {
+        const raw = codes[0].rawValue || '';
+        const t = (raw.split('?t=')[1] || '').split('&')[0];
+        // Ignore the same code repeating across frames while it sits in view.
+        if (t && t !== last) { last = t; await submitCheckin({ qr_token: decodeURIComponent(t) }); }
+      }
+    } catch { /* keep scanning */ }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 /* ============================ publish indicator ============================ */
