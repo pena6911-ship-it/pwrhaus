@@ -65,5 +65,11 @@ export function createSupabaseDb(env) {
       if (error) throw error;
       return Number(data);
     },
+    findTicketByQrToken: (token) => maybe(sb.from('tickets').select('*').eq('qr_token', token)),
+    findAttendanceByTicket: (ticketId) => maybe(sb.from('event_attendance').select('*').eq('ticket_id', ticketId)),
+    insertAttendance: (row) => one(sb.from('event_attendance').insert(row).select().single()),
+    listAttendanceByEvent: (eventId) => one(
+      sb.from('event_attendance').select('ticket_id,contact_id,attended_at').eq('event_id', eventId)
+    ),
   };
 }
