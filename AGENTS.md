@@ -76,18 +76,30 @@ Done and pushed (site work on `main`, everything on `poc/merch`):
 
 1. **Asset swaps (easy, site):** the lessons (`golflessons.mp4`) and corporate (`simulator-lounge.mp4`) loops are short (~3–7s) and loop hard — owner is sourcing longer clips; swap same filenames when they land. A higher-res corporate hero from The Tips is already in (`corporate-hero.webp`, 2048px).
 2. **Merch productionization (Plan D):** live Stripe keys + `PRINTIFY_LIVE` go-live path (`send_to_production`), persist orders to Supabase (`functions/lib/orders.js` backbone exists), fulfillment-failure alerting, Printify shipment→tracking-email webhook, Stripe Tax, get polo/towel set up in Printify (only "Cap" exists). Then PR `poc/merch → main`. Spec: `docs/superpowers/specs/2026-08-14-merch-stripe-printify-design.md`.
-3. **Michelle's Dashboard (Phase 1: Events) — BUILT on `feat/michelle-dashboard`.** Bespoke `src/admin/` SPA (plain HTML/CSS/vanilla JS, supabase-js via pinned CDN) replaces Sveltia for events: email+password login, events CRUD + image upload + drag-reorder, events-page hero editor. Supabase is the source of truth; the build reads published rows (`src/_data/events.js` / `siteContent.js`) with a `data/*.seed.json` fallback when env is absent. Save → `/api/publish` (Netlify Function) verifies the session and pings `NETLIFY_BUILD_HOOK` to rebuild. **Sveltia (`src/admin/config.yml` + GitHub OAuth) is retired.** Owner go-live steps (Supabase account, build hook, env, migration apply, deploy-preview QA): `docs/superpowers/specs/2026-08-19-michelle-dashboard-handoff.md`. Design spec: `docs/superpowers/specs/2026-08-19-michelle-dashboard-events-design.md`; plan: `docs/superpowers/plans/2026-08-19-michelle-dashboard.md`. **Phase 2a (Site Content) — SHIPPED on `feat/site-content-mgmt`.** The dashboard's Site Content view now edits every page's hero, not just events; `siteContent.js` serves per-page heroes with seed fallback; migration `0004_site_content_pages.sql` pre-seeds a `site_content` row per page; hero image uploads reuse the existing `event-media` Storage bucket. **Phase 3 (CRM lead-intake, read-only) — SHIPPED on `feat/crm-lead-intake`.** The CRM nav shows website-captured leads from `contacts`/`contact_inquiries` (RLS `0005`, authenticated-only); GHL remains the working CRM; the one-time **GHL → Supabase contact import is a deliberate go-live task** (run on launch day). **Phase 4 (event ticketing, Stripe test mode) — SHIPPED on `feat/event-ticketing`.** Buyer-only checkout on the public event page with server-verified member pricing (the browser never sends a price); one QR-bearing ticket issued per seat; token-link attendee assignment (`/tickets/manage/?token=`) that feeds the CRM; a dashboard roster per event and a real Registrations count on the Events stat row. Ticket email is dormant until `RESEND_API_KEY` is set (Stripe's own receipt still sends). Go-live steps: `docs/superpowers/specs/2026-08-19-michelle-dashboard-handoff.md`. **Phase 5 (event check-in) — SHIPPED on `feat/event-checkin`.** QR tickets rendered from `qr_token` (vendored `qrcode-generator`); session-verified `/api/tickets/checkin` endpoint; phone-first Check-in dashboard view with BarcodeDetector camera scanning, manual ticket-number entry, door capture that syncs unnamed seats to GHL, offline retry queue, and a running roster. Attendance lands in `event_attendance` and is additive (never mutates ticket status, not cleared on expiry). Migration `0009_event_checkin.sql` adds unique constraint, event index, and authenticated-read policy; check-in requires no new secrets. **KNOWN BUG: camera QR scanning does not decode — see "ACTIVE BUG" section below. Manual ticket-number entry works and is the current door fallback.**
+3. **Michelle's Dashboard (Phase 1: Events) — BUILT on `feat/michelle-dashboard`.** Bespoke `src/admin/` SPA (plain HTML/CSS/vanilla JS, supabase-js via pinned CDN) replaces Sveltia for events: email+password login, events CRUD + image upload + drag-reorder, events-page hero editor. Supabase is the source of truth; the build reads published rows (`src/_data/events.js` / `siteContent.js`) with a `data/*.seed.json` fallback when env is absent. Save → `/api/publish` (Netlify Function) verifies the session and pings `NETLIFY_BUILD_HOOK` to rebuild. **Sveltia (`src/admin/config.yml` + GitHub OAuth) is retired.** Owner go-live steps (Supabase account, build hook, env, migration apply, deploy-preview QA): `docs/superpowers/specs/2026-08-19-michelle-dashboard-handoff.md`. Design spec: `docs/superpowers/specs/2026-08-19-michelle-dashboard-events-design.md`; plan: `docs/superpowers/plans/2026-08-19-michelle-dashboard.md`. **Phase 2a (Site Content) — SHIPPED on `feat/site-content-mgmt`.** The dashboard's Site Content view now edits every page's hero, not just events; `siteContent.js` serves per-page heroes with seed fallback; migration `0004_site_content_pages.sql` pre-seeds a `site_content` row per page; hero image uploads reuse the existing `event-media` Storage bucket. **Phase 3 (CRM lead-intake, read-only) — SHIPPED on `feat/crm-lead-intake`.** The CRM nav shows website-captured leads from `contacts`/`contact_inquiries` (RLS `0005`, authenticated-only); GHL remains the working CRM; the one-time **GHL → Supabase contact import is a deliberate go-live task** (run on launch day). **Phase 4 (event ticketing, Stripe test mode) — SHIPPED on `feat/event-ticketing`.** Buyer-only checkout on the public event page with server-verified member pricing (the browser never sends a price); one QR-bearing ticket issued per seat; token-link attendee assignment (`/tickets/manage/?token=`) that feeds the CRM; a dashboard roster per event and a real Registrations count on the Events stat row. Ticket email is dormant until `RESEND_API_KEY` is set (Stripe's own receipt still sends). Go-live steps: `docs/superpowers/specs/2026-08-19-michelle-dashboard-handoff.md`. **Phase 5 (event check-in) — SHIPPED on `feat/event-checkin`.** QR tickets rendered from `qr_token` (vendored `qrcode-generator`); session-verified `/api/tickets/checkin` endpoint; phone-first Check-in dashboard view with BarcodeDetector camera scanning, manual ticket-number entry, door capture that syncs unnamed seats to GHL, offline retry queue, and a running roster. Attendance lands in `event_attendance` and is additive (never mutates ticket status, not cleared on expiry). Migration `0009_event_checkin.sql` adds unique constraint, event index, and authenticated-read policy; check-in requires no new secrets. **Camera QR scanning: root cause found and fixed 2026-08-21 (native `BarcodeDetector` could stall forever with no fallback) — see "RESOLVED" section below. Confirmed working by the owner on Android. Manual ticket-number entry remains available.**
 4. **Member portal (Plan C / Phase 2):** portal via **GHL native** (memberships/community); Supabase stays the fact-store. Not started. Doc: `docs/superpowers/specs/2026-08-14-member-portal-and-cms-architecture.md`. (The CMS half of this thread is now delivered by the dashboard above.) When the member portal gives end users Supabase Auth accounts, the `0005` `to authenticated` read policies on `contacts`/`contact_inquiries` MUST first be tightened to an owner/admin identity check (e.g. an admins table or email pin) — otherwise every member could read the lead database. The same tightening applies to `0009`'s `to authenticated` read policy on `event_attendance`, and to `/api/tickets/checkin`, which currently authorizes on any valid session rather than an admin identity — otherwise every member could read the attendance roster or check tickets in.
 4. **Go-live:** Netlify is **not connected** to this repo yet. Connect it (main = production branch, set env vars in Netlify UI per `.env.example` + `netlify.toml` contexts). DNS cutover is post-Aug 27 (site stays dark until then).
 5. **Partner courtesy:** confirm The Tips Golf Miami is OK with the corporate photo (credit already added).
 
 ---
 
-## ACTIVE BUG — QR check-in scanner will not decode (handoff, 2026-08-21)
+## RESOLVED — QR check-in scanner would not decode (2026-08-21)
 
-**Status: UNRESOLVED. Three contributing faults were found and fixed; the core
-symptom remains.** The camera now opens and shows live video, but no QR is ever
-decoded. Manual ticket-number entry works and is unaffected.
+**Status: FIXED in `c0b5fec` + `2859f6e` (Codex). Confirmed working on the owner's Android device 2026-08-21.**
+The root cause was hypothesis H1 below: the native `BarcodeDetector` was preferred
+and, once chosen, never yielded — with no path back to jsQR. Four faults total were
+found across this investigation; the first three were real but secondary.
+
+**The fix:** `shouldFallbackToJsqr()` (`src/admin/lib.js`, unit-tested) switches the
+live decoder from native to jsQR after 3.5s of frames with no read, and says so on
+screen. A confirmation overlay now covers the camera after each scan and pauses
+scanning until acknowledged, so a result cannot be missed at the door.
+
+**Still open:** hypothesis H2 (no resolution/focus constraints on `getUserMedia`)
+was NOT addressed. If scanning is slow or needs the code held very close, that is
+the next thing to fix. H3 (per-frame cost) is also untouched.
+
+The history below is retained because it records what was already ruled out.
 
 ### Symptom
 
@@ -132,10 +144,11 @@ Each of these was verified, not assumed:
 | `ed1cebf` | Decoder selection ran **before** `getUserMedia`, so a missing decoder presented as a dead camera. Camera now opens first; failures are distinguishable; decoder state is shown on screen. |
 | `6762edf` | **`await video.play()` was unguarded.** Its rejection aborted `startScanning()` after the video was already visible — a black box, no message, no decode loop. Now caught and non-fatal, plus a 4s black-screen watchdog. |
 
-### The one unknown that would narrow this fastest
+### The diagnostic that settled it
 
-Nobody has yet reported **what the on-screen diagnostics line says** while
-scanning. It reads:
+*(Answered: the native detector was being selected and then stalling.)* The
+on-screen diagnostics line remains the fastest way to narrow any future scanner
+report. It reads:
 
 `QR decoder: loaded|MISSING · built-in: yes|no`
 
@@ -144,8 +157,8 @@ points at H1; `built-in: no` + `loaded` points at H2/H3.
 
 ### Ranked hypotheses
 
-**H1 — native `BarcodeDetector` is selected and is the thing that does not work
-(strongest).** `src/admin/app.js:1172`:
+**H1 — CONFIRMED ROOT CAUSE. Native `BarcodeDetector` is selected and is the
+thing that does not work.** `src/admin/app.js:1172`:
 
 ```js
 checkinDecoder = native ? 'native' : (jsqr ? 'jsqr' : '');
