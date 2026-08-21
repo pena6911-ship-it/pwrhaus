@@ -32,6 +32,25 @@ projects, or set live secrets), and should be done on a **deploy preview first**
 4. Copy the project's **anon key** (Settings → API) for the env vars below.
 5. Schedule the **one-time GHL → Supabase contact import** to run on launch day (build
    near launch; see CRM spec §1).
+6. **Name-format audit (do this WITH the import, launch day).** Names are captured and
+   stored as a single `contacts.full_name` field end to end — the forms post one
+   `full_name` input, `sanitize.js` only truncates it to 120 chars, and `ghl.js` sends it
+   to GHL's single `name` field. There is no first/last split anywhere, by design.
+   The import is the moment to decide whether that should change, because it is the first
+   time we see the real shape of Michelle's contact base. While importing, sample the
+   incoming names and count:
+   - single-word / mononym entries;
+   - business or organisation names rather than people;
+   - multi-word surnames and particles (`van der`, `de la`, `O'`, hyphenated);
+   - anything already split first/last on the GHL side.
+   **Then decide, and record the decision:** (a) leave single-field — correct if the only
+   uses are display, search, and the GHL push; (b) add `first_name`/`last_name` captured
+   at the source (two form fields) with `full_name` retained; or (c) add derived
+   first/last columns from a documented, explicitly-lossy split, flagged as derived.
+   Do **not** parse-and-split existing rows before this audit — `full_name` is currently a
+   faithful, lossless capture, and splitting on messy input bakes in guesses that cannot be
+   undone. Also check whether GHL has already split the `name` we push; if the
+   personalisation need lives in GHL campaigns, no change may be required on our side.
 
 ## 2 · Netlify
 5. Create a **build hook** (Site config → Build & deploy → Build hooks) →
