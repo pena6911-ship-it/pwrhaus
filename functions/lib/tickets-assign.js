@@ -11,7 +11,11 @@ export function makeTicketsAssignHandler({ db, createContact, deps, email, now =
     if (req.method === 'GET') {
       const order = await load(url.searchParams.get('token'));
       if (!order) return json({ error: 'not_found' }, 404);
-      const [event, tickets] = await Promise.all([db.findEventById(order.event_id), db.listTicketsByOrder(order.id)]);
+      const [event, tickets, buyer] = await Promise.all([
+        db.findEventById(order.event_id),
+        db.listTicketsByOrder(order.id),
+        order.contact_id ? db.findContactById(order.contact_id) : Promise.resolve(null),
+      ]);
       const rows = [];
       for (const t of tickets) {
         const attendee = t.contact_id ? await db.findContactById(t.contact_id) : null;
@@ -21,8 +25,17 @@ export function makeTicketsAssignHandler({ db, createContact, deps, email, now =
         });
       }
       const open = assignmentOpen(event, now());
+      // A real ticket needs what a door and a holder both expect: the event, the
+      // attendee it belongs to, who bought it, and proof it is paid.
       return json({
         event: { name: event.name, starts_at: event.starts_at, venue: event.venue, city: event.city },
+        order: {
+          // Ticket numbers are 000-<order>-<seat>; the order half is the order number.
+          order_no: tickets[0]?.ticket_no ? tickets[0].ticket_no.split('-').slice(0, 2).join('-') : null,
+          ordered_by: buyer ? buyer.full_name || buyer.email : null,
+          ordered_at: order.created_at ?? null,
+          paid: order.current_status === 'paid',
+        },
         assignment_open: open.open,
         assignment_deadline: assignmentDeadline(event),
         tickets: rows,
