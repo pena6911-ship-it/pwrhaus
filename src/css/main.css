@@ -350,6 +350,11 @@ body.nav-open { overflow: hidden; }
 .card-actions { margin-top: var(--space-4); }
 .card h2 { font-size: 1.375rem; }
 
+.ticket-list { display: grid; gap: var(--space-4); }
+.ticket-row { padding: var(--space-4); }
+.ticket-row form { margin-top: var(--space-3); }
+.form-msg { font-size: 0.875rem; color: var(--ink-muted); }
+
 @media (min-width: 768px) {
   .split { grid-template-columns: 1fr 1fr; align-items: center; }
   .list-h { grid-template-columns: repeat(3, 1fr); }
