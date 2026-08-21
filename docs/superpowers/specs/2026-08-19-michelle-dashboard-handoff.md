@@ -52,42 +52,40 @@ projects, or set live secrets), and should be done on a **deploy preview first**
    undone. Also check whether GHL has already split the `name` we push; if the
    personalisation need lives in GHL campaigns, no change may be required on our side.
 
-7. **Pre-launch database reset (launch day, BEFORE the GHL import).** Testing on Netlify
-   generated real rows in Supabase — test purchases, test tickets, test contacts. Clear the
-   transactional data so Michelle starts from zero, but **do not blanket-wipe every table**:
-   the live site's capture forms have been collecting *genuine* leads throughout, and
-   `events`/`site_content` hold her real content.
+7. **Pre-launch database reset (launch day, BEFORE the GHL import).** Everything in Supabase
+   today is test data: the domain still points at WIX, so `pwrhaus.netlify.app` has never been
+   reachable by the public — only the owner and Michelle have used it. A full clear is
+   therefore safe.
 
-   | Data | Action |
-   |---|---|
-   | `event_attendance`, `tickets`, `orders`, `order_events` | **Clear** — all of it is test purchase data |
-   | `contacts`, `contact_inquiries` | **Curate** — delete test rows by email/date; keep real captured leads. Export first |
-   | `events`, `site_content` | **Curate** — remove test events; keep her real content |
-
-   **Order matters** (foreign keys): `event_attendance` → `tickets` → `orders` → `order_events`.
-   Deleting `orders` before `tickets` will fail on the FK.
+   **Order matters** (foreign keys): `event_attendance` → `tickets` → `order_events` →
+   `orders`, and `contact_inquiries` before `contacts`.
 
    ```sql
-   -- Transactional test data only. Run in this order.
+   -- Transactional data
    delete from event_attendance;
    delete from tickets;
    delete from order_events;
    delete from orders;
 
+   -- Leads (all test; the real base arrives via the GHL import below)
+   delete from contact_inquiries;
+   delete from contacts;
+
+   -- Content: clearing these returns the site to the migration-seeded defaults
+   delete from events;
+   delete from site_content;
+
    -- Real ticket numbers should start at 000-0001-00001, not continue the test count.
    alter sequence event_order_seq restart with 1;
    ```
 
-   For contacts, inspect before deleting — do NOT truncate:
-   ```sql
-   -- Review what is test vs real first.
-   select id, email, full_name, source, created_at from contacts order by created_at;
-   -- Then delete only the test addresses you identify, e.g.:
-   -- delete from contact_inquiries where contact_id in (select id from contacts where email in ('...'));
-   -- delete from contacts where email in ('...');
-   ```
-
-   Afterwards, re-check each event's `tickets_enabled`, prices and `sales_end_at` before sales open.
+   Two things to know:
+   - **GHL is not cleared by this.** Contacts created during testing were pushed downstream to
+     Michelle's real GoHighLevel account and survive there — tidy those in GHL separately.
+   - **Re-seed content afterwards.** Clearing `events`/`site_content` drops any hero copy or
+     events entered through the dashboard; re-run the seeds in `0003_events_cms.sql` /
+     `0004_site_content_pages.sql`, or re-enter the real content. Then set each event's
+     `tickets_enabled`, prices and `sales_end_at` before sales open.
 
 ## 2 · Netlify
 5. Create a **build hook** (Site config → Build & deploy → Build hooks) →
