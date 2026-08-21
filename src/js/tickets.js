@@ -3,6 +3,26 @@
 (function () {
   var form = document.getElementById('ticket-form');
   if (!form) return;
+
+  // The site is static, built before any sale, so the page ships with total
+  // capacity. Ask the server what is actually left and correct it on load.
+  var slot = document.getElementById('ticket-availability');
+  if (slot) {
+    fetch('/api/tickets/availability?slug=' + encodeURIComponent(form.getAttribute('data-slug')))
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (a) {
+        if (a.remaining > 0) {
+          slot.textContent = a.remaining === 1
+            ? '1 spot left of ' + a.capacity
+            : a.remaining + ' spots left of ' + a.capacity;
+        } else {
+          slot.textContent = 'This event is sold out.';
+          var btn = form.querySelector('button[type="submit"]');
+          if (btn) { btn.disabled = true; btn.textContent = 'Sold out'; }
+        }
+      })
+      .catch(function () { /* leave the built-in capacity text as-is */ });
+  }
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var msg = form.querySelector('.form-msg');
