@@ -7,14 +7,14 @@ import { normalizeTicketNo } from './ticketing.js';
 // The QR token (or, typed by hand, the ticket number) identifies a ticket; it
 // NEVER authorizes the write. Tickets can be photographed, so a verified
 // dashboard session is required as well.
-export function makeTicketsCheckinHandler({ verifySession, db, createContact, deps }) {
+export function makeTicketsCheckinHandler({ verifySession, isAdmin, db, createContact, deps }) {
   return async (req) => {
     if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
     const auth = req.headers.get('authorization') || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
     const user = token ? await verifySession(token).catch(() => null) : null;
-    if (!user) return json({ error: 'unauthorized' }, 401);
+    if (!user || !isAdmin(user)) return json({ error: 'unauthorized' }, 401);
 
     let body;
     try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }

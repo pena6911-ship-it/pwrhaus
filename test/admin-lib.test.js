@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -114,4 +114,19 @@ test('resolveJsqr returns null when the decoder truly did not load', () => {
   // A non-callable global is not a decoder, however truthy it looks.
   assert.equal(resolveJsqr({ jsQR: {} }), null);
   assert.equal(resolveJsqr({ jsQR: 'yes' }), null);
+});
+
+test('native QR scanning falls back to jsQR after sustained empty results', () => {
+  assert.equal(shouldFallbackToJsqr('native', true, 3499), false);
+  assert.equal(shouldFallbackToJsqr('native', true, 3500), true);
+  assert.equal(shouldFallbackToJsqr('jsqr', true, 5000), false);
+  assert.equal(shouldFallbackToJsqr('native', false, 5000), false);
+});
+
+test('check-in overlay pauses only for completed scan outcomes', () => {
+  assert.deepEqual(checkinOverlayState({ ok: true }), { kind: 'ok', title: 'Checked in' });
+  assert.deepEqual(checkinOverlayState({ ok: false, code: 'already_checked_in' }), { kind: 'warn', title: 'Already checked in' });
+  assert.deepEqual(checkinOverlayState({ ok: false, code: 'needs_attendee' }), null);
+  assert.deepEqual(checkinOverlayState({ ok: false, code: 'queued' }), { kind: 'warn', title: 'Saved for sync' });
+  assert.deepEqual(checkinOverlayState({ ok: false, code: 'ticket_expired' }), { kind: 'err', title: 'Check-in not completed' });
 });

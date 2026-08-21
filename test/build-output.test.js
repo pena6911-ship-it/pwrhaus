@@ -410,6 +410,8 @@ test('admin route ships the bespoke dashboard shell, not Sveltia', () => {
   assert.doesNotMatch(html, /esm\.sh/, 'supabase-js must be vendored locally, not loaded from a runtime CDN');
   assert.match(html, /rel="manifest"/, 'admin must be installable');
   assert.match(html, /id="login-view"/, 'admin must render the login view');
+  assert.match(html, /id="mfa-view"/, 'admin must gate access behind MFA');
+  assert.match(html, /id="mfa-enroll-form"/, 'admin must provide TOTP enrollment');
 });
 
 test('admin Site Content view lists the editable pages', () => {

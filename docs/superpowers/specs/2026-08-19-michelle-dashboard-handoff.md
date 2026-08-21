@@ -218,3 +218,28 @@ reuses the existing Supabase session, the vendored QR library, and the existing 
    Safari where BarcodeDetector is unavailable), door capture that turns an unnamed
    seat into a CRM contact synced to GoHighLevel, offline retry queue for network
    recovery, and a running attendance roster. No additional setup needed.
+
+## 8 · Current security and final go-live sequence (2026-08-21)
+
+This section supersedes the earlier authenticated-only assumptions in this document.
+
+1. **Admin authorization is live.** Migration `0010_admin_authorization.sql` restricts
+   dashboard RLS to users with `app_metadata.pwrhaus_role = 'admin'` for CRM,
+   events, site content, media, tickets, and attendance. The check-in and publish
+   Netlify Functions enforce the same role. The two approved admin accounts are
+   `hello@pwrhausgolfsociety.com` and `pena6911@gmail.com`.
+2. **Database function hardening is live.** Migration `0011_security_hardening.sql`
+   fixes the mutable search path on `next_event_order_seq()`.
+3. **MFA code is merged to `main` in commit `fae06d6`.** The dashboard supports
+   TOTP enrollment and verification. Functions validate the JWT's `aal2` claim.
+   The RLS migration `0012_require_mfa.sql` is prepared but must remain unapplied
+   until both admins have enrolled after deployment.
+4. **Current account/setup state:** `hello@pwrhausgolfsociety.com` has a verified
+   TOTP factor. `pena6911@gmail.com` still needs to enroll and verify one. CAPTCHA
+   protection is temporarily disabled because the current dashboard does not pass a
+   CAPTCHA token; re-enable it only after adding a Turnstile or hCaptcha frontend
+   integration.
+5. **Final launch order:** deploy the MFA code; verify both admin logins and TOTP;
+   complete the one-time GHL → Supabase contact migration after go-live; then apply
+   `0012_require_mfa.sql` as the final RLS lock. This ordering prevents locking out
+   the dashboard before the new MFA flow is deployed and enrolled.
