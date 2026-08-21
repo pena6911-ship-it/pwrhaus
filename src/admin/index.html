@@ -108,7 +108,17 @@
             <select id="checkin-event" aria-label="Event to check in"></select>
             <button class="btn btn-primary" id="checkin-scan-btn" type="button">Start scanning</button>
           </div>
-          <video id="checkin-video" class="checkin-video" playsinline muted hidden></video>
+          <div class="checkin-stage">
+            <video id="checkin-video" class="checkin-video" playsinline muted hidden></video>
+            <div id="checkin-confirmation" class="checkin-confirmation" role="dialog" aria-modal="true" aria-labelledby="checkin-confirmation-title" hidden>
+              <div class="checkin-confirmation-panel">
+                <p id="checkin-confirmation-kicker" class="checkin-confirmation-kicker">Scan result</p>
+                <h3 id="checkin-confirmation-title"></h3>
+                <p id="checkin-confirmation-detail"></p>
+                <button class="btn btn-primary" id="checkin-confirmation-ok" type="button">OK</button>
+              </div>
+            </div>
+          </div>
           <div id="checkin-result" class="checkin-result" role="status" aria-live="assertive"></div>
           <form id="checkin-manual" class="checkin-manual">
             <label for="checkin-ticket-no">Ticket number</label>

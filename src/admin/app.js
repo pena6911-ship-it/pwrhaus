@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -886,11 +886,13 @@ function closeContactDrawer() {
 
 let checkinWired = false;
 let checkinStream = null;
+let checkinScanner = null;
 
 function wireCheckin() {
   if (checkinWired) return;
   checkinWired = true;
   $('#checkin-scan-btn').addEventListener('click', startScanning);
+  $('#checkin-confirmation-ok').addEventListener('click', closeCheckinConfirmation);
   $('#checkin-manual').addEventListener('submit', async (e) => {
     e.preventDefault();
     const no = $('#checkin-ticket-no').value.trim();
@@ -947,6 +949,39 @@ function showCheckinResult(kind, text) {
   box.textContent = text;
 }
 
+function showCheckinConfirmation(out, body) {
+  const state = checkinOverlayState(out);
+  const overlay = $('#checkin-confirmation');
+  if (!state || !overlay || !checkinScanner) return false;
+
+  const detail = $('#checkin-confirmation-detail');
+  const title = $('#checkin-confirmation-title');
+  const kicker = $('#checkin-confirmation-kicker');
+  title.textContent = state.title;
+  kicker.textContent = out.ok ? 'Ticket scan' : 'Scan result';
+  if (out.ok) {
+    detail.textContent = `${out.attendee_name || 'Guest'} · ${out.tier_sold === 'member' ? 'Member' : 'Non-member'}`;
+  } else if (out.code === 'already_checked_in') {
+    detail.textContent = `Checked in at ${eventDateLabel(out.attended_at)}.`;
+  } else if (out.code === 'queued') {
+    detail.textContent = `${ticketLabel(body)} is saved and will sync when the connection returns.`;
+  } else {
+    detail.textContent = refusalMessage(body, out.code);
+  }
+  overlay.className = `checkin-confirmation ${state.kind}`;
+  overlay.hidden = false;
+  checkinScanner.paused = true;
+  $('#checkin-confirmation-ok').focus();
+  return true;
+}
+
+function closeCheckinConfirmation() {
+  const overlay = $('#checkin-confirmation');
+  if (!overlay) return;
+  overlay.hidden = true;
+  checkinScanner?.resume();
+}
+
 // A refused check-in is a real server answer, not an ambiguous failure — the
 // operator must know which ticket it was about, so every message here is
 // built with the ticket label in front of it.
@@ -994,6 +1029,7 @@ async function submitCheckin(payload, attendee) {
     // retry when signal returns.
     queueCheckin(body);
     showCheckinResult('warn', 'No signal — saved, will sync automatically.');
+    showCheckinConfirmation({ ok: false, code: 'queued' }, body);
     return;
   }
 
@@ -1002,12 +1038,14 @@ async function submitCheckin(payload, attendee) {
     // signal at all, rather than dropping the check-in.
     queueCheckin(body);
     showCheckinResult('warn', 'No signal — saved, will sync automatically.');
+    showCheckinConfirmation({ ok: false, code: 'queued' }, body);
     return;
   }
 
   const out = await res.json().catch(() => null);
   if (!out) {
     showCheckinResult('err', `${ticketLabel(body)} could not be checked in.`);
+    showCheckinConfirmation({ ok: false, code: 'invalid_response' }, body);
     return;
   }
 
@@ -1015,17 +1053,21 @@ async function submitCheckin(payload, attendee) {
     showCheckinResult('ok', `${out.attendee_name} · ${out.tier_sold === 'member' ? 'Member' : 'Non-member'} · checked in`);
     await loadRoster();
     await flushQueue();
+    showCheckinConfirmation(out, body);
     return;
   }
   if (out.code === 'already_checked_in') {
     showCheckinResult('warn', `Already checked in at ${eventDateLabel(out.attended_at)}`);
+    showCheckinConfirmation(out, body);
     return;
   }
   if (out.code === 'needs_attendee') {
+    if (checkinScanner) checkinScanner.paused = true;
     promptForAttendee(payload);
     return;
   }
   showCheckinResult('err', refusalMessage(body, out.code));
+  showCheckinConfirmation(out, body);
 }
 
 function promptForAttendee(payload) {
@@ -1105,6 +1147,9 @@ async function flushQueue() {
 }
 
 function stopScanning() {
+  checkinScanner = null;
+  const confirmation = $('#checkin-confirmation');
+  if (confirmation) confirmation.hidden = true;
   if (checkinStream) {
     checkinStream.getTracks().forEach((t) => t.stop());
     checkinStream = null;
@@ -1191,6 +1236,8 @@ async function startScanning() {
   let frames = 0;
   let fallbackShown = false;
   const decoderStartedAt = Date.now();
+  const scannerSession = { paused: false, resume: null };
+  checkinScanner = scannerSession;
 
   // Black-screen watchdog: a stream can be granted and still never produce a
   // frame (camera held by another app). Without this it just looks broken.
@@ -1229,7 +1276,7 @@ async function startScanning() {
   };
 
   const tick = async () => {
-    if (video.hidden) { clearWatchdog(); return; }
+    if (video.hidden || scannerSession.paused || checkinScanner !== scannerSession) { clearWatchdog(); return; }
     try {
       const raw = await readFrame();
       frames += 1;
@@ -1241,11 +1288,17 @@ async function startScanning() {
           await submitCheckin({ qr_token: t });
         } else if (!t) {
           showCheckinResult('warn', 'Scanned a code, but it is not a PWRHAUS ticket.');
+          last = '';
         }
-      } else if (frames === 150) {
-        // ~5 seconds of clean frames with no read: say so rather than sit mute.
-        showCheckinResult('info', 'Scanning \u2014 no QR detected yet. Fill the frame with the code, '
-          + 'or use the ticket number below. ' + decoderDiagnostics(native));
+      } else {
+        // A blank frame means the operator has moved away from the previous
+        // ticket; only then should that token be eligible again.
+        last = '';
+        if (frames === 150) {
+          // ~5 seconds of clean frames with no read: say so rather than sit mute.
+          showCheckinResult('info', 'Scanning \u2014 no QR detected yet. Fill the frame with the code, '
+            + 'or use the ticket number below. ' + decoderDiagnostics(native));
+        }
       }
     } catch (err) {
       // Never swallow this - a decoder throwing every frame is exactly the
@@ -1256,6 +1309,11 @@ async function startScanning() {
           + ' \u2014 use the ticket number below.');
       }
     }
+    requestAnimationFrame(tick);
+  };
+  scannerSession.resume = () => {
+    if (checkinScanner !== scannerSession) return;
+    scannerSession.paused = false;
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);

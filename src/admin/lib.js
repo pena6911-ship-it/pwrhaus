@@ -101,3 +101,13 @@ export function resolveJsqr(global) {
 export function shouldFallbackToJsqr(decoder, hasJsqr, elapsedMs, thresholdMs = 3500) {
   return decoder === 'native' && hasJsqr && elapsedMs >= thresholdMs;
 }
+
+// Only completed scan outcomes should interrupt the camera with an OK step.
+// An unassigned ticket still needs the existing inline attendee form first.
+export function checkinOverlayState(out = {}) {
+  if (out.ok) return { kind: 'ok', title: 'Checked in' };
+  if (out.code === 'needs_attendee') return null;
+  if (out.code === 'already_checked_in') return { kind: 'warn', title: 'Already checked in' };
+  if (out.code === 'queued') return { kind: 'warn', title: 'Saved for sync' };
+  return { kind: 'err', title: 'Check-in not completed' };
+}
