@@ -46,6 +46,35 @@
       </div>
     </section>
 
+    <!-- MFA GATE -->
+    <section id="mfa-view" class="login" hidden>
+      <div class="login-card">
+        <img class="login-logo" src="/img/logo.png" alt="PWRHAUS Golf Society">
+        <h1>Secure your dashboard</h1>
+        <p class="login-sub">A verification code from your authenticator app is required for dashboard access.</p>
+        <p class="form-error" id="mfa-general-error" role="alert" hidden></p>
+        <div id="mfa-enroll-view" hidden>
+          <button class="btn btn-primary" id="mfa-enroll-btn" type="button">Set up authenticator</button>
+          <div id="mfa-enroll-panel" hidden>
+            <div id="mfa-qr" class="mfa-qr" aria-label="Authenticator setup QR code"></div>
+            <p class="field-hint">Scan the code with your authenticator app, then enter the six-digit code it gives you.</p>
+            <p id="mfa-secret" class="mfa-secret"></p>
+            <form id="mfa-enroll-form" novalidate>
+              <label>Verification code<input id="mfa-enroll-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" required></label>
+              <p class="form-error" id="mfa-enroll-error" role="alert" hidden></p>
+              <button class="btn btn-primary" type="submit">Verify and continue</button>
+            </form>
+          </div>
+        </div>
+        <form id="mfa-challenge-form" hidden novalidate>
+          <label>Verification code<input id="mfa-challenge-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" required></label>
+          <p class="form-error" id="mfa-challenge-error" role="alert" hidden></p>
+          <button class="btn btn-primary" type="submit">Verify and continue</button>
+        </form>
+        <button class="btn btn-link" id="mfa-signout-btn" type="button">Sign out</button>
+      </div>
+    </section>
+
     <!-- APP -->
     <div id="app-view" class="app" hidden>
       <aside id="sidebar" class="sidebar">
