@@ -357,7 +357,14 @@ body.nav-open { overflow: hidden; }
 .ticket-row { padding: var(--space-4); }
 .ticket-row form { margin-top: var(--space-3); }
 .form-msg { font-size: 0.875rem; color: var(--ink-muted); }
-.ticket-qr { width: 180px; height: 180px; margin: var(--space-3) 0; }
+/* Bigger than it looks like it needs to be: a dense level-H code at 180px does
+   not reliably scan from a phone held at arm's length. White ground is required —
+   scanners need light modules to be actually light. */
+.ticket-qr {
+  width: 240px; height: 240px; margin: var(--space-4) 0;
+  background: #fff; padding: var(--space-3);
+  border-radius: var(--radius-media);
+}
 .ticket-qr svg { width: 100%; height: 100%; display: block; }
 
 @media (min-width: 768px) {
@@ -612,3 +619,36 @@ body.gate-open { overflow: hidden; }
 }
 .ticket-summary-name { font-weight: 700; margin-bottom: var(--space-1); }
 .ticket-summary-meta { font-size: 0.9375rem; color: var(--ink-muted); margin-bottom: 2px; }
+
+/* Event ticket — the thing a holder shows at the door. Two columns on wider
+   screens (details | ticket no + QR), stacked on a phone, which is where it is
+   actually presented. */
+.ticket-card {
+  display: grid;
+  gap: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-media);
+  padding: var(--space-5);
+  margin-bottom: var(--space-3);
+}
+.ticket-event {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  margin-bottom: var(--space-3);
+}
+.ticket-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-muted);
+  margin: var(--space-3) 0 2px;
+}
+.ticket-value { margin: 0; }
+.ticket-no { font-family: ui-monospace, "Courier New", monospace; letter-spacing: 0.04em; }
+.ticket-card-side { border-top: 1px solid var(--line); padding-top: var(--space-3); }
+@media (min-width: 640px) {
+  .ticket-card { grid-template-columns: 1fr auto; align-items: start; }
+  .ticket-card-side { border-top: 0; border-left: 1px solid var(--line); padding: 0 0 0 var(--space-5); }
+}

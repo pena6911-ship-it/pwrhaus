@@ -2313,9 +2313,13 @@ var qrcode = function() {
 // not the window.qrcodeSvg(text) -> svgString entry point our scripts call. Bridge it here.
 // typeNumber 0 lets the library auto-pick the smallest QR version that fits the payload;
 // error-correction level M is a reasonable default for on-screen ticket codes.
+// Scanners need a quiet zone (a clear margin) around the code — without one a
+// perfectly-rendered QR simply will not detect. `margin: 4` is the spec's 4-module
+// minimum. Error-correction level H survives glare, angles and a phone camera at
+// a sunny golf course, at the cost of a denser code.
 window.qrcodeSvg = function (text) {
-  var qr = window.qrcode(0, 'M');
+  var qr = window.qrcode(0, 'H');
   qr.addData(text);
   qr.make();
-  return qr.createSvgTag({ scalable: true });
+  return qr.createSvgTag({ scalable: true, margin: 4 });
 };
