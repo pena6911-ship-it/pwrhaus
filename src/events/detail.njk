@@ -27,7 +27,9 @@ stickyHref: "#join-web_event_interest"
       <p class="eyebrow">{{ event.starts_at | eventDate }}</p>
       <h2>{{ event.venue }}</h2>
       <p>{{ event.body }}</p>
+      {% if not event.tickets_enabled %}
       <p>{{ event.price_cents | usd }} · {{ event.capacity }} spots</p>
+      {% endif %}
       {% if event.registration_url %}
       <p><a class="btn btn-primary" href="{{ event.registration_url }}">Register</a></p>
       {% endif %}
@@ -42,6 +44,12 @@ stickyHref: "#join-web_event_interest"
     <div class="section-heading">
       <p class="eyebrow">Tickets</p>
       <h2>Claim your spot</h2>
+    </div>
+    <div class="ticket-summary">
+      <p class="ticket-summary-name">{{ event.name }}</p>
+      <p class="ticket-summary-meta">{{ event.starts_at | eventDate }}</p>
+      <p class="ticket-summary-meta">{{ event.venue }}{% if event.city %} &middot; {{ event.city }}{% endif %}</p>
+      <p class="ticket-summary-meta">{{ event.capacity }} spots for this event</p>
     </div>
     <form id="ticket-form" class="stack" data-slug="{{ event.slug }}">
       <p class="ticket-prices">

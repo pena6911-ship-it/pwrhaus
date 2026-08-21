@@ -598,3 +598,15 @@ body.has-sticky-cta {
   user-select: none;
 }
 body.gate-open { overflow: hidden; }
+
+/* Ticket purchase summary — the buyer must always see what they are paying
+   for, even if they land mid-page or scroll past the hero. */
+.ticket-summary {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-media);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+  max-width: 420px;
+}
+.ticket-summary-name { font-weight: 700; margin-bottom: var(--space-1); }
+.ticket-summary-meta { font-size: 0.9375rem; color: var(--ink-muted); margin-bottom: 2px; }
