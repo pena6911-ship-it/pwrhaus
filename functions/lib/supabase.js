@@ -27,6 +27,22 @@ export function createSupabaseDb(env) {
     insertOrderEvent: (input) => one(sb.from('order_events').insert(input).select().single()),
     findEventBySlug: (slug) => maybe(sb.from('events').select('*').eq('slug', slug)),
     findEventById: (id) => maybe(sb.from('events').select('*').eq('id', id)),
+    // Events that still have at least one valid ticket — the sweep's candidates.
+    listEventsWithValidTickets: async () => {
+      const { data, error } = await sb.from('tickets').select('event_id,events(id,starts_at)').eq('status', 'valid');
+      if (error) throw error;
+      const byId = new Map();
+      for (const row of data ?? []) {
+        if (row.events && !byId.has(row.events.id)) byId.set(row.events.id, row.events);
+      }
+      return [...byId.values()];
+    },
+    expireTicketsForEvent: async (eventId) => {
+      const { data, error } = await sb.from('tickets').update({ status: 'expired' })
+        .eq('event_id', eventId).eq('status', 'valid').select('id');
+      if (error) throw error;
+      return (data ?? []).length;
+    },
     findContactById: (id) => maybe(sb.from('contacts').select('*').eq('id', id)),
     countIssuedTickets: async (eventId) => {
       const { count, error } = await sb.from('tickets').select('*', { count: 'exact', head: true })

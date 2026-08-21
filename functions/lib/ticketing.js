@@ -52,3 +52,20 @@ export function ticketNumber(orderSeq, seatIndex) {
 export function randomToken(bytes = 24) {
   return randomBytes(bytes).toString('base64url');
 }
+
+// Every ticket for an event is terminal 3 hours after it starts — used,
+// unassigned or no-show alike. The same moment closes assignment AND
+// reassignment, so a leaked manage link cannot rewrite a roster after the fact.
+export const ASSIGNMENT_GRACE_MS = 3 * 60 * 60 * 1000;
+
+export function assignmentDeadline(event) {
+  if (!event || !event.starts_at) return null;
+  const startsAt = Date.parse(event.starts_at);
+  return Number.isNaN(startsAt) ? null : startsAt + ASSIGNMENT_GRACE_MS;
+}
+
+export function assignmentOpen(event, nowMs = Date.now()) {
+  const deadline = assignmentDeadline(event);
+  if (deadline === null) return { open: true, reason: null };
+  return nowMs >= deadline ? { open: false, reason: 'assignment_closed' } : { open: true, reason: null };
+}
