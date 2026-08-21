@@ -17,8 +17,14 @@
         html += '<p><strong>' + esc(t.attendee.full_name) + '</strong><br>' + esc(t.attendee.email) + '</p>';
       } else {
         html += '<form data-ticket="' + esc(t.id) + '" class="stack">' +
-          '<label>Guest name<input name="full_name" type="text" required></label>' +
-          '<label>Guest email<input name="email" type="email" required></label>' +
+          '<div class="field">' +
+          '<label for="tm-name-' + esc(t.id) + '">Guest name</label>' +
+          '<input id="tm-name-' + esc(t.id) + '" name="full_name" type="text" required>' +
+          '</div>' +
+          '<div class="field">' +
+          '<label for="tm-email-' + esc(t.id) + '">Guest email</label>' +
+          '<input id="tm-email-' + esc(t.id) + '" name="email" type="email" required>' +
+          '</div>' +
           '<button class="btn btn-primary" type="submit">Send their ticket</button>' +
           '<p class="form-msg" role="status"></p></form>';
       }
