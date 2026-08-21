@@ -57,6 +57,23 @@ projects, or set live secrets), and should be done on a **deploy preview first**
    reachable by the public — only the owner and Michelle have used it. A full clear is
    therefore safe.
 
+   **Export the GHL mapping FIRST — before any delete.** Test contacts were pushed downstream
+   to Michelle's real GoHighLevel account, and `contacts.ghl_contact_id` is the only record of
+   which GHL contacts those are. Once Supabase is cleared that mapping is gone, and the GHL
+   cleanup has to be reconstructed from GHL's own date filters instead. Run this and save the
+   output as the deletion checklist for the GHL tidy-up:
+
+   ```sql
+   select email, full_name, source, created_at, ghl_contact_id
+   from contacts
+   order by created_at;
+   ```
+
+   Rows with a non-null `ghl_contact_id` definitely reached GHL. Test contacts also carry
+   identifying `source` values — `web_free_profile`, `web_event_interest`, `web_lessons`,
+   `web_sponsor`, `web_corporate`, `web_gate`, plus `event_ticket` and `event_attendee` from
+   ticket purchases — which can be filtered on directly inside GHL.
+
    **Order matters** (foreign keys): `event_attendance` → `tickets` → `order_events` →
    `orders`, and `contact_inquiries` before `contacts`.
 
