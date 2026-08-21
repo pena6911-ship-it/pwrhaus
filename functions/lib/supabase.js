@@ -26,6 +26,8 @@ export function createSupabaseDb(env) {
     findOrderEventByStripeEventId: (evtId) => maybe(sb.from('order_events').select('*').eq('stripe_event_id', evtId)),
     insertOrderEvent: (input) => one(sb.from('order_events').insert(input).select().single()),
     findEventBySlug: (slug) => maybe(sb.from('events').select('*').eq('slug', slug)),
+    findEventById: (id) => maybe(sb.from('events').select('*').eq('id', id)),
+    findContactById: (id) => maybe(sb.from('contacts').select('*').eq('id', id)),
     countIssuedTickets: async (eventId) => {
       const { count, error } = await sb.from('tickets').select('*', { count: 'exact', head: true })
         .eq('event_id', eventId).eq('status', 'valid');
