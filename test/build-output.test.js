@@ -426,8 +426,27 @@ test('admin ships the enabled CRM view', () => {
   assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
 });
 
+test('admin ships the check-in view with a camera-free path', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  assert.match(html, /data-view="checkin"/, 'check-in must be reachable from the nav');
+  assert.match(html, /id="view-checkin"/);
+  assert.match(html, /id="checkin-manual"/, 'manual entry is a first-class path, not a fallback');
+});
+
 test('the manage-tickets page ships', () => {
   const html = readFileSync(join(outDir, 'tickets', 'manage', 'index.html'), 'utf8');
   assert.match(html, /id="manage-root"/, 'assignment page must render its mount point');
   assert.match(html, /src="\/js\/tickets-manage\.js"/, 'assignment page must load its script');
+});
+
+test('the check-in landing page ships and does nothing but instruct', () => {
+  const html = readFileSync(join(outDir, 'checkin', 'index.html'), 'utf8');
+  assert.match(html, /Present this ticket/i, 'a stray camera scan must land somewhere harmless');
+  assert.doesNotMatch(html, /api\/tickets\/checkin/, 'the landing page must never call the check-in API');
+});
+
+test('the manage page ships the QR renderer', () => {
+  const html = readFileSync(join(outDir, 'tickets', 'manage', 'index.html'), 'utf8');
+  assert.match(html, /src="\/js\/vendor\/qrcode\.js"/);
+  assert.match(html, /src="\/js\/ticket-qr\.js"/);
 });

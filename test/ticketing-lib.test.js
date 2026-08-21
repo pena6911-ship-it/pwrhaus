@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isMemberTier, priceForTier, salesOpen, remainingCapacity, computeOrder, ticketNumber, randomToken, assignmentDeadline, assignmentOpen } from '../functions/lib/ticketing.js';
+import { isMemberTier, priceForTier, salesOpen, remainingCapacity, computeOrder, ticketNumber, randomToken, assignmentDeadline, assignmentOpen, normalizeTicketNo } from '../functions/lib/ticketing.js';
 
 const EVENT = {
   price_cents: 7500, member_price_cents: 6500, nonmember_price_cents: 7500,
@@ -69,6 +69,20 @@ test('assignmentDeadline is three hours after the event starts', () => {
   const ev = { starts_at: '2026-08-21T15:30:00-04:00' };
   assert.equal(assignmentDeadline(ev), Date.parse('2026-08-21T18:30:00-04:00'));
   assert.equal(assignmentDeadline({}), null, 'no start time means no deadline to enforce');
+});
+
+test('normalizeTicketNo tolerates hyphen-free entry from iOS keyboards', () => {
+  // Already canonical: passes through unchanged.
+  assert.equal(normalizeTicketNo('000-0088-00001'), '000-0088-00001');
+  // No hyphens (iOS numeric keypad has none): hyphens re-inserted.
+  assert.equal(normalizeTicketNo('000008800001'), '000-0088-00001');
+  // Spaces instead of hyphens: stripped and re-inserted.
+  assert.equal(normalizeTicketNo('000 0088 00001'), '000-0088-00001');
+  // Lowercase input is uppercased.
+  assert.equal(normalizeTicketNo('a00-0088-0000b'), 'A00-0088-0000B');
+  // Short/garbage values are returned stripped, not mangled with hyphens.
+  assert.equal(normalizeTicketNo('abc'), 'ABC');
+  assert.equal(normalizeTicketNo(''), '');
 });
 
 test('assignmentOpen closes at the deadline and stays closed', () => {
