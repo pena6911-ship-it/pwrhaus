@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -97,4 +97,21 @@ test('tokenFromScan ignores codes that are not our tickets', () => {
   assert.equal(tokenFromScan('just some text'), '');
   assert.equal(tokenFromScan(''), '');
   assert.equal(tokenFromScan(null), '');
+});
+
+test('resolveJsqr accepts either UMD global shape', () => {
+  const fn = () => {};
+  assert.equal(resolveJsqr({ jsQR: fn }), fn);
+  // A bundle that wraps the decoder as `default` must still resolve, otherwise a
+  // working decoder reads as "missing" and the scanner falls back for no reason.
+  assert.equal(resolveJsqr({ jsQR: { default: fn } }), fn);
+});
+
+test('resolveJsqr returns null when the decoder truly did not load', () => {
+  assert.equal(resolveJsqr({}), null);
+  assert.equal(resolveJsqr(undefined), null);
+  assert.equal(resolveJsqr({ jsQR: undefined }), null);
+  // A non-callable global is not a decoder, however truthy it looks.
+  assert.equal(resolveJsqr({ jsQR: {} }), null);
+  assert.equal(resolveJsqr({ jsQR: 'yes' }), null);
 });
