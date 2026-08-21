@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeTicketsCheckinHandler } from '../functions/lib/tickets-checkin.js';
+import { isPwrhausAdmin } from '../functions/lib/auth.js';
 
 const TICKET = { id: 't1', event_id: 'evt-1', status: 'valid', contact_id: 'c1', ticket_no: '000-0088-00001', tier_sold: 'member' };
 
-function harness({ ticket = TICKET, attendance = null, session = { id: 'u1' } } = {}) {
+function harness({ ticket = TICKET, attendance = null, session = { id: 'u1', app_metadata: { pwrhaus_role: 'admin' } } } = {}) {
   const state = { inserted: [], contacts: [], assigned: [] };
   const db = {
     findTicketByQrToken: async (t) => (t === 'good-token' ? ticket : null),
@@ -16,7 +17,7 @@ function harness({ ticket = TICKET, attendance = null, session = { id: 'u1' } } 
   };
   const createContact = async (_deps, input) => { state.contacts.push(input); return { id: 'c-door', ...input }; };
   const handler = makeTicketsCheckinHandler({
-    verifySession: async () => session, db, createContact, deps: {},
+    verifySession: async () => session, isAdmin: isPwrhausAdmin, db, createContact, deps: {},
   });
   return { handler, state };
 }
@@ -32,6 +33,13 @@ test('an unauthenticated caller cannot check anyone in', async () => {
   const res = await handler(post({ qr_token: 'good-token', event_id: 'evt-1' }));
   assert.equal(res.status, 401);
   assert.equal(state.inserted.length, 0, 'a photographed QR alone must never write attendance');
+});
+
+test('an authenticated non-admin cannot check anyone in', async () => {
+  const { handler, state } = harness({ session: { id: 'u1', app_metadata: { pwrhaus_role: 'member' } } });
+  const res = await handler(post({ qr_token: 'good-token', event_id: 'evt-1' }));
+  assert.equal(res.status, 401);
+  assert.equal(state.inserted.length, 0);
 });
 
 test('a valid assigned ticket checks in and returns the attendee', async () => {
@@ -116,7 +124,7 @@ test('a duplicate-scan race against insertAttendance still returns the 200 alrea
   };
   const createContact = async () => { throw new Error('should not create a contact'); };
   const handler = makeTicketsCheckinHandler({
-    verifySession: async () => ({ id: 'u1' }), db, createContact, deps: {},
+    verifySession: async () => ({ id: 'u1', app_metadata: { pwrhaus_role: 'admin' } }), isAdmin: isPwrhausAdmin, db, createContact, deps: {},
   });
   const res = await handler(post({ qr_token: 'good-token', event_id: 'evt-1' }));
   assert.equal(res.status, 200, 'the DB constraint firing is not a user-visible error');
