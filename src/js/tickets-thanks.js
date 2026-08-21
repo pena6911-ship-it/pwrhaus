@@ -17,7 +17,16 @@
     fetch('/api/tickets/lookup?session_id=' + encodeURIComponent(sessionId))
       .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
       .then(function (data) {
-        root.innerHTML = '<p><a class="btn btn-primary" href="' + esc(data.manage_url) + '">Add your guests</a></p>';
+        if (data.unassigned_count > 0) {
+          var seats = data.unassigned_count === 1 ? '1 more seat' : data.unassigned_count + ' more seats';
+          root.innerHTML =
+            '<p>You have ' + esc(seats) + ' to name. We will email each guest their own ticket.</p>' +
+            '<p><a class="btn btn-primary" href="' + esc(data.manage_url) + '">Add your guests</a></p>';
+        } else {
+          root.innerHTML =
+            '<p>Your ticket is confirmed and in your name &mdash; nothing else to do.</p>' +
+            '<p><a href="' + esc(data.manage_url) + '">View your ticket</a></p>';
+        }
       })
       .catch(function () {
         root.textContent = 'We could not find your order. Please check your email for your tickets.';

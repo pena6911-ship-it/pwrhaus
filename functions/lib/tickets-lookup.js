@@ -6,8 +6,10 @@ import { json } from './http.js';
 // reaches the token-gated assignment flow without relying on email (ticket
 // email is dormant until RESEND_API_KEY exists).
 //
-// Returns ONLY { manage_url } — never the raw manage_token under any key,
-// and never ticket or contact data.
+// Returns ONLY { manage_url, unassigned_count } — never the raw manage_token
+// under any key, and never ticket or contact data. unassigned_count is a bare
+// number so the thanks page can hide the "Add your guests" link when every
+// seat already has a name (a single-ticket order auto-assigns the buyer).
 export function makeTicketsLookupHandler({ db }) {
   return async (req) => {
     if (req.method !== 'GET') return json({ error: 'method_not_allowed' }, 405);
@@ -17,6 +19,12 @@ export function makeTicketsLookupHandler({ db }) {
     const order = sessionId ? await db.findOrderByStripeSession(sessionId) : null;
     if (!order || !order.manage_token) return json({ error: 'not_found' }, 404);
 
-    return json({ manage_url: `${url.origin}/tickets/manage/?token=${order.manage_token}` });
+    const tickets = await db.listTicketsByOrder(order.id);
+    const unassigned = (tickets || []).filter((t) => !t.contact_id).length;
+
+    return json({
+      manage_url: `${url.origin}/tickets/manage/?token=${order.manage_token}`,
+      unassigned_count: unassigned,
+    });
   };
 }
