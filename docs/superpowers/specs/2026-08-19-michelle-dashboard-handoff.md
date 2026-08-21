@@ -202,3 +202,19 @@ not all at once.
 7. **Never sell the same event on WIX and here simultaneously.** Capacity is enforced
    only against tickets issued through this system; a duplicate listing on WIX can
    oversell the room with neither system aware of the other.
+
+## 7 · Event check-in go-live (Phase 5)
+
+Check-in ships fully operational and requires **no new secrets or Stripe keys**. It
+reuses the existing Supabase session, the vendored QR library, and the existing env.
+
+1. **Apply migration `0009_event_checkin.sql`** to the Supabase project (adds unique
+   constraint on `event_attendance.ticket_id` to prevent double check-in at the
+   database level, an event index for fast access, and authenticated-read policy).
+   Note: `event_attendance` is already included in the pre-launch database reset
+   (step 1 · 7) and will be cleared alongside other transactional data.
+2. Check-in view lives in `/admin/` under the event detail and works offline: camera
+   scanning via BarcodeDetector API, manual ticket-number entry (required for iOS
+   Safari where BarcodeDetector is unavailable), door capture that turns an unnamed
+   seat into a CRM contact synced to GoHighLevel, offline retry queue for network
+   recovery, and a running attendance roster. No additional setup needed.
