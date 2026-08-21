@@ -1,0 +1,58 @@
+import { json } from './http.js';
+
+// /api/tickets/assign — the token grants access to ONE order, never the database.
+export function makeTicketsAssignHandler({ db, createContact, deps, email }) {
+  const load = async (token) => (token ? db.findOrderByManageToken(token) : null);
+
+  return async (req) => {
+    const url = new URL(req.url);
+
+    if (req.method === 'GET') {
+      const order = await load(url.searchParams.get('token'));
+      if (!order) return json({ error: 'not_found' }, 404);
+      const [event, tickets] = await Promise.all([db.findEventById(order.event_id), db.listTicketsByOrder(order.id)]);
+      const rows = [];
+      for (const t of tickets) {
+        const attendee = t.contact_id ? await db.findContactById(t.contact_id) : null;
+        rows.push({
+          id: t.id, ticket_no: t.ticket_no, tier_sold: t.tier_sold,
+          attendee: attendee ? { full_name: attendee.full_name, email: attendee.email } : null,
+        });
+      }
+      return json({ event: { name: event.name, starts_at: event.starts_at, venue: event.venue, city: event.city }, tickets: rows });
+    }
+
+    if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+
+    let body;
+    try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
+
+    const order = await load(body.token);
+    if (!order) return json({ error: 'not_found' }, 404);
+
+    const tickets = await db.listTicketsByOrder(order.id);
+    const ticket = tickets.find((t) => t.id === body.ticket_id);
+    if (!ticket) return json({ error: 'unknown_ticket' }, 400);
+
+    const attendeeEmail = String(body.email || '').trim().toLowerCase();
+    const fullName = String(body.full_name || '').trim();
+    if (!attendeeEmail.includes('@') || !fullName) return json({ error: 'name_and_email_required' }, 400);
+
+    // Attendees are first-class contacts: deduped, and pushed to GHL like any lead.
+    const contact = await createContact(deps, {
+      email: attendeeEmail, full_name: fullName, source: 'event_attendee',
+    });
+
+    await db.assignTicket(ticket.id, contact.id);
+
+    const event = await db.findEventById(order.event_id);
+    await email.sendAttendeeTicket({
+      to: attendeeEmail, attendeeName: fullName,
+      eventName: event.name, startsAt: event.starts_at, venue: event.venue, city: event.city,
+      orderNo: ticket.ticket_no.slice(0, 8), ticketNo: ticket.ticket_no,
+      tierSold: ticket.tier_sold, qrToken: ticket.qr_token,
+    });
+
+    return json({ ok: true });
+  };
+}

@@ -36,6 +36,40 @@ stickyHref: "#join-web_event_interest"
   </div>
 </section>
 
+{% if event.tickets_enabled %}
+<section class="section" id="tickets">
+  <div class="container stack">
+    <div class="section-heading">
+      <p class="eyebrow">Tickets</p>
+      <h2>Claim your spot</h2>
+    </div>
+    <form id="ticket-form" class="stack" data-slug="{{ event.slug }}">
+      <p class="ticket-prices">
+        {% if event.member_price_cents %}PWRHAUS Member <strong>{{ event.member_price_cents | usd }}</strong> &middot; {% endif %}Non-Member <strong>{{ (event.nonmember_price_cents or event.price_cents) | usd }}</strong>
+      </p>
+      <div class="field">
+        <label for="tf-name-{{ event.slug }}">Your name</label>
+        <input id="tf-name-{{ event.slug }}" name="full_name" type="text" autocomplete="name" required>
+      </div>
+      <div class="field">
+        <label for="tf-email-{{ event.slug }}">Your email</label>
+        <input id="tf-email-{{ event.slug }}" name="email" type="email" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label for="tf-quantity-{{ event.slug }}">Tickets</label>
+        <select id="tf-quantity-{{ event.slug }}" name="quantity">
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+        </select>
+      </div>
+      <p class="ticket-note">Member pricing is applied automatically if your email is on our member list.</p>
+      <button class="btn btn-primary" type="submit">Continue to payment</button>
+      <p class="form-msg" role="status"></p>
+    </form>
+  </div>
+</section>
+<script src="/js/tickets.js" defer></script>
+{% endif %}
+
 <section class="section band">
   <div class="container">
     {% set formSource = "web_event_interest" %}

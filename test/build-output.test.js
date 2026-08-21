@@ -357,6 +357,33 @@ test('published CMS events generate detail pages and drafts do not', () => {
   );
 });
 
+test('ticketed event renders the selector with real member pricing, not $0', () => {
+  const html = readFileSync(join(outDir, 'events', 'fall-founder-scramble', 'index.html'), 'utf8');
+  assert.match(html, /id="ticket-form"/, 'ticket selector should render for a ticketed event');
+  assert.match(html, /PWRHAUS Member\s*<strong>\$65<\/strong>/, 'member price should render as a dollar amount');
+  assert.doesNotMatch(html, /<strong>\$0<\/strong>/, 'an unset or zero member price must never advertise $0');
+  const count = (html.match(/<h1[\s>]/g) || []).length;
+  assert.equal(count, 1, `expected exactly one h1 in the ticketed event page, found ${count}`);
+});
+
+test('a ticketed event with no member price configured never advertises $0', () => {
+  // fall-founder-scramble has a real member_price_cents (6500), so it can
+  // never catch a deleted {% if event.member_price_cents %} guard in
+  // detail.njk — it renders $65 whether the guard is there or not.
+  // winter-sponsor-social is ticketed with member_price_cents: null, so
+  // this is the fixture that actually exercises the guard: removing it
+  // makes the usd filter render "$0" for a null member price.
+  const html = readFileSync(join(outDir, 'events', 'winter-sponsor-social', 'index.html'), 'utf8');
+  assert.match(html, /id="ticket-form"/, 'ticket selector should render for a ticketed event');
+  assert.doesNotMatch(html, /<strong>\$0<\/strong>/, 'an unset member price must never advertise $0');
+});
+
+test('the tickets-thanks page ships', () => {
+  const html = readFileSync(join(outDir, 'tickets', 'thanks', 'index.html'), 'utf8');
+  assert.match(html, /id="thanks-root"/, 'thanks page must render its mount point');
+  assert.match(html, /src="\/js\/tickets-thanks\.js"/, 'thanks page must load its script');
+});
+
 test('every page renders its hero heading from site content', () => {
   const cases = [
     ['index.html', 'Never golfed?'],
@@ -397,4 +424,10 @@ test('admin ships the enabled CRM view', () => {
   assert.match(html, /id="view-crm"/, 'CRM view container must ship');
   assert.match(html, /id="contact-list"/, 'contact list container must ship');
   assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
+});
+
+test('the manage-tickets page ships', () => {
+  const html = readFileSync(join(outDir, 'tickets', 'manage', 'index.html'), 'utf8');
+  assert.match(html, /id="manage-root"/, 'assignment page must render its mount point');
+  assert.match(html, /src="\/js\/tickets-manage\.js"/, 'assignment page must load its script');
 });

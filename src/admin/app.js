@@ -10,7 +10,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const show = (el, on) => { if (el) el.hidden = !on; };
 
-const state = { events: [], contacts: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null };
+const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null };
 
 let sb = null;
 
@@ -115,6 +115,7 @@ async function boot() {
   wireCrm();
   renderSkeleton();
   await loadEvents();
+  await loadRosters();
   renderStats();
   renderList();
 }
@@ -143,8 +144,52 @@ async function loadEvents() {
 
 async function refresh() {
   await loadEvents();
+  await loadRosters();
   renderStats();
   renderList();
+}
+
+// Real registration counts + per-event roster, replacing the "—" tile.
+async function loadRosters() {
+  const { data, error } = await sb
+    .from('tickets')
+    .select('id,event_id,ticket_no,tier_sold,contact_id,status,contacts(full_name,email)')
+    .eq('status', 'valid');
+  // null is distinct from "zero registrations" — a failed load must not be
+  // rendered as an empty roster.
+  if (error) { state.tickets = null; toast('Could not load registrations.', 'error'); return; }
+  state.tickets = data || [];
+}
+
+function ticketsForEvent(eventId) {
+  if (!state.tickets) return null;
+  return state.tickets.filter((t) => t.event_id === eventId);
+}
+
+function renderRoster(ev) {
+  const box = $('#event-roster');
+  const rows = ticketsForEvent(ev.id);
+  box.innerHTML = '';
+  if (rows === null) {
+    const p = document.createElement('p');
+    p.className = 'meta';
+    p.textContent = 'Could not load registrations.';
+    box.appendChild(p);
+    box.hidden = false;
+    return;
+  }
+  const unassigned = rows.filter((t) => !t.contact_id).length;
+  const h = document.createElement('h3');
+  h.textContent = `${ev.name} — ${rows.length} registered${unassigned ? `, ${unassigned} unassigned` : ''}`;
+  box.appendChild(h);
+  for (const t of rows) {
+    const p = document.createElement('p');
+    p.className = 'meta';
+    p.textContent = `${t.ticket_no} · ${t.tier_sold === 'member' ? 'Member' : 'Non-member'} · ` +
+      (t.contacts ? `${t.contacts.full_name || ''} <${t.contacts.email}>` : 'Unassigned');
+    box.appendChild(p);
+  }
+  box.hidden = false;
 }
 
 /* ============================ events view ============================ */
@@ -165,7 +210,7 @@ function renderStats() {
     { k: 'Upcoming', n: s.upcoming },
     { k: 'Published', n: s.published },
     { k: 'Draft', n: s.draft },
-    { k: 'Registrations', n: '—', title: 'Available when ticketing lands' },
+    { k: 'Registrations', n: state.tickets ? state.tickets.length : '—' },
   ];
   const row = $('#stat-row');
   row.innerHTML = '';
@@ -224,6 +269,7 @@ function eventCard(ev) {
     actionBtn('Edit', 'edit', ev.id, 'btn-secondary'),
     actionBtn(ev.published ? 'Unpublish' : 'Publish', 'publish', ev.id, 'btn-secondary'),
     actionBtn('Duplicate', 'duplicate', ev.id, 'btn-secondary'),
+    actionBtn('Roster', 'roster', ev.id, 'btn-secondary'),
     actionBtn('Delete', 'delete', ev.id, 'btn-link btn-danger'),
   );
 
@@ -253,6 +299,8 @@ function wireList() {
     const action = btn.dataset.action;
 
     if (action === 'edit') { openDrawer(ev); return; }
+
+    if (action === 'roster') { renderRoster(ev); return; }
 
     if (action === 'move-up' || action === 'move-down') {
       const reordered = moveInOrder(state.events, ev.id, action === 'move-up' ? 'up' : 'down');
