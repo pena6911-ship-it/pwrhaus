@@ -5,7 +5,7 @@ import { isPwrhausAdmin } from '../functions/lib/auth.js';
 
 const TICKET = { id: 't1', event_id: 'evt-1', status: 'valid', contact_id: 'c1', ticket_no: '000-0088-00001', tier_sold: 'member' };
 
-function harness({ ticket = TICKET, attendance = null, session = { id: 'u1', app_metadata: { pwrhaus_role: 'admin' } } } = {}) {
+function harness({ ticket = TICKET, attendance = null, session = { id: 'u1', app_metadata: { pwrhaus_role: 'admin' }, aal: 'aal2' } } = {}) {
   const state = { inserted: [], contacts: [], assigned: [] };
   const db = {
     findTicketByQrToken: async (t) => (t === 'good-token' ? ticket : null),
@@ -36,7 +36,7 @@ test('an unauthenticated caller cannot check anyone in', async () => {
 });
 
 test('an authenticated non-admin cannot check anyone in', async () => {
-  const { handler, state } = harness({ session: { id: 'u1', app_metadata: { pwrhaus_role: 'member' } } });
+  const { handler, state } = harness({ session: { id: 'u1', app_metadata: { pwrhaus_role: 'member' }, aal: 'aal2' } });
   const res = await handler(post({ qr_token: 'good-token', event_id: 'evt-1' }));
   assert.equal(res.status, 401);
   assert.equal(state.inserted.length, 0);
@@ -124,7 +124,7 @@ test('a duplicate-scan race against insertAttendance still returns the 200 alrea
   };
   const createContact = async () => { throw new Error('should not create a contact'); };
   const handler = makeTicketsCheckinHandler({
-    verifySession: async () => ({ id: 'u1', app_metadata: { pwrhaus_role: 'admin' } }), isAdmin: isPwrhausAdmin, db, createContact, deps: {},
+    verifySession: async () => ({ id: 'u1', app_metadata: { pwrhaus_role: 'admin' }, aal: 'aal2' }), isAdmin: isPwrhausAdmin, db, createContact, deps: {},
   });
   const res = await handler(post({ qr_token: 'good-token', event_id: 'evt-1' }));
   assert.equal(res.status, 200, 'the DB constraint firing is not a user-visible error');

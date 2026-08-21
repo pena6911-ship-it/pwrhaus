@@ -38,6 +38,7 @@ function persistCheckinQueue() {
 const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: loadPersistedCheckinQueue() };
 
 let sb = null;
+let pendingMfaFactorId = '';
 
 /* ============================ boot / auth ============================ */
 
@@ -75,7 +76,23 @@ function renderUnconfigured() {
 async function requireSession() {
   const { data } = await sb.auth.getSession();
   if (data.session) {
+    const { data: userData } = await sb.auth.getUser();
+    if (userData?.user?.app_metadata?.pwrhaus_role !== 'admin') {
+      await sb.auth.signOut();
+      show($('#mfa-view'), false);
+      show($('#login-view'), true);
+      show($('#login-form'), true);
+      $('#login-error').textContent = 'This account is not authorized for the dashboard.';
+      show($('#login-error'), true);
+      return;
+    }
+    const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.currentLevel !== 'aal2') {
+      await requireMfa(aal);
+      return;
+    }
     show($('#login-view'), false);
+    show($('#mfa-view'), false);
     show($('#app-view'), true);
     boot();
   } else {
@@ -85,6 +102,52 @@ async function requireSession() {
     show($('#recover-form'), false);
     show($('#reset-form'), false);
   }
+}
+
+async function requireMfa() {
+  show($('#login-view'), false);
+  show($('#app-view'), false);
+  show($('#mfa-view'), true);
+  show($('#mfa-enroll-panel'), false);
+  show($('#mfa-enroll-view'), false);
+  show($('#mfa-challenge-form'), false);
+  const { data, error } = await sb.auth.mfa.listFactors();
+  if (error) { showMfaError(error.message); return; }
+  const factor = (data?.totp || []).find((item) => item.status === 'verified');
+  if (factor) {
+    pendingMfaFactorId = factor.id;
+    show($('#mfa-challenge-form'), true);
+  } else {
+    show($('#mfa-enroll-view'), true);
+  }
+}
+
+function showMfaError(message) {
+  show($('#login-view'), false);
+  show($('#app-view'), false);
+  show($('#mfa-view'), true);
+  const target = $('#mfa-general-error');
+  target.textContent = message;
+  show(target, true);
+}
+
+async function verifyMfa(factorId, code, errorEl) {
+  show(errorEl, false);
+  const challenge = await sb.auth.mfa.challenge({ factorId });
+  if (challenge.error) { errorEl.textContent = challenge.error.message; show(errorEl, true); return false; }
+  const result = await sb.auth.mfa.verify({ factorId, challengeId: challenge.data.id, code: code.trim() });
+  if (result.error) { errorEl.textContent = 'That verification code was not accepted.'; show(errorEl, true); return false; }
+  return true;
+}
+
+async function beginMfaEnrollment() {
+  const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'PWRHaus Dashboard' });
+  if (error) { showMfaError(error.message); return; }
+  pendingMfaFactorId = data.id;
+  $('#mfa-qr').innerHTML = data.totp.qr;
+  $('#mfa-secret').textContent = `Manual setup key: ${data.totp.secret}`;
+  show($('#mfa-enroll-panel'), true);
+  $('#mfa-enroll-code').focus();
 }
 
 function wireAuth() {
@@ -128,6 +191,19 @@ function wireAuth() {
     toast('Password updated.', 'info');
     requireSession();
   });
+
+  $('#mfa-enroll-btn').addEventListener('click', beginMfaEnrollment);
+  $('#mfa-enroll-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ok = await verifyMfa(pendingMfaFactorId, $('#mfa-enroll-code').value, $('#mfa-enroll-error'));
+    if (ok) requireSession();
+  });
+  $('#mfa-challenge-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ok = await verifyMfa(pendingMfaFactorId, $('#mfa-challenge-code').value, $('#mfa-challenge-error'));
+    if (ok) requireSession();
+  });
+  $('#mfa-signout-btn').addEventListener('click', async () => { await sb.auth.signOut(); requireSession(); });
 }
 
 /* ============================ app shell ============================ */

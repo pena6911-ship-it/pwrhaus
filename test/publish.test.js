@@ -26,7 +26,7 @@ test('rejects an invalid session and does not build', async () => {
 test('rejects an authenticated non-admin and does not build', async () => {
   let built = 0;
   const handler = makePublishHandler({
-    verifySession: async () => ({ id: 'member', app_metadata: { pwrhaus_role: 'member' } }),
+    verifySession: async () => ({ id: 'member', app_metadata: { pwrhaus_role: 'member' }, aal: 'aal2' }),
     isAdmin: isPwrhausAdmin,
     triggerBuild: async () => { built++; },
   });
@@ -38,7 +38,7 @@ test('rejects an authenticated non-admin and does not build', async () => {
 test('triggers the build exactly once for a valid session', async () => {
   let built = 0; let sawToken = null;
   const handler = makePublishHandler({
-    verifySession: async (t) => { sawToken = t; return { id: 'michelle', app_metadata: { pwrhaus_role: 'admin' } }; },
+    verifySession: async (t) => { sawToken = t; return { id: 'michelle', app_metadata: { pwrhaus_role: 'admin' }, aal: 'aal2' }; },
     isAdmin: isPwrhausAdmin,
     triggerBuild: async () => { built++; },
   });

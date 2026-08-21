@@ -11,9 +11,9 @@ export default async (req) => {
   const verifySession = async (token) => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-    const { data, error } = await sb.auth.getUser(token);
+    const { data, error } = await sb.auth.getClaims(token);
     if (error) return null;
-    return data?.user ?? null;
+    return data?.claims ?? null;
   };
 
   return makeTicketsCheckinHandler({
