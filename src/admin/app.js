@@ -129,6 +129,7 @@ function wireNav() {
     show($('#view-checkin'), view === 'checkin');
     if (view === 'crm') loadCrm();
     if (view === 'checkin') loadCheckin();
+    if (view !== 'checkin') stopScanning();
     $$('.nav-item[data-view], .tab[data-view]').forEach((b) => {
       if (b.dataset.view === view) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
@@ -986,22 +987,67 @@ function renderQueue() {
 
 async function flushQueue() {
   if (!state.checkinQueue.length) return;
+
+  const { data } = await sb.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) {
+    // No session — do not POST "Bearer undefined". Leave the queue intact
+    // and try again on the next flush.
+    showCheckinResult('warn', 'Session expired — sign in again to sync queued check-ins.');
+    return;
+  }
+
   const pending = state.checkinQueue.splice(0, state.checkinQueue.length);
+  const refused = [];
   for (const body of pending) {
     try {
-      const { data } = await sb.auth.getSession();
-      await fetch('/api/tickets/checkin', {
+      const res = await fetch('/api/tickets/checkin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + data?.session?.access_token },
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify(body),
       });
-    } catch { state.checkinQueue.push(body); }
+      const out = await res.json().catch(() => ({}));
+      // Only an unambiguous success clears the item. Anything that reached the
+      // server and was refused (hard refusal, already_checked_in, needs_attendee)
+      // must not be dropped silently, and must not be re-queued forever either —
+      // it is pulled out and surfaced to the operator instead.
+      if (res.ok && out.ok === true) continue;
+      refused.push(out.code);
+    } catch {
+      // Still offline — keep it for the next flush.
+      state.checkinQueue.push(body);
+    }
   }
   renderQueue();
+  if (refused.length) {
+    const messages = {
+      wrong_event: 'That ticket is for a different event.',
+      ticket_refunded: 'That ticket was refunded.',
+      ticket_expired: 'That ticket has expired.',
+      unknown_ticket: 'Ticket not recognised.',
+      already_checked_in: 'Already checked in.',
+      needs_attendee: 'Needs a name — check in manually.',
+    };
+    const reasons = refused.map((code) => messages[code] || 'Could not be checked in.').join('; ');
+    showCheckinResult('warn', `${refused.length} queued check-in${refused.length === 1 ? '' : 's'} could not sync: ${reasons}`);
+  }
   await loadRoster();
 }
 
+function stopScanning() {
+  if (checkinStream) {
+    checkinStream.getTracks().forEach((t) => t.stop());
+    checkinStream = null;
+  }
+  const video = $('#checkin-video');
+  if (video) {
+    video.srcObject = null;
+    video.hidden = true; // the detect loop checks this and exits on its own
+  }
+}
+
 async function startScanning() {
+  stopScanning(); // a second click restarts cleanly instead of leaking a stream
   const video = $('#checkin-video');
   if (!('BarcodeDetector' in window)) {
     // iOS Safari has no BarcodeDetector — manual entry is the path there.
