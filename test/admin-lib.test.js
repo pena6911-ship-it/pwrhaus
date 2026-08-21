@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -82,4 +82,19 @@ test('tierLabel maps known tiers and passes unknown through', () => {
   assert.equal(tierLabel('member'), 'Member');
   assert.equal(tierLabel('inner_circle'), 'Inner circle');
   assert.equal(tierLabel('mystery'), 'mystery');
+});
+
+test('tokenFromScan extracts the ticket token from a scanned QR url', () => {
+  assert.equal(tokenFromScan('https://pwrhaus.netlify.app/checkin/?t=abc123'), 'abc123');
+  // Percent-encoded tokens must come back decoded, ready to send to the API.
+  assert.equal(tokenFromScan('https://x/checkin/?t=a%2Bb%2Fc'), 'a+b/c');
+  // Extra params must not be swallowed into the token.
+  assert.equal(tokenFromScan('https://x/checkin/?t=abc&utm=qr'), 'abc');
+});
+
+test('tokenFromScan ignores codes that are not our tickets', () => {
+  assert.equal(tokenFromScan('https://example.com/'), '');
+  assert.equal(tokenFromScan('just some text'), '');
+  assert.equal(tokenFromScan(''), '');
+  assert.equal(tokenFromScan(null), '');
 });
