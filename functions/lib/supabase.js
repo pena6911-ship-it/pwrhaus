@@ -36,14 +36,18 @@ export function createSupabaseDb(env) {
     },
     insertTickets: (rows) => one(sb.from('tickets').insert(rows).select()),
     findOrderByManageToken: (token) => maybe(sb.from('orders').select('*').eq('manage_token', token)),
+    findOrderByStripeSession: (sessionId) => maybe(sb.from('orders').select('*').eq('stripe_session_id', sessionId)),
     listTicketsByOrder: (orderId) => one(sb.from('tickets').select('*').eq('order_id', orderId).order('ticket_no')),
     assignTicket: (ticketId, contactId) => one(
       sb.from('tickets').update({ contact_id: contactId, assigned_at: new Date().toISOString() }).eq('id', ticketId).select().single()
     ),
+    // Draws from a real Postgres sequence via RPC — PostgREST cannot call
+    // nextval() directly. A count-based approximation is racy under
+    // concurrent webhooks and off-by-one against the row it just inserted.
     nextOrderSeq: async () => {
-      const { count, error } = await sb.from('orders').select('*', { count: 'exact', head: true }).eq('type', 'event');
+      const { data, error } = await sb.rpc('next_event_order_seq');
       if (error) throw error;
-      return (count ?? 0) + 1;
+      return Number(data);
     },
   };
 }

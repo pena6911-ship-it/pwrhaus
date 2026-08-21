@@ -12,15 +12,24 @@ const NOW = () => Date.parse('2026-08-20T12:00:00Z');
 
 function harness({ event = EVENT, issued = 0, contact = null } = {}) {
   const created = [];
+  const contactCalls = [];
+  const depsStub = { db: {}, ghl: {} };
   const db = {
     findEventBySlug: async () => event,
     countIssuedTickets: async () => issued,
-    findContactByEmail: async () => contact,
-    insertContact: async (c) => ({ id: 'contact-new', tier: 'free', ...c }),
+  };
+  // Buyers must reach the CRM through the same createContact() path
+  // attendees use, not a bare db.insertContact call — this stub mimics its
+  // find-or-insert shape without pulling in the real Supabase/GHL wiring.
+  const createContact = async (deps, input) => {
+    contactCalls.push({ deps, input });
+    return contact ?? { id: 'contact-new', tier: 'free', ...input };
   };
   const stripe = { checkout: { sessions: { create: async (args) => { created.push(args); return { url: 'https://stripe.test/session' }; } } } };
-  const handler = makeTicketsCheckoutHandler({ env: { STRIPE_SECRET_KEY: 'sk_test' }, db, stripe, now: NOW });
-  return { handler, created };
+  const handler = makeTicketsCheckoutHandler({
+    env: { STRIPE_SECRET_KEY: 'sk_test' }, db, stripe, createContact, deps: depsStub, now: NOW,
+  });
+  return { handler, created, contactCalls, depsStub };
 }
 
 const post = (body) => new Request('https://x/api/tickets/checkout', {
@@ -57,4 +66,21 @@ test('rejects a non-POST and a missing email', async () => {
   const { handler } = harness();
   assert.equal((await handler(new Request('https://x/api/tickets/checkout'))).status, 405);
   assert.equal((await handler(post({ slug: 's', full_name: 'A', quantity: 1 }))).status, 400);
+});
+
+test('the buyer is routed through the shared CRM contact path, not a bare insert', async () => {
+  const { handler, contactCalls, depsStub } = harness();
+  const res = await handler(post({ slug: 'august-scramble', email: 'buyer@x.com', full_name: 'Buyer', quantity: 1 }));
+  assert.equal(res.status, 200);
+  assert.equal(contactCalls.length, 1, 'createContact must be called exactly once');
+  assert.equal(contactCalls[0].input.email, 'buyer@x.com');
+  assert.equal(contactCalls[0].input.source, 'event_ticket', 'attendees use source event_ticket; buyers must match');
+  assert.equal(contactCalls[0].deps, depsStub, 'the injected deps must be forwarded, not rebuilt');
+});
+
+test('coupons are never accepted, and the accepted payment methods are code-controlled', async () => {
+  const { handler, created } = harness();
+  await handler(post({ slug: 'august-scramble', email: 'buyer@x.com', full_name: 'Buyer', quantity: 1 }));
+  assert.equal(created[0].allow_promotion_codes, undefined, 'coupons are out of scope; discounting the charged amount must not be possible');
+  assert.deepEqual(created[0].payment_method_types, ['card'], 'accepted methods must be pinned in code, not left to the Dashboard');
 });

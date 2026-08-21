@@ -357,6 +357,21 @@ test('published CMS events generate detail pages and drafts do not', () => {
   );
 });
 
+test('ticketed event renders the selector with real member pricing, not $0', () => {
+  const html = readFileSync(join(outDir, 'events', 'fall-founder-scramble', 'index.html'), 'utf8');
+  assert.match(html, /id="ticket-form"/, 'ticket selector should render for a ticketed event');
+  assert.match(html, /PWRHAUS Member\s*<strong>\$65<\/strong>/, 'member price should render as a dollar amount');
+  assert.doesNotMatch(html, /<strong>\$0<\/strong>/, 'an unset or zero member price must never advertise $0');
+  const count = (html.match(/<h1[\s>]/g) || []).length;
+  assert.equal(count, 1, `expected exactly one h1 in the ticketed event page, found ${count}`);
+});
+
+test('the tickets-thanks page ships', () => {
+  const html = readFileSync(join(outDir, 'tickets', 'thanks', 'index.html'), 'utf8');
+  assert.match(html, /id="thanks-root"/, 'thanks page must render its mount point');
+  assert.match(html, /src="\/js\/tickets-thanks\.js"/, 'thanks page must load its script');
+});
+
 test('every page renders its hero heading from site content', () => {
   const cases = [
     ['index.html', 'Never golfed?'],

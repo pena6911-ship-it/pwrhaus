@@ -155,19 +155,30 @@ async function loadRosters() {
     .from('tickets')
     .select('id,event_id,ticket_no,tier_sold,contact_id,status,contacts(full_name,email)')
     .eq('status', 'valid');
-  if (error) { state.tickets = []; return; }
+  // null is distinct from "zero registrations" — a failed load must not be
+  // rendered as an empty roster.
+  if (error) { state.tickets = null; toast('Could not load registrations.', 'error'); return; }
   state.tickets = data || [];
 }
 
 function ticketsForEvent(eventId) {
+  if (!state.tickets) return null;
   return state.tickets.filter((t) => t.event_id === eventId);
 }
 
 function renderRoster(ev) {
   const box = $('#event-roster');
   const rows = ticketsForEvent(ev.id);
-  const unassigned = rows.filter((t) => !t.contact_id).length;
   box.innerHTML = '';
+  if (rows === null) {
+    const p = document.createElement('p');
+    p.className = 'meta';
+    p.textContent = 'Could not load registrations.';
+    box.appendChild(p);
+    box.hidden = false;
+    return;
+  }
+  const unassigned = rows.filter((t) => !t.contact_id).length;
   const h = document.createElement('h3');
   h.textContent = `${ev.name} — ${rows.length} registered${unassigned ? `, ${unassigned} unassigned` : ''}`;
   box.appendChild(h);

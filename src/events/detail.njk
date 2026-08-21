@@ -45,17 +45,21 @@ stickyHref: "#join-web_event_interest"
     </div>
     <form id="ticket-form" class="stack" data-slug="{{ event.slug }}">
       <p class="ticket-prices">
-        PWRHAUS Member <strong>{{ event.member_price_cents | usd }}</strong>
-        &middot; Non-Member <strong>{{ (event.nonmember_price_cents or event.price_cents) | usd }}</strong>
+        {% if event.member_price_cents %}PWRHAUS Member <strong>{{ event.member_price_cents | usd }}</strong> &middot; {% endif %}Non-Member <strong>{{ (event.nonmember_price_cents or event.price_cents) | usd }}</strong>
       </p>
-      <div class="field"><label>Your name<input name="full_name" type="text" required></label></div>
-      <div class="field"><label>Your email<input name="email" type="email" required></label></div>
       <div class="field">
-        <label>Tickets
-          <select name="quantity">
-            <option>1</option><option>2</option><option>3</option><option>4</option>
-          </select>
-        </label>
+        <label for="tf-name-{{ event.slug }}">Your name</label>
+        <input id="tf-name-{{ event.slug }}" name="full_name" type="text" autocomplete="name" required>
+      </div>
+      <div class="field">
+        <label for="tf-email-{{ event.slug }}">Your email</label>
+        <input id="tf-email-{{ event.slug }}" name="email" type="email" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label for="tf-quantity-{{ event.slug }}">Tickets</label>
+        <select id="tf-quantity-{{ event.slug }}" name="quantity">
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+        </select>
       </div>
       <p class="ticket-note">Member pricing is applied automatically if your email is on our member list.</p>
       <button class="btn btn-primary" type="submit">Continue to payment</button>

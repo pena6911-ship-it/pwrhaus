@@ -21,6 +21,31 @@ test('0006 extends orders and tickets', () => {
   assert.match(sql, /qr_token\s+text unique/);
 });
 
+test('0006 gives orders an event_id (tickets-assign reads order.event_id)', () => {
+  assert.match(
+    sql,
+    /alter table orders add column (if not exists )?event_id\s+uuid references events\(id\)/,
+    'orders.event_id must exist and reference events(id)',
+  );
+});
+
+test('0006 gives orders a stripe_session_id for resolving the thanks page', () => {
+  assert.match(
+    sql,
+    /alter table orders add column (if not exists )?stripe_session_id\s+text/,
+    'orders.stripe_session_id must exist',
+  );
+});
+
+test('0006 provides a real sequence for order numbers, callable over PostgREST', () => {
+  assert.match(sql, /create sequence (if not exists )?event_order_seq/, 'a count-based approximation is racy under concurrent webhooks');
+  assert.match(
+    sql,
+    /create (or replace )?function next_event_order_seq\(\)[^;]*nextval\('event_order_seq'\)/s,
+    'PostgREST cannot call nextval() directly; it must be wrapped in a callable function',
+  );
+});
+
 test('0006 grants dashboard read on orders + tickets to authenticated only', () => {
   assert.match(sql, /create policy[^;]*on orders[^;]*for select[^;]*to authenticated/s);
   assert.match(sql, /create policy[^;]*on tickets[^;]*for select[^;]*to authenticated/s);

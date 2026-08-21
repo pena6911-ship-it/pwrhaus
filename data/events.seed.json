@@ -14,7 +14,11 @@
       "image_alt": "Golfers walking together across a green course",
       "published": true,
       "registration_url": null,
-      "sort_order": 0
+      "sort_order": 0,
+      "tickets_enabled": true,
+      "member_price_cents": 6500,
+      "nonmember_price_cents": 15000,
+      "sales_end_at": "2026-09-18T09:00:00-04:00"
     },
     {
       "slug": "spring-networking-nine",

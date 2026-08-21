@@ -4,7 +4,7 @@ import { computeOrder, randomToken } from './ticketing.js';
 // POST /api/tickets/checkout — body: { slug, email, full_name, quantity }
 // Price is ALWAYS recomputed from the event row + the buyer's real tier. Any
 // price or tier in the request body is ignored.
-export function makeTicketsCheckoutHandler({ env, db, stripe, now = Date.now }) {
+export function makeTicketsCheckoutHandler({ env, db, stripe, createContact, deps, now = Date.now }) {
   return async (req) => {
     if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
@@ -18,11 +18,10 @@ export function makeTicketsCheckoutHandler({ env, db, stripe, now = Date.now }) 
     const event = await db.findEventBySlug(String(body.slug || ''));
     if (!event) return json({ error: 'unknown_event' }, 400);
 
-    // The buyer's tier decides the price — look them up, create if new.
-    let contact = await db.findContactByEmail(email);
-    if (!contact) {
-      contact = await db.insertContact({ email, full_name: fullName || null, tier: 'free', source: 'event_ticket' });
-    }
+    // The buyer's tier decides the price — look them up, create if new. Uses
+    // the same path attendees use so the buyer reaches the CRM too, not just
+    // a bare Supabase row.
+    const contact = await createContact(deps, { email, full_name: fullName || null, source: 'event_ticket' });
 
     const issued = await db.countIssuedTickets(event.id);
     const quote = computeOrder({ event, tier: contact.tier, quantity: body.quantity, issuedCount: issued, nowMs: now() });
@@ -34,7 +33,7 @@ export function makeTicketsCheckoutHandler({ env, db, stripe, now = Date.now }) 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       customer_email: email,
-      allow_promotion_codes: true,
+      payment_method_types: ['card'],
       line_items: [{
         quantity: quote.quantity,
         price_data: {
@@ -45,7 +44,7 @@ export function makeTicketsCheckoutHandler({ env, db, stripe, now = Date.now }) 
           },
         },
       }],
-      success_url: `${origin}/events/${event.slug}/?ticket=1&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/tickets/thanks/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/events/${event.slug}/`,
       metadata: {
         event_id: event.id,
