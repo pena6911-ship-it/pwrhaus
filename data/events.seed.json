@@ -37,6 +37,26 @@
       "sort_order": 1
     },
     {
+      "slug": "winter-sponsor-social",
+      "name": "Winter Sponsor Social",
+      "city": "Fort Lauderdale",
+      "venue": "PWRHaus Indoor Golf",
+      "starts_at": "2026-12-05T18:00:00-05:00",
+      "price_cents": 4500,
+      "capacity": 30,
+      "summary": "A sponsor mixer with a single open price — no member discount tier configured.",
+      "body": "An early-evening social built to introduce sponsor partners to the PWRHaus community, priced the same for everyone in the room.",
+      "image": "/img/corporate-hero.webp",
+      "image_alt": "Guests mingling at an indoor golf social event",
+      "published": true,
+      "registration_url": null,
+      "sort_order": 3,
+      "tickets_enabled": true,
+      "member_price_cents": null,
+      "nonmember_price_cents": 4500,
+      "sales_end_at": "2026-12-05T16:00:00-05:00"
+    },
+    {
       "slug": "draft-member-preview",
       "name": "Draft Member Preview",
       "city": "Miami",

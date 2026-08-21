@@ -46,7 +46,17 @@ export function makeTicketsWebhookHandler({ env, verify, db, email, now = Date.n
 
     const flagged = oversold || underpaid;
 
-    const order = await db.insertOrder({
+    // orders.idempotency_key is unique, and m.idempotency_key is identical
+    // on every Stripe retry of this session. A bare insert here means any
+    // throw after this line (ticket_no collision, a Supabase blip, the
+    // marker write itself failing) leaves the order row in place but
+    // unrecoverable: the next retry hits insertOrder again and dies with a
+    // permanent 23505, stranding a paid order with zero tickets. Resolve
+    // the existing order first so a retry reuses it instead of re-inserting.
+    // Never overwrite manage_token on the resumed path — the buyer may
+    // already hold that link.
+    const existingOrder = await db.findOrderByIdempotencyKey(m.idempotency_key);
+    const order = existingOrder || await db.insertOrder({
       contact_id: m.contact_id,
       event_id: m.event_id,
       type: 'event',
@@ -73,21 +83,29 @@ export function makeTicketsWebhookHandler({ env, verify, db, email, now = Date.n
       return json({ received: true, needs_attention: oversold ? 'insufficient_capacity' : 'underpaid' });
     }
 
-    const seq = await db.nextOrderSeq();
-    const rows = [];
-    for (let i = 1; i <= quantity; i++) {
-      rows.push({
-        order_id: order.id,
-        event_id: m.event_id,
-        contact_id: i === 1 ? m.contact_id : null, // the buyer keeps seat 1
-        assigned_at: i === 1 ? new Date(now()).toISOString() : null,
-        status: 'valid',
-        tier_sold: m.tier_sold,
-        ticket_no: ticketNumber(seq, i),
-        qr_token: randomToken(),
-      });
+    // On a resumed order (found above, not freshly inserted), a prior
+    // attempt may have already issued the seats and then died before the
+    // marker write landed (e.g. the marker insert itself blipped) — the
+    // "seen" event guard above can't catch that, since no marker exists.
+    // Reuse those tickets instead of issuing a second set for the order.
+    let rows = existingOrder ? await db.listTicketsByOrder(order.id) : null;
+    if (!rows || rows.length === 0) {
+      const seq = await db.nextOrderSeq();
+      rows = [];
+      for (let i = 1; i <= quantity; i++) {
+        rows.push({
+          order_id: order.id,
+          event_id: m.event_id,
+          contact_id: i === 1 ? m.contact_id : null, // the buyer keeps seat 1
+          assigned_at: i === 1 ? new Date(now()).toISOString() : null,
+          status: 'valid',
+          tier_sold: m.tier_sold,
+          ticket_no: ticketNumber(seq, i),
+          qr_token: randomToken(),
+        });
+      }
+      await db.insertTickets(rows);
     }
-    await db.insertTickets(rows);
 
     // The idempotency marker is written only after the tickets are safely
     // issued. If insertTickets throws, no marker exists, so a Stripe retry
@@ -102,11 +120,16 @@ export function makeTicketsWebhookHandler({ env, verify, db, email, now = Date.n
 
     const buyer = await db.findContactById(m.contact_id);
     const origin = new URL(req.url).origin;
+    // orderNo is just the order-seq segment of ticket_no ("000-0088-00001"
+    // -> "000-0088"), read back off the issued rows rather than a fresh
+    // nextOrderSeq() draw — seq is only in scope on the freshly-issued path,
+    // and this stays correct on the resumed/reused-tickets path too.
+    const orderNo = rows[0].ticket_no.split('-').slice(0, 2).join('-');
     await email.sendOrderConfirmation({
       to: buyer?.email || s.customer_email,
       buyerName: buyer?.full_name || 'there',
       eventName: ev.name, startsAt: ev.starts_at, venue: ev.venue, city: ev.city,
-      orderNo: `000-${String(seq).padStart(4, '0')}`,
+      orderNo,
       totalCents: paidCents,
       manageUrl: `${origin}/tickets/manage/?token=${order.manage_token}`,
       tickets: rows.map((r) => ({ ticketNo: r.ticket_no, tierSold: r.tier_sold, qrToken: r.qr_token })),
