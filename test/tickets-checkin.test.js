@@ -8,6 +8,7 @@ function harness({ ticket = TICKET, attendance = null, session = { id: 'u1' } } 
   const state = { inserted: [], contacts: [], assigned: [] };
   const db = {
     findTicketByQrToken: async (t) => (t === 'good-token' ? ticket : null),
+    findTicketByNumber: async (n) => (n === ticket.ticket_no ? ticket : null),
     findAttendanceByTicket: async () => attendance,
     insertAttendance: async (row) => { state.inserted.push(row); return { ...row, attended_at: '2026-08-21T20:00:00Z' }; },
     findContactById: async () => ({ id: 'c1', full_name: 'Jane Smith', email: 'jane@x.com' }),
@@ -71,6 +72,18 @@ test('an unassigned ticket asks for a name, then checks in with one', async () =
   assert.equal(done.state.contacts[0].source, 'event_attendee', 'door captures feed the CRM');
   assert.deepEqual(done.state.assigned[0], { id: 't1', contactId: 'c-door' });
   assert.equal(done.state.inserted[0].contact_id, 'c-door');
+});
+
+test('a manually typed ticket number checks in identically to a scan', async () => {
+  const { handler, state } = harness();
+  const res = await handler(post({ ticket_no: TICKET.ticket_no, event_id: 'evt-1' }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.attendee_name, 'Jane Smith');
+  assert.equal(body.tier_sold, 'member');
+  assert.equal(state.inserted.length, 1);
+  assert.equal(state.inserted[0].ticket_id, 't1');
 });
 
 test('a ticket for another event is refused', async () => {

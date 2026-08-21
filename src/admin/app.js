@@ -10,7 +10,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const show = (el, on) => { if (el) el.hidden = !on; };
 
-const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null };
+const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: [] };
 
 let sb = null;
 
@@ -113,6 +113,7 @@ async function boot() {
   wireDrawer();
   wireSettings();
   wireCrm();
+  wireCheckin();
   renderSkeleton();
   await loadEvents();
   await loadRosters();
@@ -125,7 +126,9 @@ function wireNav() {
     show($('#view-events'), view === 'events');
     show($('#view-settings'), view === 'settings');
     show($('#view-crm'), view === 'crm');
+    show($('#view-checkin'), view === 'checkin');
     if (view === 'crm') loadCrm();
+    if (view === 'checkin') loadCheckin();
     $$('.nav-item[data-view], .tab[data-view]').forEach((b) => {
       if (b.dataset.view === view) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
@@ -851,6 +854,187 @@ function closeContactDrawer() {
   const drawer = $('#contact-drawer');
   drawer.hidden = true;
   drawer.setAttribute('aria-hidden', 'true');
+}
+
+/* ============================ check-in ============================ */
+
+let checkinWired = false;
+let checkinStream = null;
+
+function wireCheckin() {
+  if (checkinWired) return;
+  checkinWired = true;
+  $('#checkin-scan-btn').addEventListener('click', startScanning);
+  $('#checkin-manual').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const no = $('#checkin-ticket-no').value.trim();
+    if (!no) return;
+    await submitCheckin({ ticket_no: no });
+    $('#checkin-ticket-no').value = '';
+  });
+  $('#checkin-event').addEventListener('change', loadRoster);
+}
+
+async function loadCheckin() {
+  const sel = $('#checkin-event');
+  sel.innerHTML = '';
+  // Today's event first — that is the one she is standing at.
+  const sorted = [...state.events].sort((a, b) =>
+    Math.abs(new Date(a.starts_at) - Date.now()) - Math.abs(new Date(b.starts_at) - Date.now()));
+  for (const ev of sorted) {
+    const o = document.createElement('option');
+    o.value = ev.id;
+    o.textContent = `${ev.name} — ${eventDateLabel(ev.starts_at)}`;
+    sel.appendChild(o);
+  }
+  await loadRoster();
+  flushQueue();
+}
+
+async function loadRoster() {
+  const eventId = $('#checkin-event').value;
+  if (!eventId) return;
+  const { data } = await sb.from('event_attendance')
+    .select('ticket_id,attended_at,contacts(full_name,email)').eq('event_id', eventId);
+  const rows = data || [];
+  const ev = state.events.find((e) => e.id === eventId);
+  $('#checkin-count').textContent = `${rows.length} of ${ev?.capacity ?? '?'} checked in`;
+  const box = $('#checkin-roster');
+  box.innerHTML = '';
+  for (const r of rows) {
+    const p = document.createElement('p');
+    p.className = 'meta';
+    p.textContent = `${r.contacts?.full_name || r.contacts?.email || 'Guest'} · ${eventDateLabel(r.attended_at)}`;
+    box.appendChild(p);
+  }
+}
+
+function showCheckinResult(kind, text) {
+  const box = $('#checkin-result');
+  box.className = `checkin-result ${kind}`;
+  box.textContent = text;
+}
+
+// The scanner posts { qr_token } from a camera scan, or { ticket_no } typed by
+// hand. Both go through the same server validation.
+async function submitCheckin(payload, attendee) {
+  const eventId = $('#checkin-event').value;
+  const { data } = await sb.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) { showCheckinResult('err', 'Session expired — sign in again.'); return; }
+
+  const body = { ...payload, event_id: eventId, ...(attendee || {}) };
+  try {
+    const res = await fetch('/api/tickets/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify(body),
+    });
+    const out = await res.json();
+
+    if (out.ok) {
+      showCheckinResult('ok', `${out.attendee_name} · ${out.tier_sold === 'member' ? 'Member' : 'Non-member'} · checked in`);
+      await loadRoster();
+      return;
+    }
+    if (out.code === 'already_checked_in') {
+      showCheckinResult('warn', `Already checked in at ${eventDateLabel(out.attended_at)}`);
+      return;
+    }
+    if (out.code === 'needs_attendee') {
+      promptForAttendee(payload);
+      return;
+    }
+    const messages = {
+      wrong_event: 'That ticket is for a different event.',
+      ticket_refunded: 'That ticket was refunded.',
+      ticket_expired: 'That ticket has expired.',
+      unknown_ticket: 'Ticket not recognised.',
+    };
+    showCheckinResult('err', messages[out.code] || 'That ticket could not be checked in.');
+  } catch {
+    // A dead spot must not stop the line: hold it and retry when signal returns.
+    state.checkinQueue.push(body);
+    renderQueue();
+    showCheckinResult('warn', 'No signal — saved, will sync automatically.');
+  }
+}
+
+function promptForAttendee(payload) {
+  const box = $('#checkin-result');
+  box.className = 'checkin-result info';
+  box.innerHTML = '';
+  const form = document.createElement('form');
+  form.innerHTML =
+    '<p>This ticket has no name yet. Who is arriving?</p>' +
+    '<label>Name<input name="full_name" type="text" required></label>' +
+    '<label>Email<input name="email" type="email" required></label>' +
+    '<button class="btn btn-primary" type="submit">Check in</button>';
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitCheckin(payload, { full_name: form.full_name.value, email: form.email.value });
+  });
+  box.appendChild(form);
+}
+
+function renderQueue() {
+  const el = $('#checkin-queue');
+  const n = state.checkinQueue.length;
+  el.hidden = n === 0;
+  el.textContent = n ? `${n} waiting to sync` : '';
+}
+
+async function flushQueue() {
+  if (!state.checkinQueue.length) return;
+  const pending = state.checkinQueue.splice(0, state.checkinQueue.length);
+  for (const body of pending) {
+    try {
+      const { data } = await sb.auth.getSession();
+      await fetch('/api/tickets/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + data?.session?.access_token },
+        body: JSON.stringify(body),
+      });
+    } catch { state.checkinQueue.push(body); }
+  }
+  renderQueue();
+  await loadRoster();
+}
+
+async function startScanning() {
+  const video = $('#checkin-video');
+  if (!('BarcodeDetector' in window)) {
+    // iOS Safari has no BarcodeDetector — manual entry is the path there.
+    showCheckinResult('warn', 'Camera scanning is not supported on this device. Use the ticket number below.');
+    $('#checkin-ticket-no').focus();
+    return;
+  }
+  try {
+    checkinStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch {
+    showCheckinResult('err', 'Camera unavailable. Use the ticket number below.');
+    return;
+  }
+  video.srcObject = checkinStream;
+  video.hidden = false;
+  await video.play();
+
+  const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+  let last = '';
+  const tick = async () => {
+    if (video.hidden) return;
+    try {
+      const codes = await detector.detect(video);
+      if (codes.length) {
+        const raw = codes[0].rawValue || '';
+        const t = (raw.split('?t=')[1] || '').split('&')[0];
+        // Ignore the same code repeating across frames while it sits in view.
+        if (t && t !== last) { last = t; await submitCheckin({ qr_token: decodeURIComponent(t) }); }
+      }
+    } catch { /* keep scanning */ }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 /* ============================ publish indicator ============================ */

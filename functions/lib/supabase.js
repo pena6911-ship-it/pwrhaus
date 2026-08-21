@@ -66,6 +66,7 @@ export function createSupabaseDb(env) {
       return Number(data);
     },
     findTicketByQrToken: (token) => maybe(sb.from('tickets').select('*').eq('qr_token', token)),
+    findTicketByNumber: (no) => maybe(sb.from('tickets').select('*').eq('ticket_no', no)),
     findAttendanceByTicket: (ticketId) => maybe(sb.from('event_attendance').select('*').eq('ticket_id', ticketId)),
     insertAttendance: (row) => one(sb.from('event_attendance').insert(row).select().single()),
     listAttendanceByEvent: (eventId) => one(

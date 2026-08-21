@@ -1,10 +1,11 @@
 import { json } from './http.js';
 import { checkinOutcome } from './checkin.js';
 
-// POST /api/tickets/checkin — body: { qr_token, event_id, full_name?, email? }
+// POST /api/tickets/checkin — body: { qr_token | ticket_no, event_id, full_name?, email? }
 //
-// The QR token identifies a ticket; it NEVER authorizes the write. Tickets can
-// be photographed, so a verified dashboard session is required as well.
+// The QR token (or, typed by hand, the ticket number) identifies a ticket; it
+// NEVER authorizes the write. Tickets can be photographed, so a verified
+// dashboard session is required as well.
 export function makeTicketsCheckinHandler({ verifySession, db, createContact, deps }) {
   return async (req) => {
     if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
@@ -17,7 +18,10 @@ export function makeTicketsCheckinHandler({ verifySession, db, createContact, de
     let body;
     try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
 
-    const ticket = await db.findTicketByQrToken(String(body.qr_token || ''));
+    const qrToken = String(body.qr_token || '');
+    const ticket = qrToken
+      ? await db.findTicketByQrToken(qrToken)
+      : await db.findTicketByNumber(String(body.ticket_no || ''));
     const existingAttendance = ticket ? await db.findAttendanceByTicket(ticket.id) : null;
     const attendee = { full_name: String(body.full_name || ''), email: String(body.email || '').trim().toLowerCase() };
 
