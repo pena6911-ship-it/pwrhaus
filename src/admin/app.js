@@ -10,7 +10,32 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const show = (el, on) => { if (el) el.hidden = !on; };
 
-const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: [] };
+const CHECKIN_QUEUE_STORAGE_KEY = 'pwrhaus.checkinQueue';
+
+// A reload or an iOS background-tab eviction must not silently lose a queued
+// check-in — the queue is small (token/number + a door-captured name/email)
+// and lives in localStorage so it survives both. A private-mode failure here
+// must not break check-in, so every access is wrapped.
+function loadPersistedCheckinQueue() {
+  try {
+    const raw = localStorage.getItem(CHECKIN_QUEUE_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistCheckinQueue() {
+  try {
+    localStorage.setItem(CHECKIN_QUEUE_STORAGE_KEY, JSON.stringify(state.checkinQueue));
+  } catch {
+    // Storage unavailable (private mode, full disk, etc). The in-memory
+    // queue still drives this session; it just won't survive a reload.
+  }
+}
+
+const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: loadPersistedCheckinQueue() };
 
 let sb = null;
 
@@ -874,6 +899,12 @@ function wireCheckin() {
     $('#checkin-ticket-no').value = '';
   });
   $('#checkin-event').addEventListener('change', loadRoster);
+  // A queue built while standing on this view (network dead the whole time)
+  // never drains on its own otherwise — only loadCheckin() called flushQueue.
+  window.addEventListener('online', flushQueue);
+  // Reflect a queue restored from a previous session immediately, rather
+  // than waiting for the first flush attempt to render it.
+  renderQueue();
 }
 
 async function loadCheckin() {
@@ -916,6 +947,31 @@ function showCheckinResult(kind, text) {
   box.textContent = text;
 }
 
+// A refused check-in is a real server answer, not an ambiguous failure — the
+// operator must know which ticket it was about, so every message here is
+// built with the ticket label in front of it.
+const REFUSAL_REASONS = {
+  wrong_event: 'is for a different event.',
+  ticket_refunded: 'was refunded.',
+  ticket_expired: 'has expired.',
+  unknown_ticket: 'is not recognised.',
+  already_checked_in: 'was already checked in.',
+  needs_attendee: 'needs a name — check in manually.',
+};
+
+function ticketLabel(body) {
+  return body?.ticket_no || body?.qr_token || 'That ticket';
+}
+
+function refusalMessage(body, code) {
+  return `${ticketLabel(body)} ${REFUSAL_REASONS[code] || 'could not be checked in.'}`;
+}
+
+function queueCheckin(body) {
+  state.checkinQueue.push(body);
+  renderQueue();
+}
+
 // The scanner posts { qr_token } from a camera scan, or { ticket_no } typed by
 // hand. Both go through the same server validation.
 async function submitCheckin(payload, attendee) {
@@ -925,40 +981,51 @@ async function submitCheckin(payload, attendee) {
   if (!token) { showCheckinResult('err', 'Session expired — sign in again.'); return; }
 
   const body = { ...payload, event_id: eventId, ...(attendee || {}) };
+
+  let res;
   try {
-    const res = await fetch('/api/tickets/checkin', {
+    res = await fetch('/api/tickets/checkin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify(body),
     });
-    const out = await res.json();
-
-    if (out.ok) {
-      showCheckinResult('ok', `${out.attendee_name} · ${out.tier_sold === 'member' ? 'Member' : 'Non-member'} · checked in`);
-      await loadRoster();
-      return;
-    }
-    if (out.code === 'already_checked_in') {
-      showCheckinResult('warn', `Already checked in at ${eventDateLabel(out.attended_at)}`);
-      return;
-    }
-    if (out.code === 'needs_attendee') {
-      promptForAttendee(payload);
-      return;
-    }
-    const messages = {
-      wrong_event: 'That ticket is for a different event.',
-      ticket_refunded: 'That ticket was refunded.',
-      ticket_expired: 'That ticket has expired.',
-      unknown_ticket: 'Ticket not recognised.',
-    };
-    showCheckinResult('err', messages[out.code] || 'That ticket could not be checked in.');
   } catch {
-    // A dead spot must not stop the line: hold it and retry when signal returns.
-    state.checkinQueue.push(body);
-    renderQueue();
+    // Transport failure — a dead spot must not stop the line: hold it and
+    // retry when signal returns.
+    queueCheckin(body);
     showCheckinResult('warn', 'No signal — saved, will sync automatically.');
+    return;
   }
+
+  if (res.status >= 500) {
+    // A server error is not a real answer either — treat it the same as no
+    // signal at all, rather than dropping the check-in.
+    queueCheckin(body);
+    showCheckinResult('warn', 'No signal — saved, will sync automatically.');
+    return;
+  }
+
+  const out = await res.json().catch(() => null);
+  if (!out) {
+    showCheckinResult('err', `${ticketLabel(body)} could not be checked in.`);
+    return;
+  }
+
+  if (out.ok) {
+    showCheckinResult('ok', `${out.attendee_name} · ${out.tier_sold === 'member' ? 'Member' : 'Non-member'} · checked in`);
+    await loadRoster();
+    await flushQueue();
+    return;
+  }
+  if (out.code === 'already_checked_in') {
+    showCheckinResult('warn', `Already checked in at ${eventDateLabel(out.attended_at)}`);
+    return;
+  }
+  if (out.code === 'needs_attendee') {
+    promptForAttendee(payload);
+    return;
+  }
+  showCheckinResult('err', refusalMessage(body, out.code));
 }
 
 function promptForAttendee(payload) {
@@ -979,6 +1046,7 @@ function promptForAttendee(payload) {
 }
 
 function renderQueue() {
+  persistCheckinQueue();
   const el = $('#checkin-queue');
   const n = state.checkinQueue.length;
   el.hidden = n === 0;
@@ -998,38 +1066,40 @@ async function flushQueue() {
   }
 
   const pending = state.checkinQueue.splice(0, state.checkinQueue.length);
-  const refused = [];
+  const refusedMessages = [];
   for (const body of pending) {
+    let res;
     try {
-      const res = await fetch('/api/tickets/checkin', {
+      res = await fetch('/api/tickets/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify(body),
       });
-      const out = await res.json().catch(() => ({}));
-      // Only an unambiguous success clears the item. Anything that reached the
-      // server and was refused (hard refusal, already_checked_in, needs_attendee)
-      // must not be dropped silently, and must not be re-queued forever either —
-      // it is pulled out and surfaced to the operator instead.
-      if (res.ok && out.ok === true) continue;
-      refused.push(out.code);
     } catch {
-      // Still offline — keep it for the next flush.
+      // Still offline (transport failure) — keep it for the next flush.
       state.checkinQueue.push(body);
+      continue;
     }
+
+    if (res.status >= 500) {
+      // A server error is not a real answer — keep it for the next flush,
+      // same as a transport failure. Do not drop it.
+      state.checkinQueue.push(body);
+      continue;
+    }
+
+    const out = await res.json().catch(() => null);
+    // Only an unambiguous success clears the item. Anything that reached the
+    // server and was refused (hard refusal, already_checked_in, needs_attendee)
+    // is a real answer — it must not be dropped silently, and must not be
+    // re-queued forever either. It is pulled out and surfaced to the operator,
+    // named, so an unattributable "could not be checked in" never happens.
+    if (out && out.ok === true) continue;
+    refusedMessages.push(refusalMessage(body, out?.code));
   }
   renderQueue();
-  if (refused.length) {
-    const messages = {
-      wrong_event: 'That ticket is for a different event.',
-      ticket_refunded: 'That ticket was refunded.',
-      ticket_expired: 'That ticket has expired.',
-      unknown_ticket: 'Ticket not recognised.',
-      already_checked_in: 'Already checked in.',
-      needs_attendee: 'Needs a name — check in manually.',
-    };
-    const reasons = refused.map((code) => messages[code] || 'Could not be checked in.').join('; ');
-    showCheckinResult('warn', `${refused.length} queued check-in${refused.length === 1 ? '' : 's'} could not sync: ${reasons}`);
+  if (refusedMessages.length) {
+    showCheckinResult('warn', `${refusedMessages.length} queued check-in${refusedMessages.length === 1 ? '' : 's'} could not sync — ${refusedMessages.join('; ')}`);
   }
   await loadRoster();
 }

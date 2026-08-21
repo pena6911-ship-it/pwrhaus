@@ -1,5 +1,6 @@
 import { json } from './http.js';
 import { checkinOutcome } from './checkin.js';
+import { normalizeTicketNo } from './ticketing.js';
 
 // POST /api/tickets/checkin — body: { qr_token | ticket_no, event_id, full_name?, email? }
 //
@@ -21,7 +22,7 @@ export function makeTicketsCheckinHandler({ verifySession, db, createContact, de
     const qrToken = String(body.qr_token || '');
     const ticket = qrToken
       ? await db.findTicketByQrToken(qrToken)
-      : await db.findTicketByNumber(String(body.ticket_no || ''));
+      : await db.findTicketByNumber(normalizeTicketNo(body.ticket_no || ''));
     const existingAttendance = ticket ? await db.findAttendanceByTicket(ticket.id) : null;
     const attendee = { full_name: String(body.full_name || ''), email: String(body.email || '').trim().toLowerCase() };
 
@@ -50,7 +51,18 @@ export function makeTicketsCheckinHandler({ verifySession, db, createContact, de
       await db.assignTicket(ticket.id, contactId);
     }
 
-    await db.insertAttendance({ ticket_id: ticket.id, event_id: ticket.event_id, contact_id: contactId });
+    try {
+      await db.insertAttendance({ ticket_id: ticket.id, event_id: ticket.event_id, contact_id: contactId });
+    } catch (err) {
+      // Two near-simultaneous scans can both pass the app-level duplicate
+      // check above; the loser hits the DB's unique constraint. That's not
+      // a failure — it's the same "already checked in" outcome, just
+      // discovered a moment later.
+      const isDuplicate = err?.code === '23505' || String(err?.message || '').includes('event_attendance_ticket_uniq');
+      if (!isDuplicate) throw err;
+      const existing = await db.findAttendanceByTicket(ticket.id);
+      return json({ ok: false, code: 'already_checked_in', attended_at: existing?.attended_at }, 200);
+    }
 
     const person = await db.findContactById(contactId);
     return json({

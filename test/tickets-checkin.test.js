@@ -86,6 +86,46 @@ test('a manually typed ticket number checks in identically to a scan', async () 
   assert.equal(state.inserted[0].ticket_id, 't1');
 });
 
+test('a hyphen-free ticket number resolves the same ticket as the hyphenated form', async () => {
+  const { handler, state } = harness();
+  const stripped = TICKET.ticket_no.replace(/-/g, ''); // '000008800001'
+  const res = await handler(post({ ticket_no: stripped, event_id: 'evt-1' }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.ticket_no, TICKET.ticket_no);
+  assert.equal(state.inserted.length, 1);
+  assert.equal(state.inserted[0].ticket_id, 't1');
+});
+
+test('a duplicate-scan race against insertAttendance still returns the 200 already_checked_in shape', async () => {
+  const state = { inserted: [] };
+  const uniqueViolation = Object.assign(new Error('duplicate key value violates unique constraint "event_attendance_ticket_uniq"'), { code: '23505' });
+  const db = {
+    findTicketByQrToken: async (t) => (t === 'good-token' ? TICKET : null),
+    findTicketByNumber: async () => null,
+    // The app-level check races the DB and loses: no attendance row is
+    // visible yet when the app checks, so it proceeds to insert.
+    findAttendanceByTicket: async () => (state.inserted.length ? { attended_at: '2026-08-21T19:42:00Z' } : null),
+    insertAttendance: async (row) => {
+      state.inserted.push(row);
+      throw uniqueViolation;
+    },
+    findContactById: async () => ({ id: 'c1', full_name: 'Jane Smith', email: 'jane@x.com' }),
+    assignTicket: async () => { throw new Error('should not assign'); },
+  };
+  const createContact = async () => { throw new Error('should not create a contact'); };
+  const handler = makeTicketsCheckinHandler({
+    verifySession: async () => ({ id: 'u1' }), db, createContact, deps: {},
+  });
+  const res = await handler(post({ qr_token: 'good-token', event_id: 'evt-1' }));
+  assert.equal(res.status, 200, 'the DB constraint firing is not a user-visible error');
+  const body = await res.json();
+  assert.equal(body.ok, false);
+  assert.equal(body.code, 'already_checked_in');
+  assert.equal(body.attended_at, '2026-08-21T19:42:00Z');
+});
+
 test('a ticket for another event is refused', async () => {
   const { handler, state } = harness();
   const res = await handler(post({ qr_token: 'good-token', event_id: 'evt-other' }));

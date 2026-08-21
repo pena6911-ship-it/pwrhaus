@@ -49,6 +49,18 @@ export function ticketNumber(orderSeq, seatIndex) {
   return `000-${String(orderSeq).padStart(4, '0')}-${String(seatIndex).padStart(5, '0')}`;
 }
 
+// iOS has no hyphen key on the numeric keypad, and typed entry is the only
+// path on iOS Safari (no BarcodeDetector there). Accept whatever the operator
+// typed and coerce it back into the canonical NNN-NNNN-NNNNN shape when it's
+// plausibly a ticket number with the hyphens stripped out.
+export function normalizeTicketNo(input) {
+  const stripped = String(input || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (stripped.length === 12) {
+    return `${stripped.slice(0, 3)}-${stripped.slice(3, 7)}-${stripped.slice(7, 12)}`;
+  }
+  return stripped;
+}
+
 export function randomToken(bytes = 24) {
   return randomBytes(bytes).toString('base64url');
 }
