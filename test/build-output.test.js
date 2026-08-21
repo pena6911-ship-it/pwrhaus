@@ -398,3 +398,9 @@ test('admin ships the enabled CRM view', () => {
   assert.match(html, /id="contact-list"/, 'contact list container must ship');
   assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
 });
+
+test('the manage-tickets page ships', () => {
+  const html = readFileSync(join(outDir, 'tickets', 'manage', 'index.html'), 'utf8');
+  assert.match(html, /id="manage-root"/, 'assignment page must render its mount point');
+  assert.match(html, /src="\/js\/tickets-manage\.js"/, 'assignment page must load its script');
+});

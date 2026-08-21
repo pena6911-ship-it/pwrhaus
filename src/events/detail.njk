@@ -36,6 +36,36 @@ stickyHref: "#join-web_event_interest"
   </div>
 </section>
 
+{% if event.tickets_enabled %}
+<section class="section" id="tickets">
+  <div class="container stack">
+    <div class="section-heading">
+      <p class="eyebrow">Tickets</p>
+      <h2>Claim your spot</h2>
+    </div>
+    <form id="ticket-form" class="stack" data-slug="{{ event.slug }}">
+      <p class="ticket-prices">
+        PWRHAUS Member <strong>{{ event.member_price_cents | usd }}</strong>
+        &middot; Non-Member <strong>{{ (event.nonmember_price_cents or event.price_cents) | usd }}</strong>
+      </p>
+      <div class="field"><label>Your name<input name="full_name" type="text" required></label></div>
+      <div class="field"><label>Your email<input name="email" type="email" required></label></div>
+      <div class="field">
+        <label>Tickets
+          <select name="quantity">
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+          </select>
+        </label>
+      </div>
+      <p class="ticket-note">Member pricing is applied automatically if your email is on our member list.</p>
+      <button class="btn btn-primary" type="submit">Continue to payment</button>
+      <p class="form-msg" role="status"></p>
+    </form>
+  </div>
+</section>
+<script src="/js/tickets.js" defer></script>
+{% endif %}
+
 <section class="section band">
   <div class="container">
     {% set formSource = "web_event_interest" %}

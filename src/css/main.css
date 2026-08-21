@@ -261,6 +261,9 @@ body.nav-open { overflow: hidden; }
   width: 100%;
 }
 .field textarea { min-height: 120px; }
+.ticket-prices { font-size: 1.125rem; }
+.ticket-note { font-size: 0.875rem; color: var(--ink-muted); }
+#ticket-form label { display: grid; gap: var(--space-2); max-width: 420px; }
 .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .form-error { color: var(--error); font-size: 0.875rem; }
 .form-error[hidden] { display: none; }
