@@ -49,7 +49,7 @@ stickyHref: "#join-web_event_interest"
       <p class="ticket-summary-name">{{ event.name }}</p>
       <p class="ticket-summary-meta">{{ event.starts_at | eventDate }}</p>
       <p class="ticket-summary-meta">{{ event.venue }}{% if event.city %} &middot; {{ event.city }}{% endif %}</p>
-      <p class="ticket-summary-meta">{{ event.capacity }} spots for this event</p>
+      <p class="ticket-summary-meta" id="ticket-availability" data-capacity="{{ event.capacity }}">{{ event.capacity }} spots for this event</p>
     </div>
     <form id="ticket-form" class="stack" data-slug="{{ event.slug }}">
       <p class="ticket-prices">
