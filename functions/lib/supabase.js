@@ -25,5 +25,29 @@ export function createSupabaseDb(env) {
     findOrderByPaymentIntent: (pi) => maybe(sb.from('orders').select('*').eq('stripe_payment_intent_id', pi)),
     findOrderEventByStripeEventId: (evtId) => maybe(sb.from('order_events').select('*').eq('stripe_event_id', evtId)),
     insertOrderEvent: (input) => one(sb.from('order_events').insert(input).select().single()),
+    findEventBySlug: (slug) => maybe(sb.from('events').select('*').eq('slug', slug)),
+    findEventById: (id) => maybe(sb.from('events').select('*').eq('id', id)),
+    findContactById: (id) => maybe(sb.from('contacts').select('*').eq('id', id)),
+    countIssuedTickets: async (eventId) => {
+      const { count, error } = await sb.from('tickets').select('*', { count: 'exact', head: true })
+        .eq('event_id', eventId).eq('status', 'valid');
+      if (error) throw error;
+      return count ?? 0;
+    },
+    insertTickets: (rows) => one(sb.from('tickets').insert(rows).select()),
+    findOrderByManageToken: (token) => maybe(sb.from('orders').select('*').eq('manage_token', token)),
+    findOrderByStripeSession: (sessionId) => maybe(sb.from('orders').select('*').eq('stripe_session_id', sessionId)),
+    listTicketsByOrder: (orderId) => one(sb.from('tickets').select('*').eq('order_id', orderId).order('ticket_no')),
+    assignTicket: (ticketId, contactId) => one(
+      sb.from('tickets').update({ contact_id: contactId, assigned_at: new Date().toISOString() }).eq('id', ticketId).select().single()
+    ),
+    // Draws from a real Postgres sequence via RPC — PostgREST cannot call
+    // nextval() directly. A count-based approximation is racy under
+    // concurrent webhooks and off-by-one against the row it just inserted.
+    nextOrderSeq: async () => {
+      const { data, error } = await sb.rpc('next_event_order_seq');
+      if (error) throw error;
+      return Number(data);
+    },
   };
 }

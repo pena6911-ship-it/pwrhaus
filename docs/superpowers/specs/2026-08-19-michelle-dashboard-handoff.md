@@ -116,3 +116,37 @@ These three bit us during go-live. Keep them true or the dashboard silently brea
    limit exceeded") and is test-only. Before Michelle relies on password reset / invites,
    configure custom SMTP (Resend, Postmark, SendGrid, or SES) under
    Supabase → Authentication → Emails / SMTP Settings.
+
+## 6 · Event ticketing go-live (Phase 4)
+
+Ticketing ships wired to Stripe **test mode** and with ticket email dormant. These
+steps are what turn it into a real, sellable feature — do them per event, deliberately,
+not all at once.
+
+1. **Apply migration `0006_event_ticketing.sql`** to the Supabase project (adds
+   `member_price_cents`, `nonmember_price_cents`, `sales_end_at`, `tickets_enabled` to
+   `events`; `manage_token` to `orders`; `ticket_no`, `tier_sold`, `qr_token`,
+   `assigned_at` to `tickets`; and the authenticated-read policies the dashboard
+   roster depends on).
+2. **Create the tickets webhook endpoint** in the Stripe Dashboard pointing at
+   `/api/tickets/webhook`, and copy its signing secret into
+   `STRIPE_TICKETS_WEBHOOK_SECRET`. This is a separate endpoint and secret from the
+   merch webhook — do not reuse `STRIPE_MERCH_WEBHOOK_SECRET`.
+3. **Set per-event prices and sales window** in the dashboard (or directly in
+   Supabase): `member_price_cents`, `nonmember_price_cents`, `sales_end_at`, and only
+   then flip `tickets_enabled` to `true`. Sales stay off by default — this is the
+   explicit switch that puts the selector live on that event's public page.
+4. **Swap to live Stripe keys** (`STRIPE_SECRET_KEY`, and the tickets webhook secret
+   from a live-mode endpoint) once a real event is ready to sell for real money. Keep
+   test-mode keys in deploy-preview/branch contexts, same pattern as merch.
+5. **Verify Resend** — set `RESEND_API_KEY` and a Resend-verified `TICKETS_FROM_EMAIL`
+   before relying on ticket emails; until then, buyers only get Stripe's own receipt,
+   with no ticket/QR or assignment link.
+6. **Rewrite the refund and weather policies for events.** The existing policies were
+   written for merch/membership; ticketing needs its own owner-decided language
+   (refund window, no-show, event cancellation/reschedule for weather) before tickets
+   go on sale. There is no dashboard refund flow — refunds are handled directly in
+   Stripe.
+7. **Never sell the same event on WIX and here simultaneously.** Capacity is enforced
+   only against tickets issued through this system; a duplicate listing on WIX can
+   oversell the room with neither system aware of the other.
