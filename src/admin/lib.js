@@ -76,3 +76,12 @@ export function weekAgoIso(nowMs = Date.now()) {
 export function tierLabel(tier) {
   return { free: 'Free', member: 'Member', inner_circle: 'Inner circle' }[tier] ?? String(tier ?? '');
 }
+
+// A scanned QR carries the /checkin/?t=<token> URL; the token is that parameter.
+// Returns '' for anything that is not one of our ticket codes.
+export function tokenFromScan(raw) {
+  const text = String(raw || '');
+  const marker = text.indexOf('?t=');
+  if (marker === -1) return '';
+  return decodeURIComponent(text.slice(marker + 3).split('&')[0]);
+}

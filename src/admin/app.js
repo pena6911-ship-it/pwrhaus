@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -1116,15 +1116,36 @@ function stopScanning() {
   }
 }
 
+// Which decoder is live, so a failure is diagnosable without a console.
+let checkinDecoder = '';
+
+// BarcodeDetector is absent on iOS Safari, and on some Android builds the
+// constructor succeeds while qr_code is NOT actually supported — detect() then
+// silently never fires. So we ask what it supports rather than whether it exists,
+// and fall back to jsQR (vendored, pure JS) which works everywhere.
+async function pickDecoder() {
+  try {
+    if (window.BarcodeDetector && window.BarcodeDetector.getSupportedFormats) {
+      const formats = await window.BarcodeDetector.getSupportedFormats();
+      if (formats.includes('qr_code')) return 'native';
+    }
+  } catch { /* fall through to jsQR */ }
+  return typeof window.jsQR === 'function' ? 'jsqr' : '';
+}
+
+
 async function startScanning() {
   stopScanning(); // a second click restarts cleanly instead of leaking a stream
   const video = $('#checkin-video');
-  if (!('BarcodeDetector' in window)) {
-    // iOS Safari has no BarcodeDetector — manual entry is the path there.
-    showCheckinResult('warn', 'Camera scanning is not supported on this device. Use the ticket number below.');
+
+  const decoder = await pickDecoder();
+  if (!decoder) {
+    showCheckinResult('warn', 'Camera scanning is not available on this device. Use the ticket number below.');
     $('#checkin-ticket-no').focus();
     return;
   }
+  checkinDecoder = decoder;
+
   try {
     checkinStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
   } catch {
@@ -1135,19 +1156,49 @@ async function startScanning() {
   video.hidden = false;
   await video.play();
 
-  const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+  showCheckinResult('info', decoder === 'native'
+    ? 'Scanning — point the camera at the ticket QR. (native detector)'
+    : 'Scanning — point the camera at the ticket QR. (JS decoder)');
+
+  const detector = decoder === 'native' ? new window.BarcodeDetector({ formats: ['qr_code'] }) : null;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   let last = '';
+  let errorsShown = false;
+
+  const readFrame = async () => {
+    if (detector) {
+      const codes = await detector.detect(video);
+      return codes.length ? codes[0].rawValue : '';
+    }
+    // jsQR needs pixels, so draw the current frame and hand over the buffer.
+    if (!video.videoWidth) return '';
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const found = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'dontInvert' });
+    return found ? found.data : '';
+  };
+
   const tick = async () => {
     if (video.hidden) return;
     try {
-      const codes = await detector.detect(video);
-      if (codes.length) {
-        const raw = codes[0].rawValue || '';
-        const t = (raw.split('?t=')[1] || '').split('&')[0];
+      const raw = await readFrame();
+      if (raw) {
+        const t = tokenFromScan(raw);
         // Ignore the same code repeating across frames while it sits in view.
-        if (t && t !== last) { last = t; await submitCheckin({ qr_token: decodeURIComponent(t) }); }
+        if (t && t !== last) { last = t; await submitCheckin({ qr_token: t }); }
       }
-    } catch { /* keep scanning */ }
+    } catch (err) {
+      // Never swallow this silently — a decoder failing every frame is exactly
+      // the symptom that looks like "the camera works but nothing happens".
+      if (!errorsShown) {
+        errorsShown = true;
+        showCheckinResult('err', 'Scanner error: ' + (err && err.message ? err.message : String(err)) +
+          ' — use the ticket number below.');
+      }
+    }
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
