@@ -51,7 +51,7 @@ Reusable hero: `src/_includes/partials/page-hero.njk` (image OR video, per-page)
 
 ---
 
-## Current state (2026-08-14)
+## Current state (2026-08-21)
 
 Done and pushed (site work on `main`, everything on `poc/merch`):
 - **Redesign:** full-bleed hero videos/images per page; brand logo in header (CSS-cropped monogram + wordmark) + footer; monogram favicon; tagline; site-wide **lead-capture gate** (blurs page until submit/dismiss, JS-only so it's SEO-safe, posts `web_gate` → GHL).
@@ -60,6 +60,15 @@ Done and pushed (site work on `main`, everything on `poc/merch`):
 - **Merch POC** (`poc/merch` only): `/merch` storefront is **built live from Printify** (`src/_data/products.js` fetches at build time — the static `products.json` in the merch spec §4 is superseded by this dynamic approach). Checkout = Stripe **test** hosted Checkout (`functions/merch-checkout.js`), webhook (`functions/merch-webhook.js`) creates a **Printify DRAFT order** only. **Safety rail: `PRINTIFY_LIVE=false` → never calls `send_to_production`.** Verified end-to-end in test mode.
 
 `.env` keys (names only): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GHL_API_KEY`, `GHL_LOCATION_ID`, `STRIPE_SECRET_KEY` (sk_test), `STRIPE_WEBHOOK_SECRET`, `PRINTIFY_API_TOKEN`, `PRINTIFY_SHOP_ID` (28584383), `PRINTIFY_LIVE=false`, `STRIPE_MERCH_WEBHOOK_SECRET`.
+
+### Authoritative security and launch update (2026-08-21)
+
+- **QR check-in is fixed and working.** The Android camera path now falls back from native `BarcodeDetector` to vendored jsQR, uses a resilient video start path, and shows a confirmation overlay over the camera after each result. Manual ticket-number entry remains available.
+- **Supabase admin authorization is live.** Migration `0010_admin_authorization.sql` replaced broad authenticated-user policies with `app_metadata.pwrhaus_role = 'admin'` checks for CRM, events, CMS, media, tickets, and attendance. Both `hello@pwrhausgolfsociety.com` and `pena6911@gmail.com` have that app metadata role. Migration `0011_security_hardening.sql` fixed the mutable search path on `next_event_order_seq()`.
+- **MFA code is merged to `main` in commit `fae06d6`.** The dashboard includes TOTP enrollment/challenge UX; Netlify functions use verified JWT claims and require admin role plus `aal2`. Migration `0012_require_mfa.sql` is intentionally **not applied live yet** so the final lock does not precede deployment and enrollment.
+- **MFA status:** `hello@pwrhausgolfsociety.com` has a verified TOTP factor. `pena6911@gmail.com` still needs to enroll and verify one. CAPTCHA protection is currently disabled because the dashboard does not yet pass a CAPTCHA token; re-enable only after a frontend Turnstile/hCaptcha integration is added.
+- **Final launch order:** deploy the MFA code; both admins verify login and TOTP; run the one-time GHL → Supabase contact migration after go-live; then apply `0012_require_mfa.sql` as the final RLS lock. Do not apply it earlier.
+- **Testing:** current repository verification is 232 passing tests; `npm run build` passes.
 
 ---
 
