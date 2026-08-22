@@ -53,7 +53,13 @@ stickyHref: "#join-web_event_interest"
     </div>
     <form id="ticket-form" class="stack" data-slug="{{ event.slug }}">
       <p class="ticket-prices">
-        {% if event.member_price_cents %}PWRHAUS Member <strong>{{ event.member_price_cents | usd }}</strong> &middot; {% endif %}Non-Member <strong>{{ (event.nonmember_price_cents or event.price_cents) | usd }}</strong>
+        {% if event.member_price_cents %}
+        PWRHAUS Member <strong>{{ event.member_price_cents | usd }}</strong> &middot; Non-Member <strong>{{ (event.nonmember_price_cents or event.price_cents) | usd }}</strong>
+        {% else %}
+        {# No member rate set, so everyone pays one price. Labelling it
+           "Non-Member" would imply a member rate exists and read as a penalty. #}
+        <strong>{{ (event.nonmember_price_cents or event.price_cents) | usd }}</strong> per ticket
+        {% endif %}
       </p>
       <div class="field">
         <label for="tf-name-{{ event.slug }}">Your name</label>
@@ -69,7 +75,7 @@ stickyHref: "#join-web_event_interest"
           <option>1</option><option>2</option><option>3</option><option>4</option>
         </select>
       </div>
-      <p class="ticket-note">Member pricing is applied automatically if your email is on our member list.</p>
+      {% if event.member_price_cents %}<p class="ticket-note">Member pricing is applied automatically if your email is on our member list.</p>{% endif %}
       <p class="ticket-note">Buying more than one? You can add your guests&rsquo; names afterwards &mdash; you don&rsquo;t need them now. Guest names can be added or changed up to <strong>3 hours after the event starts</strong>. After that all tickets for the event expire: they cannot be named, transferred to another event, or refunded.</p>
       <button class="btn btn-primary" type="submit">Continue to payment</button>
       <p class="form-msg" role="status"></p>
