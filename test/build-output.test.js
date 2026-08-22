@@ -414,6 +414,8 @@ test('admin route ships the bespoke dashboard shell, not Sveltia', () => {
   assert.match(html, /id="login-view"/, 'admin must render the login view');
   assert.match(html, /id="mfa-view"/, 'admin must gate access behind MFA');
   assert.match(html, /id="mfa-enroll-form"/, 'admin must provide TOTP enrollment');
+  const adminApp = readFileSync(join(process.cwd(), 'src', 'admin', 'app.js'), 'utf8');
+  assert.match(adminApp, /id="f-tickets-enabled"/, 'event editor must expose an explicit ticketing toggle');
 });
 
 test('admin Site Content view lists the editable pages', () => {

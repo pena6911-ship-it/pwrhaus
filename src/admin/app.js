@@ -360,7 +360,7 @@ function eventCard(ev) {
   const meta = document.createElement('p'); meta.className = 'meta';
   meta.textContent = `${ev.city || ''}${ev.city ? ' · ' : ''}${eventDateLabel(ev.starts_at)}`;
   const meta2 = document.createElement('p'); meta2.className = 'meta';
-  meta2.textContent = `${ev.venue || ''} · ${usd(ev.price_cents)} · ${ev.capacity ?? 0} spots`;
+  meta2.textContent = `${ev.venue || ''} · ${usd(ev.price_cents)} · ${ev.tickets_enabled ? 'Ticketed' : 'No tickets'}`;
   const badge = document.createElement('span');
   badge.className = 'badge ' + (ev.published ? 'published' : 'draft');
   badge.textContent = ev.published ? 'Published' : 'Draft';
@@ -519,6 +519,8 @@ function drawerFields() {
       <label>Price (USD)<input id="f-price" type="number" min="0" step="0.01"></label>
       <label>Capacity<input id="f-capacity" type="number" min="0" step="1"></label>
     </div>
+    <div class="toggle-row"><input id="f-tickets-enabled" type="checkbox"><span>Ticketed event</span></div>
+    <p class="field-hint">Turn this on only when guests should buy tickets through the website. Publishing alone does not open ticket sales.</p>
     <label>Summary<textarea id="f-summary"></textarea></label>
     <label>Body<textarea id="f-body"></textarea></label>
     <label>Registration URL<input id="f-reg" type="url"></label>
@@ -572,6 +574,7 @@ function openDrawer(ev) {
   $('#f-starts').value = isoToLocalInput(ev?.starts_at);
   $('#f-price').value = ev ? (ev.price_cents / 100) : '';
   $('#f-capacity').value = ev?.capacity ?? '';
+  $('#f-tickets-enabled').checked = !!ev?.tickets_enabled;
   $('#f-summary').value = ev?.summary || '';
   $('#f-body').value = ev?.body || '';
   $('#f-reg').value = ev?.registration_url || '';
@@ -608,6 +611,7 @@ async function onDrawerSubmit(e) {
     starts_at: localInputToIso($('#f-starts').value),
     price_cents: Number.isFinite(dollars) ? Math.round(dollars * 100) : NaN,
     capacity: parseInt($('#f-capacity').value, 10),
+    tickets_enabled: $('#f-tickets-enabled').checked,
     summary: $('#f-summary').value.trim(),
     body: $('#f-body').value.trim(),
     registration_url: $('#f-reg').value.trim() || null,
