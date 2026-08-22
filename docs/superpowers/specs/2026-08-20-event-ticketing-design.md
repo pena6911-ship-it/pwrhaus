@@ -49,7 +49,7 @@ sales ending the day before the event.
 | D5 | **One ticket per seat**, each with its own `qr_token` | Per-attendee identity + check-in later |
 | D6 | Attendees become **first-class `contacts`** (`source='event_attendee'`), synced to GHL | A guest on someone else's ticket is exactly the warm prospect the society is built to find |
 | D7 | **Stripe Checkout (hosted)** | Apple/Google Pay, cards, billing address, promo codes, PCI — all free and maintained |
-| D8 | Email built **dormant** against Resend, activated by env var | DNS/Resend is blocked on the Cloudflare migration (owner-run, separate effort) |
+| D8 | Email built **dormant** against Resend, activated by env var | DNS/Resend is blocked on the Cloudflare migration (owner-run, separate effort). **Revisited 2026-08-22:** Google Workspace SMTP is a no-DNS-change fallback — see `2026-08-22-dns-migration-cloudflare.md` § 5. Only the transport in `createEmailer` would change. |
 | D9 | **Check-in scanning is a follow-on spec** | Distinct surface; ticketing is complete and shippable without it |
 | D10 | **Stripe test mode** for this build | Same posture as merch; real keys are a go-live step |
 
