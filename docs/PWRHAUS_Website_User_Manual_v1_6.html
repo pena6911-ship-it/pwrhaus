@@ -412,20 +412,23 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <p>You can now switch ticket sales on yourself, from the event editor:</p>
 <ol class="s">
 <li>Go to <strong>Events</strong> and open the event</li>
+<li>Set <strong>Price (USD)</strong> &mdash; this is what a ticket costs</li>
+<li>Set <strong>Capacity</strong> &mdash; how many seats are for sale</li>
 <li>Tick <strong>Ticketed event</strong></li>
 <li>Click <strong>Save</strong></li>
-<li>Check the public event page &mdash; you should see the prices and a booking form</li>
+<li>Check the public event page &mdash; you should see the price and a booking form</li>
 </ol>
 <p>On the Events screen, each card now tells you which state it is in &mdash; <strong>Ticketed</strong> or <strong>No tickets</strong> &mdash; so you can see at a glance which events are selling.</p>
 <div class="tip"><b>&#128161; Publishing and selling are separate switches</b>Publishing puts the event on the website. <strong>Ticketed event</strong> is what opens the till. An event can be published for weeks with sales closed, which is exactly what you want while you are still confirming a venue.</div>
-<div class="warn"><b>&#9888; Prices are still set by your developer</b>The member and non-member prices, and the date sales close, are not yet editable in the dashboard. Ask your developer to set them <em>before</em> you tick <strong>Ticketed event</strong> &mdash; switching sales on for an event with no prices set is the one thing to avoid here.</div>
+<div class="note"><b>Two settings your developer still handles</b>The <strong>member rate</strong> (charging members less than non-members) and the <strong>date sales close</strong> are not yet in the dashboard. The <strong>Price (USD)</strong> field you set is what <em>everyone</em> pays until a separate member rate is added &mdash; see 7.4.</div>
 
 <h2>7.3 What Visitors See on the Events Page</h2>
 <p>Once an event is ticketed, its card on the public events page shows how many places are actually left &mdash; <strong>&ldquo;12 spots available&rdquo;</strong>, counting down as people buy, and <strong>&ldquo;Sold out&rdquo;</strong> when the last seat goes. The figure refreshes each time somebody loads the page, so it is current rather than whatever was true when the site was last published.</p>
 <div class="note"><b>Note</b>If the site briefly cannot reach the ticket system, the card falls back to showing the event&rsquo;s full capacity rather than a live count. It corrects itself on the next page load.</div>
 
 <h2>7.4 Member vs Non-Member Pricing</h2>
-<p>Both prices show on the event page, just as they did before. The difference is that the member rate is now <strong>verified</strong>: the site checks the buyer&rsquo;s email against your member list and applies the member price only if they really are a member. On WIX, anyone could simply select the cheaper &ldquo;member&rdquo; ticket.</p>
+<p>When a member rate has been set for an event, both prices show on the event page, just as they did before. The difference is that the member rate is now <strong>verified</strong>: the site checks the buyer&rsquo;s email against your member list and applies the member price only if they really are a member. On WIX, anyone could simply select the cheaper &ldquo;member&rdquo; ticket.</p>
+<div class="tip"><b>&#128161; Flat-price events are fine</b>If no member rate has been set, the event simply sells at the single <strong>Price (USD)</strong> you entered and the page shows one price. Nothing breaks &mdash; there is just no member discount. Ask your developer to add a member rate for any event where members should pay less.</div>
 <div class="tip"><b>&#128161; Buyers pay less than they did on WIX</b>WIX added a 2.5% &ldquo;service fee&rdquo; on top of every ticket. Your site does not &mdash; a $75 ticket costs the buyer $75.</div>
 
 <h2>7.5 What the Buyer Receives</h2>
