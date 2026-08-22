@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -509,7 +509,8 @@ function drawerFields() {
   return `
     <h3 id="drawer-title">New event</h3>
     <label>Name<input id="f-name" type="text" required></label>
-    <label>Slug<input id="f-slug" type="text" required></label>
+    <label>Slug (web address)<input id="f-slug" type="text" required></label>
+    <p class="field-hint">This is the part of the link guests see: <code>pwrhausgolfsociety.com/events/<strong>fall-founder-scramble</strong>/</code>. It fills in from the name automatically. Use lowercase letters, numbers and hyphens only &mdash; no spaces, accents or punctuation. Once an event is published and you have shared the link, changing this breaks it.</p>
     <div class="drawer-row">
       <label>City<input id="f-city" type="text"></label>
       <label>Venue<input id="f-venue" type="text"></label>
@@ -521,6 +522,11 @@ function drawerFields() {
     </div>
     <div class="toggle-row"><input id="f-tickets-enabled" type="checkbox"><span>Ticketed event</span></div>
     <p class="field-hint">Turn this on only when guests should buy tickets through the website. Publishing alone does not open ticket sales.</p>
+    <div class="drawer-row">
+      <label>Member price (USD)<input id="f-member-price" type="number" min="0" step="0.01" placeholder="Optional"></label>
+      <label>Non-member price (USD)<input id="f-nonmember-price" type="number" min="0" step="0.01" placeholder="Optional"></label>
+    </div>
+    <p class="field-hint">Leave both blank to charge everyone the Price above. Set the member price to show a member rate on the event page &mdash; it is applied only to buyers whose email is on your member list.</p>
     <label>Summary<textarea id="f-summary"></textarea></label>
     <label>Body<textarea id="f-body"></textarea></label>
     <label>Registration URL<input id="f-reg" type="url"></label>
@@ -573,6 +579,8 @@ function openDrawer(ev) {
   $('#f-venue').value = ev?.venue || '';
   $('#f-starts').value = isoToLocalInput(ev?.starts_at);
   $('#f-price').value = ev ? (ev.price_cents / 100) : '';
+  $('#f-member-price').value = Number.isInteger(ev?.member_price_cents) ? ev.member_price_cents / 100 : '';
+  $('#f-nonmember-price').value = Number.isInteger(ev?.nonmember_price_cents) ? ev.nonmember_price_cents / 100 : '';
   $('#f-capacity').value = ev?.capacity ?? '';
   $('#f-tickets-enabled').checked = !!ev?.tickets_enabled;
   $('#f-summary').value = ev?.summary || '';
@@ -610,6 +618,8 @@ async function onDrawerSubmit(e) {
     venue: $('#f-venue').value.trim(),
     starts_at: localInputToIso($('#f-starts').value),
     price_cents: Number.isFinite(dollars) ? Math.round(dollars * 100) : NaN,
+    member_price_cents: priceInputToCents($('#f-member-price').value),
+    nonmember_price_cents: priceInputToCents($('#f-nonmember-price').value),
     capacity: parseInt($('#f-capacity').value, 10),
     tickets_enabled: $('#f-tickets-enabled').checked,
     summary: $('#f-summary').value.trim(),
@@ -648,7 +658,7 @@ async function onDrawerSubmit(e) {
   triggerPublish();
 }
 
-const FIELD_MAP = { name: 'f-name', slug: 'f-slug', city: 'f-city', venue: 'f-venue', starts_at: 'f-starts', price_cents: 'f-price', capacity: 'f-capacity', summary: 'f-summary', image: 'f-image', image_alt: 'f-alt' };
+const FIELD_MAP = { name: 'f-name', slug: 'f-slug', city: 'f-city', venue: 'f-venue', starts_at: 'f-starts', price_cents: 'f-price', member_price_cents: 'f-member-price', nonmember_price_cents: 'f-nonmember-price', capacity: 'f-capacity', summary: 'f-summary', image: 'f-image', image_alt: 'f-alt' };
 function clearFieldErrors() {
   $$('.field-error').forEach((n) => n.remove());
   Object.values(FIELD_MAP).forEach((id) => $('#' + id)?.classList.remove('invalid'));

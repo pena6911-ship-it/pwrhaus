@@ -28,10 +28,32 @@ export function validateEvent(input = {}) {
   if (!Date.parse(input.starts_at)) errors.starts_at = 'A valid date/time is required';
   if (!Number.isInteger(input.price_cents) || input.price_cents < 0) errors.price_cents = 'Price must be whole cents ≥ 0';
   if (!Number.isInteger(input.capacity) || input.capacity < 0) errors.capacity = 'Capacity must be a whole number ≥ 0';
+  for (const key of ['member_price_cents', 'nonmember_price_cents']) {
+    const cents = input[key];
+    if (cents === null || cents === undefined) continue; // blank is allowed
+    if (!Number.isInteger(cents) || cents < 0) errors[key] = 'Leave blank, or enter a price of 0 or more';
+  }
+  // Charging members MORE than non-members is almost always a swapped-fields
+  // slip, and it would be caught only after somebody was overcharged.
+  if (Number.isInteger(input.member_price_cents) && Number.isInteger(input.nonmember_price_cents)
+    && input.member_price_cents > input.nonmember_price_cents) {
+    errors.member_price_cents = 'Member price should not be higher than the non-member price';
+  }
   need('summary', 'Summary is required');
   need('image', 'An image is required');
   need('image_alt', 'Alt text is required for accessibility');
   return { ok: Object.keys(errors).length === 0, errors };
+}
+
+// Tier prices are optional: blank means "not set", which makes the ticketing
+// code fall back to the event's base price. Returns null for blank so a cleared
+// field actually clears the column, and NaN for junk so validation can catch it.
+export function priceInputToCents(value) {
+  const text = String(value ?? '').trim();
+  if (text === '') return null;
+  const dollars = Number(text);
+  if (!Number.isFinite(dollars)) return NaN;
+  return Math.round(dollars * 100);
 }
 
 export function sortByOrder(events = []) {
