@@ -149,46 +149,53 @@ emailer, so nothing else moves.
 
 ## Appendix · Client email (sent/queued by Oz)
 
-> **Subject: Moving the domain's DNS before we launch the new site**
+Reworded 2026-08-22: the first draft told the client this was needed "to launch
+the new site," which is not true — the cutover is an A/CNAME change. This version
+is about email, which is the actual forcing function.
+
+> **Subject: A change we need to make so your ticket emails work**
 >
 > Hi Michelle,
 >
-> Before we can put the new website live, there's a piece of plumbing we need to
-> sort out, and I want to explain it plainly because it affects your email as
-> well as your website.
+> As we get the new site ready, there's one piece of setup I want to explain
+> before we do it, because it touches your email.
 >
-> Right now, `pwrhausgolfsociety.com` is registered with Wix, and Wix also
-> controls where the domain points — for the website *and* for your Google
-> email. To launch the new site we have to change where the domain points, and
-> Wix's DNS tools are too limited for what we now need. In particular, they
-> don't give us the control required to send your ticket confirmations and event
-> emails reliably from your own domain. Without that, those emails land in spam
-> or don't send at all.
+> When someone buys a ticket, we want three things to happen automatically: the
+> buyer gets a confirmation, each guest gets their own ticket with the QR code
+> for the door, and anyone who hasn't yet named their guests gets a reminder
+> before the deadline. Right now those emails are built and ready but switched
+> off, because we can't yet send them from your own domain.
 >
-> The fix is to move the domain's DNS management to Cloudflare. To be clear
-> about what this is and isn't:
+> The reason is where your domain currently lives. `pwrhausgolfsociety.com` is
+> registered with Wix, and Wix also controls the settings that tell the internet
+> where your website and your email go. Those settings need a few additions
+> before anything can send as `@pwrhausgolfsociety.com` and be trusted rather
+> than treated as spam — and Wix's tools don't let us add them.
+>
+> The fix is to move that control to Cloudflare. To be clear about what this is
+> and isn't:
 >
 > - **We are not transferring the domain away from Wix.** You keep ownership
 >   exactly as it is. Please don't cancel the Wix account — the domain is
 >   registered there, and cancelling could put the registration at risk.
-> - **We are not changing your email provider.** You stay on Google.
-> - **Nothing changes visually.** Your current site keeps running throughout.
+> - **We are not changing your email provider.** You stay on Google, and your
+>   day-to-day email carries on exactly as now.
+> - **This is not what's holding up the new website.** The site can go live
+>   independently. This is specifically about ticket emails.
 >
-> The sequencing matters. We'll move DNS to Cloudflare first, well ahead of
-> launch, while your existing site is still live and nothing depends on the new
-> one. If anything is wrong we'll spot it with no pressure. Once that's settled
-> and stable, switching the website over to the new build becomes a small change
-> that takes minutes and can be undone just as quickly.
+> I'd like to do it soon, while the new site is still being tested and nothing
+> depends on it. If something needs adjusting we'll find out with no pressure,
+> rather than on a launch day or the week of an event.
 >
-> The one genuine risk is your email. Your Google Workspace mail is controlled
-> by the same DNS settings we're moving, so if those records aren't copied
-> across exactly, mail stops. That's a real risk and I'm treating it as the
-> priority — the migration plan is built around protecting your email first and
-> the website second. I'll copy every existing record, verify mail is flowing
-> normally, and only then touch anything to do with the website.
+> The one genuine risk is your email. Your Google mail is controlled by the same
+> settings we're moving, so if they aren't copied across exactly, mail stops.
+> I'm treating that as the priority: I'll copy every existing setting, confirm
+> your mail is sending and receiving normally, and only then set up anything to
+> do with tickets. If it turns out to be more disruptive than expected, there's
+> a simpler fallback that gets ticket emails working with no change to your
+> domain at all — slightly more limited, but safe.
 >
-> I'd like to start this while we're still testing, so it's long done before
-> launch day. Let me know and I'll get it scheduled.
+> Let me know and I'll get it scheduled.
 >
 > Best,
 > Oz
