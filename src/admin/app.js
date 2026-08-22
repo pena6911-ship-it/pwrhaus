@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -140,11 +140,47 @@ async function verifyMfa(factorId, code, errorEl) {
   return true;
 }
 
+const MFA_FACTOR_NAME = 'PWRHaus Dashboard';
+
+// The QR is the whole point of the screen, so mount it for whichever shape the
+// API returned. The manual key below is the fallback when there is nothing.
+function renderMfaQr(totp) {
+  const box = $('#mfa-qr');
+  box.innerHTML = '';
+  const code = totp?.qr_code || '';
+  const mode = qrRenderMode(code);
+  if (mode === 'svg') { box.innerHTML = code; return; }
+  if (mode === 'img') {
+    const img = document.createElement('img');
+    img.src = code;
+    img.alt = 'Authenticator setup QR code';
+    box.appendChild(img);
+  }
+}
+
 async function beginMfaEnrollment() {
-  const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'PWRHaus Dashboard' });
+  // An abandoned attempt leaves an unverified factor behind, and Supabase refuses
+  // a second factor with a friendly name already in use — which would lock someone
+  // out of their own first-time setup with no way to retry. Clear those first.
+  try {
+    const { data: existing } = await sb.auth.mfa.listFactors();
+    for (const f of (existing?.totp || [])) {
+      if (f.status !== 'verified') await sb.auth.mfa.unenroll({ factorId: f.id });
+    }
+  } catch { /* best effort — a stale factor must not block the fallback below */ }
+
+  let { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: MFA_FACTOR_NAME });
+  if (error) {
+    // Could not clear the old one: enrol under a distinct name rather than fail.
+    ({ data, error } = await sb.auth.mfa.enroll({
+      factorType: 'totp',
+      friendlyName: `${MFA_FACTOR_NAME} (${new Date().toISOString().slice(0, 16)})`,
+    }));
+  }
   if (error) { showMfaError(error.message); return; }
+
   pendingMfaFactorId = data.id;
-  $('#mfa-qr').innerHTML = data.totp.qr;
+  renderMfaQr(data.totp);
   $('#mfa-secret').textContent = `Manual setup key: ${data.totp.secret}`;
   show($('#mfa-enroll-panel'), true);
   $('#mfa-enroll-code').focus();

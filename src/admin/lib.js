@@ -56,6 +56,15 @@ export function priceInputToCents(value) {
   return Math.round(dollars * 100);
 }
 
+// Supabase returns the TOTP QR as `qr_code`, and has shipped it both as raw SVG
+// markup and as a data: URI. Decide how to mount it rather than assuming, since
+// guessing wrong renders nothing and there is no error to see.
+export function qrRenderMode(qrCode) {
+  const code = String(qrCode ?? '').trim();
+  if (!code) return 'none';
+  return code.startsWith('<svg') ? 'svg' : 'img';
+}
+
 export function sortByOrder(events = []) {
   return [...events].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || new Date(a.starts_at) - new Date(b.starts_at));
 }

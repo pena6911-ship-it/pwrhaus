@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -198,4 +198,15 @@ test('validateEvent catches a member price above the non-member price', () => {
   const swapped = validateEvent({ ...base, member_price_cents: 15000, nonmember_price_cents: 7500 });
   assert.equal(swapped.ok, false);
   assert.match(swapped.errors.member_price_cents, /higher than/);
+});
+
+test('qrRenderMode handles both shapes Supabase has shipped for the TOTP QR', () => {
+  assert.equal(qrRenderMode('<svg xmlns="http://www.w3.org/2000/svg"></svg>'), 'svg');
+  assert.equal(qrRenderMode('  <svg ...>'), 'svg');
+  assert.equal(qrRenderMode('data:image/svg+xml;utf-8,<svg/>'), 'img');
+  // Nothing usable must report 'none' so the caller falls back to the manual key
+  // rather than writing "undefined" into the page where a QR belongs.
+  assert.equal(qrRenderMode(''), 'none');
+  assert.equal(qrRenderMode(undefined), 'none');
+  assert.equal(qrRenderMode(null), 'none');
 });
