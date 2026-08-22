@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 1.7</title>
+<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 1.8</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Georgia,serif;font-size:13px;color:#14201A;line-height:1.75;max-width:860px;margin:0 auto;padding:60px}
@@ -55,7 +55,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
   <div class="cv-brand">PWRHAUS</div>
   <div class="cv-sub">Golf Society &nbsp;·&nbsp; Fort Lauderdale &nbsp;·&nbsp; Miami</div>
   <div class="cv-title">Website &amp; Dashboard User Manual</div>
-  <div class="cv-meta">Version 1.7 &nbsp;|&nbsp; August 2026 &nbsp;|&nbsp; Supersedes Version 1.6</div>
+  <div class="cv-meta">Version 1.8 &nbsp;|&nbsp; August 2026 &nbsp;|&nbsp; Supersedes Version 1.7</div>
   <div class="cv-conf">Confidential</div>
 </div>
 
@@ -192,6 +192,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 
 <div class="tip"><b>&#128161; The code changes every 30 seconds</b>If it's about to roll over, wait for the fresh one rather than rushing &mdash; a code typed as it expires will be rejected.</div>
 
+<div class="warn"><b>&#9888; If you lose or replace your phone</b>You will not be able to finish signing in, and there is no self-service way to fix it yet &mdash; contact your developer, who can clear it so you can set it up again on the new phone. This takes them a couple of minutes.</div>
 <div class="warn"><b>&#9888; Do not lose your authenticator</b>If you replace or wipe your phone <em>without</em> moving your authenticator across, you will not be able to sign in and your developer will have to reset it for you. When you set it up, either save the backup text code shown under the QR code somewhere safe, or use an authenticator that syncs across your devices (1Password and Google Authenticator both do).</div>
 
 <h2>3.4 Install It on Your Phone</h2>
@@ -453,7 +454,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 </ul>
 <div class="tip"><b>&#128161; Why &ldquo;Ordered by&rdquo; matters</b>When somebody arrives as a guest, their ticket tells you who brought them. That is the introduction you actually want to know about at the door.</div>
 <div class="warn"><b>&#9888; The deadline for naming guests</b>Guests must be named by <strong>three hours after the event start time</strong>. After that the seat is forfeited &mdash; no refund, and it cannot be moved to a future event. This is deliberate: it stops unnamed seats piling up indefinitely and keeps your guest list honest. Chase unnamed seats before the event, not after.</div>
-<div class="warn"><b>&#9888; Ticket Emails Are Waiting on Email Setup</b>The branded ticket emails &mdash; the confirmation, each guest&rsquo;s own ticket, and the reminder to fill in missing names &mdash; are built and ready, but they cannot send until your domain&rsquo;s email service is connected (see Section 10). Until then, the thank-you page is how the buyer gets their guest link. Sort this out before you sell for real.</div>
+<div class="warn"><b>&#9888; Ticket Emails Are Not Switched On Yet</b>The branded ticket emails &mdash; the confirmation, each guest&rsquo;s own ticket, and the reminder to fill in missing names &mdash; are built and ready, but not yet switched on. They will send from your own Google mailbox, so nothing about your domain or your email has to change; your developer has a one-time setup to complete. Until then, the thank-you page is how the buyer gets their guest link. Sort this out before you sell for real.</div>
 
 <h2>7.6 Seeing Your Guest List</h2>
 <p>In the dashboard, the <strong>Registrations</strong> figure on the Events screen is now a real count, and each event has a guest list showing who is coming, whether they paid the member or non-member rate, and which seats still have no name against them.</p>
@@ -463,7 +464,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <p>Four things must happen first. Your developer handles all of them:</p>
 <ul class="pl">
 <li>Your real Stripe account connected (it is on test keys today)</li>
-<li>Your domain&rsquo;s email service connected, so ticket emails can send</li>
+<li>Ticket emails switched on (a one-time setup by your developer &mdash; no change to your domain or your Google email)</li>
 <li>Prices and a sales-close date set for the event</li>
 <li>The old WIX listing taken down &mdash; never sell the same event in two places at once</li>
 </ul>
@@ -532,7 +533,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <li>Type a new password (at least 8 characters) and click <strong>Save password</strong></li>
 </ol>
 <div class="note"><b>Note</b>The link is single-use and expires after about an hour. If it's expired, simply request another.</div>
-<div class="warn"><b>⚠ Before Launch</b>Password-reset emails currently send through Supabase's built-in sender, which is rate-limited to a few messages per hour and intended for testing. A dedicated email service is being configured before launch. If a reset email doesn't arrive, wait an hour or contact your developer.</div>
+<div class="warn"><b>⚠ Password Reset Is Not Working Yet</b>Password-reset emails are not sending at the moment, so the <strong>Forgot password?</strong> link will not help you yet. This is being connected to your Google email before launch. Until it is, contact your developer to have a password reset for you &mdash; they can do it directly and safely.</div>
 
 <!-- 9 -->
 <h1>11. Merchandise (Test Mode)</h1>
@@ -572,7 +573,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <tr><td>Published event isn't showing</td><td>Confirm the badge reads <strong>Published</strong>, then wait for the rebuild. Note that past-dated events appear under "Recent rounds" rather than "Upcoming".</td></tr>
 <tr><td>Event page shows no booking form</td><td>The event is published but not ticketed. Open it in Events, tick <strong>Ticketed event</strong>, and make sure a Price is set.</td></tr>
 <tr><td>Leads list is empty</td><td>Check your search box and filters are cleared.</td></tr>
-<tr><td>Reset email never arrives</td><td>Check spam. The built-in sender is rate-limited — wait an hour and retry (Section 10).</td></tr>
+<tr><td>Reset email never arrives</td><td>Password-reset email is not connected yet (Section 10). Contact your developer, who can reset it for you directly.</td></tr>
 <tr><td>QR code won&rsquo;t scan at the door</td><td>Hold the phone so the code fills more of the frame and let it focus. If it still will not read, type the ticket number instead (Section 8.2).</td></tr>
 <tr><td>Authenticator code rejected</td><td>Wait for the next code and retype it &mdash; codes expire every 30 seconds. If every code fails, your phone&rsquo;s clock may be out of sync; turn on automatic date &amp; time.</td></tr>
 <tr><td>Lost or replaced your phone</td><td>You will not be able to complete sign-in. Contact your developer to reset your authenticator.</td></tr>
@@ -627,7 +628,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 
 <div class="footer">
   <span>PWRHAUS Golf Society &nbsp;·&nbsp; Fort Lauderdale &amp; Miami</span>
-  <span>Version 1.7 &nbsp;·&nbsp; August 2026 &nbsp;·&nbsp; Confidential</span>
+  <span>Version 1.8 &nbsp;·&nbsp; August 2026 &nbsp;·&nbsp; Confidential</span>
 </div>
 
 </body>

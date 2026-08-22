@@ -134,6 +134,52 @@ Six commits, all on `main`. Verified: 234 tests pass, `npm run build` clean.
 not in the owner's Downloads folder. Superseded copies still sitting in
 `~/Downloads` (v1.3, v1.4) are stale — do not edit them.
 
+### 2026-08-22 (evening) — email transport, tier pricing, MFA repair (Claude)
+
+Verified: 247 tests pass, `npm run build` clean.
+
+- **Ticket email now sends through Google Workspace, not Resend** (`functions/lib/ticket-email.js`).
+  `createEmailer` picks its transport from the environment: Google when the three
+  `GOOGLE_*` vars are set, Resend when `RESEND_API_KEY` is set, dormant when neither;
+  Google wins if both. Reached over the same injected `fetch`, so **no new dependency**.
+  Subjects contain an em dash, so headers are RFC 2047 encoded and folded — covered by
+  a decode round-trip test. Owner setup steps (Google Cloud, ~30 min, no Workspace admin
+  needed): `docs/superpowers/specs/2026-08-22-dns-migration-cloudflare.md` § 5.1.
+- **The Cloudflare DNS migration is DEFERRED, not blocking.** Resend was its only forcing
+  function. The site cutover is an A/CNAME change inside Wix DNS and never depended on it.
+  The client email in that doc's appendix must **not** be sent.
+- **Member / non-member price fields are in the event editor**, optional; blank keeps the
+  flat-price fallback. A member price above the non-member price is rejected as a
+  swapped-fields typo — a deliberate guardrail, relax it if the owner objects. The
+  `sales_end_at` date remains the only developer-set pricing field.
+- **Flat-price events no longer say "Non-Member".** With no member rate set the page reads
+  `$45 per ticket`, and the "member pricing applied automatically" line is hidden — it was
+  a promise the page could not keep.
+- **Slug field explains itself** — relabelled *Slug (web address)* with a hint showing the
+  guest-facing URL and warning that changing it breaks shared links.
+- **MFA enrollment was broken and is fixed.** The QR never rendered (`data.totp.qr`, but
+  supabase-js returns `qr_code`), so anyone who enrolled used the manual key. And
+  `friendlyName` was hardcoded, so a leftover *unverified* factor from an abandoned attempt
+  blocked any retry. Enrollment now clears unverified factors first and falls back to a
+  distinct name.
+
+**MFA state at close:** `pena6911@gmail.com` has a **verified** factor.
+`hello@pwrhausgolfsociety.com` has **none** — deliberately cleared, because its factor had
+been enrolled on the developer's phone rather than the owner's. Michelle enrols on her own
+device next; **`0012_require_mfa.sql` stays unapplied until both show verified.**
+
+**Two gaps this exposed, neither fixed:**
+1. **Supabase Auth email is a separate pipe** from ticket email. Password resets and magic
+   links still do not send, so a locked-out admin needs service-role intervention. Fix:
+   Project Settings → Authentication → SMTP, using Google Workspace credentials.
+2. **No self-service authenticator reset.** A lost or replaced phone requires a developer.
+
+**Admin scripts used tonight live in the session scratchpad and will be lost** —
+`fix-admin-account.mjs` (set a password + guarantee the admin claim) and `reset-mfa.mjs`
+(list/clear MFA factors, dry-run by default). Both talk to the Supabase Auth admin API over
+plain `fetch` using `SUPABASE_SERVICE_ROLE_KEY` from `.env`. Worth recreating or committing
+if MFA administration comes up again.
+
 ---
 
 ## Open threads / next steps
