@@ -1,6 +1,14 @@
 # DNS migration — Wix → Cloudflare (owner-run)
 
-**Status:** not started · **Owner:** Oz · **Written:** 2026-08-22
+**Status:** DEFERRED — no longer blocking anything · **Owner:** Oz · **Written:** 2026-08-22
+
+> **Decision 2026-08-22: ticket email now sends through Google Workspace, so this
+> migration is no longer required for launch.** Resend was the only forcing
+> function; with Google as the transport there are no new DNS records to add.
+> The site cutover never depended on this (it is an A/CNAME change inside Wix).
+> Keep this document for when the migration is wanted on its own merits — see
+> § 7 for what still argues for it. **Do not send the client email in the
+> appendix**; it asks for approval for work that is no longer needed.
 
 This is an owner-run operational task, tracked separately from the build. It
 blocks Resend (ticket emails) and the eventual go-live cutover.
@@ -101,7 +109,7 @@ After the nameservers move: send and receive in both directions, and confirm the
 headers show **SPF and DKIM passing**. Only once mail is confirmed healthy should
 the Netlify records be added or Resend verification begun.
 
-## 5 · The alternative: Google Workspace SMTP
+## 5 · The chosen transport: Google Workspace (BUILT 2026-08-22)
 
 This was not considered when the ticketing design chose Resend (D8), and it
 should have been. Recording it so the decision is deliberate rather than assumed.
@@ -123,20 +131,73 @@ without this migration.
 | Blast radius of a problem | Isolated service | Throttling or flags hit the client's real mailbox |
 | Separation of concerns | Society mail separate from business mail | Mixed together |
 
-**Recommendation: still Cloudflare + Resend**, on the grounds that full DNS
-control is wanted eventually regardless, and doing it while the site is dark is
-the safest moment it will ever be done. Volume caps also become a real constraint
-if the society grows, and a deliverability problem landing in the owner's own
-inbox is the worst place for it.
+**Decision (owner, 2026-08-22): use Google.** The deciding argument was not
+technical — it was one fewer external service to depend on, monitor, and pay for.
+Resend would have added a vendor to solve a problem the existing Google account
+already solves.
 
-**But if this migration stalls or feels too risky near an event date**, Google
-Workspace SMTP is a legitimate fallback that gets ticket email working in days
-with no DNS risk. It is not a hack — it is a smaller-scope choice with different
-trade-offs. Switching later costs only the `createEmailer` transport in
-`functions/lib/ticket-email.js`; every caller already tolerates a dormant
-emailer, so nothing else moves.
+**This is built.** `createEmailer` in `functions/lib/ticket-email.js` picks its
+transport from the environment: Google when the three `GOOGLE_*` vars are set,
+Resend when `RESEND_API_KEY` is set, dormant when neither. Google wins if both
+are present. The Resend path is retained deliberately — if volume ever outgrows
+Google's daily cap, or transactional mail should leave the owner's mailbox, that
+becomes a config change rather than a rewrite.
 
-## 6 · After this lands
+### 5.1 Owner setup — Google Cloud (once, ~30 minutes)
+
+Nothing here needs Workspace admin rights, which matters because the Workspace
+appears to be resold through Wix and admin access may be limited.
+
+1. **Google Cloud Console** → create a project (or reuse one).
+2. **Enable the Gmail API** for that project.
+3. **OAuth consent screen** → choose **Internal** if the account is Workspace.
+   Internal skips Google's verification review entirely.
+4. **Create an OAuth client ID** → *Desktop app* is the simplest for this.
+5. **Run the consent flow once**, signed in as the sending mailbox
+   (`hello@pwrhausgolfsociety.com`), requesting **only** the
+   `https://www.googleapis.com/auth/gmail.send` scope — send-only, not mailbox
+   access. Keep the **refresh token** it returns.
+6. **Set three Netlify environment variables** (all contexts):
+   `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`.
+   Optionally `TICKETS_FROM_EMAIL` if sending from anything other than
+   `hello@pwrhausgolfsociety.com`.
+
+Email activates on the next deploy. No DNS changes, no code changes.
+
+### 5.2 What to verify after switching it on
+
+- Buy a test ticket and confirm the buyer confirmation arrives.
+- Assign a guest and confirm that attendee's own ticket arrives with its QR.
+- Check the message headers show **SPF and DKIM passing** — they should, since
+  Google is already an authorised sender for this domain.
+- Confirm the subject line renders correctly. Subjects contain an em dash, which
+  is RFC 2047 encoded on our side; `encodeHeaderValue` is unit-tested with a
+  decode round-trip, but confirm it once in a real client.
+- Expect sent ticket email to appear in the mailbox's **Sent** folder.
+
+### 5.3 Known limits
+
+- Google caps daily sending (order of a couple of thousand recipients on
+  Workspace). A 40-person event is roughly 45 messages, so this is not close to
+  binding — but it is the ceiling that would eventually push toward Resend.
+- Automated mail rides on the owner's real mailbox: bounces and spam complaints
+  attach to her reputation, not to an isolated service.
+- Google changes these policies periodically. Verify current OAuth and sending
+  rules at setup time rather than trusting this document.
+
+## 6 · What still argues for the migration
+
+None of these block launch. Revisit when one of them starts to matter:
+
+- Ticket volume approaching Google's daily cap
+- Wanting transactional mail out of the owner's personal mailbox
+- Wanting DNS control for its own sake, ahead of a registrar move
+
+If any of those becomes true, § 3 (sequencing) and § 4 (mail protection) still
+hold exactly as written — do the delegation early and separately, and treat the
+Google Workspace records as the thing that must not break.
+
+## 7 · After this lands
 
 - Add Netlify records in Cloudflare → site cutover (fast, reversible)
 - Complete Resend domain verification → set `RESEND_API_KEY` → ticket emails
