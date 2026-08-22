@@ -460,3 +460,21 @@ test('the manage page ships the QR renderer', () => {
   assert.match(html, /src="\/js\/vendor\/qrcode\.js"/);
   assert.match(html, /src="\/js\/ticket-qr\.js"/);
 });
+
+test('an event with a member rate shows both labelled prices', () => {
+  const html = readFileSync(join(outDir, 'events', 'fall-founder-scramble', 'index.html'), 'utf8');
+  assert.match(html, /PWRHAUS Member/, 'a member rate exists, so it must be advertised');
+  assert.match(html, /Non-Member/, 'the contrasting rate needs its label to make sense');
+  assert.match(html, /applied automatically if your email is on our member list/);
+});
+
+test('a flat-price event shows one price with no member framing', () => {
+  const html = readFileSync(join(outDir, 'events', 'winter-sponsor-social', 'index.html'), 'utf8');
+  // With no member rate set, calling the only price "Non-Member" implies a
+  // members' rate exists and reads to a member as though they are overpaying.
+  assert.doesNotMatch(html, /Non-Member/, 'a single price must not be labelled as the non-member one');
+  assert.doesNotMatch(html, /PWRHAUS Member \$/, 'there is no member rate to show');
+  assert.doesNotMatch(html, /applied automatically if your email is on our member list/,
+    'promising automatic member pricing is false when no member rate exists');
+  assert.match(html, /per ticket/, 'the single price still needs a plain label');
+});
