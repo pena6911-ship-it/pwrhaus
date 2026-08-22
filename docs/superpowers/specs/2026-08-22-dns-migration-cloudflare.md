@@ -20,6 +20,12 @@ completed on Wix DNS.
 Moving DNS management to **Cloudflare** gives full record control while leaving
 the registration at Wix untouched.
 
+**Scope correction (2026-08-22):** the **site cutover does not require this
+migration**. Per `2026-08-12` § *DNS cutover*, repointing the website is an
+A/CNAME change that can be made inside Wix DNS today. **Email authentication is
+the only thing forcing the DNS move.** Read § 6 before treating this as
+mandatory.
+
 ## 2 · What this is NOT
 
 - **Not a domain transfer.** Registration stays at Wix. Transfers take 5–7 days,
@@ -95,7 +101,42 @@ After the nameservers move: send and receive in both directions, and confirm the
 headers show **SPF and DKIM passing**. Only once mail is confirmed healthy should
 the Netlify records be added or Resend verification begun.
 
-## 5 · After this lands
+## 5 · The alternative: Google Workspace SMTP
+
+This was not considered when the ticketing design chose Resend (D8), and it
+should have been. Recording it so the decision is deliberate rather than assumed.
+
+**The DNS requirement is not Resend-specific.** Any provider sending as
+`@pwrhausgolfsociety.com` — Resend, SendGrid, Postmark, Mailgun, SES — needs SPF
+and DKIM on that domain. Swapping providers changes nothing here.
+
+But **Google Workspace already has working SPF and DKIM on this domain**, because
+the client's mail already runs on it. Sending ticket email through Google's SMTP
+relay would need **no new DNS records at all**, and would unblock ticket email
+without this migration.
+
+| | Cloudflare + Resend | Google Workspace SMTP |
+|---|---|---|
+| New DNS records | SPF/DKIM/DMARC for the sending domain | None — auth already in place |
+| Blocked on this migration | Yes | No |
+| Sending volume | Built for transactional mail | Daily caps; Google discourages transactional use |
+| Blast radius of a problem | Isolated service | Throttling or flags hit the client's real mailbox |
+| Separation of concerns | Society mail separate from business mail | Mixed together |
+
+**Recommendation: still Cloudflare + Resend**, on the grounds that full DNS
+control is wanted eventually regardless, and doing it while the site is dark is
+the safest moment it will ever be done. Volume caps also become a real constraint
+if the society grows, and a deliverability problem landing in the owner's own
+inbox is the worst place for it.
+
+**But if this migration stalls or feels too risky near an event date**, Google
+Workspace SMTP is a legitimate fallback that gets ticket email working in days
+with no DNS risk. It is not a hack — it is a smaller-scope choice with different
+trade-offs. Switching later costs only the `createEmailer` transport in
+`functions/lib/ticket-email.js`; every caller already tolerates a dormant
+emailer, so nothing else moves.
+
+## 6 · After this lands
 
 - Add Netlify records in Cloudflare → site cutover (fast, reversible)
 - Complete Resend domain verification → set `RESEND_API_KEY` → ticket emails
