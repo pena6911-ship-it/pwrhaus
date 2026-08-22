@@ -33,7 +33,13 @@ stickyHref: "#join-web_event_interest"
           <p class="eyebrow">{{ event.city }} · {{ event.starts_at | eventDate }}</p>
           <h3><a href="/events/{{ event.slug }}/">{{ event.name }}</a></h3>
           <p>{{ event.summary }}</p>
-          <p>{{ event.venue }} · {{ event.price_cents | usd }} · {{ event.capacity }} spots</p>
+          <p>{{ event.venue }} · {{ event.price_cents | usd }} ·
+            {% if event.tickets_enabled %}
+            <span class="event-availability" data-event-slug="{{ event.slug }}" data-capacity="{{ event.capacity }}">{{ event.capacity }} spots available</span>
+            {% else %}
+            {{ event.capacity }} spots
+            {% endif %}
+          </p>
         </div>
       </article>
       {% else %}
@@ -42,6 +48,8 @@ stickyHref: "#join-web_event_interest"
     </div>
   </div>
 </section>
+
+<script src="/js/event-availability.js" defer></script>
 
 <section class="section band">
   <div class="container stack">

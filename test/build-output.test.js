@@ -343,6 +343,8 @@ test('events page renders published CMS events and hides drafts', () => {
   assert.doesNotMatch(html, /Draft Member Preview/, 'unpublished event should not render');
   assert.match(html, /Upcoming/, 'events page should label upcoming events');
   assert.match(html, /Past/, 'events page should label past events');
+  assert.match(html, /event-availability/, 'upcoming ticketed events should render live availability slots');
+  assert.match(html, /event-availability\.js/, 'events page should load the live availability script');
 });
 
 test('published CMS events generate detail pages and drafts do not', () => {
