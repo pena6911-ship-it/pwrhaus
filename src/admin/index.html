@@ -120,6 +120,14 @@
           <div class="stat-row" id="crm-stat-row"><!-- stats injected --></div>
           <div class="crm-controls" id="crm-controls">
             <input type="search" id="crm-search" placeholder="Search name or email" aria-label="Search contacts">
+            <select id="crm-period" aria-label="Filter leads by capture period">
+              <option value="week">This week</option>
+              <option value="today">Today</option>
+              <option value="month">This month</option>
+              <option value="quarter">This quarter</option>
+              <option value="all">All time</option>
+              <option value="custom">Custom range</option>
+            </select>
             <select id="crm-tier" aria-label="Filter by tier">
               <option value="">All tiers</option>
               <option value="free">Free</option>
@@ -127,6 +135,11 @@
               <option value="inner_circle">Inner circle</option>
             </select>
             <select id="crm-source" aria-label="Filter by source"><option value="">All sources</option></select>
+            <div id="crm-custom-range" class="crm-custom-range" hidden>
+              <label for="crm-date-from">From<input type="date" id="crm-date-from"></label>
+              <label for="crm-date-to">To<input type="date" id="crm-date-to"></label>
+              <button class="btn btn-secondary" id="crm-apply-range" type="button">Apply dates</button>
+            </div>
           </div>
           <div class="contact-list" id="contact-list" aria-live="polite"><!-- rows injected --></div>
         </section>

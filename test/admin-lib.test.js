@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -75,6 +75,28 @@ test('weekAgoIso returns the ISO instant 7 days before the reference', () => {
   // Default reference is "now": result must parse and sit ~7 days back.
   const ms = Date.now() - Date.parse(weekAgoIso());
   assert.ok(ms > 6.9 * 864e5 && ms < 7.1 * 864e5);
+});
+
+test('crmDateRange returns calendar boundaries for today, month, and quarter', () => {
+  const ref = new Date(2026, 7, 22, 15, 30).getTime();
+  const today = crmDateRange('today', ref);
+  assert.equal(new Date(today.from).getDate(), 22);
+  assert.equal(new Date(today.to).getDate(), 23);
+
+  const month = crmDateRange('month', ref);
+  assert.equal(new Date(month.from).getDate(), 1);
+  assert.equal(new Date(month.to).getMonth(), 8);
+
+  const quarter = crmDateRange('quarter', ref);
+  assert.equal(new Date(quarter.from).getMonth(), 6);
+  assert.equal(new Date(quarter.from).getDate(), 1);
+  assert.equal(new Date(quarter.to).getMonth(), 9);
+});
+
+test('crmDateRange supports a custom inclusive date range', () => {
+  const range = crmDateRange('custom', Date.now(), '2026-08-01', '2026-08-15');
+  assert.equal(new Date(range.from).getDate(), 1);
+  assert.equal(new Date(range.to).getDate(), 16);
 });
 
 test('tierLabel maps known tiers and passes unknown through', () => {

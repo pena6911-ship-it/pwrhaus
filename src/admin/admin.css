@@ -181,7 +181,12 @@ input.invalid, textarea.invalid { border-color: var(--error); }
 
 /* ---------- CRM (leads) ---------- */
 .crm-controls { display: grid; gap: var(--space-3); margin-bottom: var(--space-5); }
-@media (min-width: 768px) { .crm-controls { grid-template-columns: 2fr 1fr 1fr; } }
+.crm-custom-range { display: grid; gap: var(--space-3); }
+.crm-custom-range label { display: grid; gap: var(--space-2); font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+@media (min-width: 768px) {
+  .crm-controls { grid-template-columns: 2fr repeat(3, 1fr); }
+  .crm-custom-range { grid-column: 1 / -1; grid-template-columns: 1fr 1fr auto; align-items: end; }
+}
 .contact-list { display: grid; gap: var(--space-3); }
 .contact-row {
   background: var(--paper-raised); border: 1px solid var(--line);

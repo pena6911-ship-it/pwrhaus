@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -800,6 +800,7 @@ const CRM_PAGE_SIZE = 100;
 let crmWired = false;
 let listReq = 0;
 let contactReq = 0;
+let activeCrmRange = crmDateRange('week');
 function wireCrm() {
   if (crmWired) return;
   crmWired = true;
@@ -807,30 +808,60 @@ function wireCrm() {
   $('#crm-search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(loadContactList, 250); });
   $('#crm-tier').addEventListener('change', loadContactList);
   $('#crm-source').addEventListener('change', loadContactList);
+  $('#crm-period').addEventListener('change', () => {
+    const custom = $('#crm-period').value === 'custom';
+    show($('#crm-custom-range'), custom);
+    if (!custom) refreshCrmRange();
+  });
+  $('#crm-apply-range').addEventListener('click', refreshCrmRange);
   $('#contact-drawer').addEventListener('click', (e) => { if (e.target.closest('[data-close-contact]')) closeContactDrawer(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#contact-drawer').hidden) closeContactDrawer(); });
 }
 
 async function loadCrm() {
   renderCrmStats(null); // skeleton state
-  await Promise.all([loadCrmStats(), loadContactList()]);
+  await refreshCrmRange();
 }
 
-async function loadCrmStats() {
+function selectedCrmRange() {
+  return crmDateRange(
+    $('#crm-period').value,
+    Date.now(),
+    $('#crm-date-from').value,
+    $('#crm-date-to').value,
+  );
+}
+
+async function refreshCrmRange() {
+  const range = selectedCrmRange();
+  if (!range) { toast('Choose a valid custom date range.', 'error'); return; }
+  activeCrmRange = range;
+  await Promise.all([loadCrmStats(range), loadContactList(range)]);
+}
+
+async function loadCrmStats(range = activeCrmRange) {
   const count = (q) => q.then(({ count: n, error }) => (error ? null : n));
+  let periodQuery = sb.from('contacts').select('*', { count: 'exact', head: true });
+  if (range?.from) periodQuery = periodQuery.gte('created_at', range.from);
+  if (range?.to) periodQuery = periodQuery.lt('created_at', range.to);
   const [total, fresh, members, inner] = await Promise.all([
     count(sb.from('contacts').select('*', { count: 'exact', head: true })),
-    count(sb.from('contacts').select('*', { count: 'exact', head: true }).gte('created_at', weekAgoIso())),
+    count(periodQuery),
     count(sb.from('contacts').select('*', { count: 'exact', head: true }).eq('tier', 'member')),
     count(sb.from('contacts').select('*', { count: 'exact', head: true }).eq('tier', 'inner_circle')),
   ]);
-  renderCrmStats({ total, fresh, members, inner });
+  renderCrmStats({ total, fresh, members, inner, periodLabel: range?.label || 'Selected period' });
 }
 
 function renderCrmStats(s) {
+  const periodStatLabel = s?.periodLabel === 'All time'
+    ? 'All leads'
+    : s?.periodLabel
+      ? `New ${s.periodLabel.toLowerCase()}`
+      : 'New this week';
   const tiles = [
     { k: 'Contacts', n: s?.total },
-    { k: 'New this week', n: s?.fresh },
+    { k: periodStatLabel, n: s?.fresh },
     { k: 'Members', n: s?.members },
     { k: 'Inner circle', n: s?.inner },
   ];
@@ -846,7 +877,7 @@ function renderCrmStats(s) {
   }
 }
 
-async function loadContactList() {
+async function loadContactList(range = activeCrmRange) {
   const list = $('#contact-list');
   list.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
   const req = ++listReq;
@@ -860,6 +891,8 @@ async function loadContactList() {
   if (tier) q = q.eq('tier', tier);
   const source = $('#crm-source').value;
   if (source) q = q.eq('source', source);
+  if (range?.from) q = q.gte('created_at', range.from);
+  if (range?.to) q = q.lt('created_at', range.to);
   const { data, error } = await q;
   if (req !== listReq) return; // a newer search/filter superseded this request
   if (error) { toast('Could not load contacts.', 'error'); list.innerHTML = ''; return; }

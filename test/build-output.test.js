@@ -428,6 +428,9 @@ test('admin ships the enabled CRM view', () => {
   assert.match(html, /data-view="crm"/, 'CRM nav must be enabled');
   assert.doesNotMatch(html, /disabled title="Coming soon">CRM/, 'CRM must no longer be a disabled placeholder');
   assert.match(html, /id="view-crm"/, 'CRM view container must ship');
+  assert.match(html, /id="crm-period"/, 'CRM must ship a capture-period filter');
+  assert.match(html, /id="crm-date-from"/, 'CRM must ship a custom start-date field');
+  assert.match(html, /id="crm-date-to"/, 'CRM must ship a custom end-date field');
   assert.match(html, /id="contact-list"/, 'contact list container must ship');
   assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
 });
