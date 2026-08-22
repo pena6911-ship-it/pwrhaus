@@ -432,6 +432,7 @@ test('admin ships the enabled CRM view', () => {
   assert.match(html, /id="crm-date-from"/, 'CRM must ship a custom start-date field');
   assert.match(html, /id="crm-date-to"/, 'CRM must ship a custom end-date field');
   assert.match(html, /id="contact-list"/, 'contact list container must ship');
+  assert.match(html, /id="crm-pagination"/, 'CRM must ship pagination controls');
   assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
 });
 

@@ -801,13 +801,15 @@ let crmWired = false;
 let listReq = 0;
 let contactReq = 0;
 let activeCrmRange = crmDateRange('week');
+let crmPage = 0;
+let crmTotal = 0;
 function wireCrm() {
   if (crmWired) return;
   crmWired = true;
   let t = null;
-  $('#crm-search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(loadContactList, 250); });
-  $('#crm-tier').addEventListener('change', loadContactList);
-  $('#crm-source').addEventListener('change', loadContactList);
+  $('#crm-search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { crmPage = 0; loadContactList(); }, 250); });
+  $('#crm-tier').addEventListener('change', () => { crmPage = 0; loadContactList(); });
+  $('#crm-source').addEventListener('change', () => { crmPage = 0; loadContactList(); });
   $('#crm-period').addEventListener('change', () => {
     const custom = $('#crm-period').value === 'custom';
     show($('#crm-custom-range'), custom);
@@ -836,6 +838,7 @@ async function refreshCrmRange() {
   const range = selectedCrmRange();
   if (!range) { toast('Choose a valid custom date range.', 'error'); return; }
   activeCrmRange = range;
+  crmPage = 0;
   await Promise.all([loadCrmStats(range), loadContactList(range)]);
 }
 
@@ -882,9 +885,8 @@ async function loadContactList(range = activeCrmRange) {
   list.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
   const req = ++listReq;
   let q = sb.from('contacts')
-    .select('id,email,full_name,phone,tier,source,notes,created_at,ghl_contact_id,contact_inquiries(count)')
-    .order('created_at', { ascending: false })
-    .limit(CRM_PAGE_SIZE);
+    .select('id,email,full_name,phone,tier,source,notes,created_at,ghl_contact_id,contact_inquiries(count)', { count: 'exact' })
+    .order('created_at', { ascending: false });
   const term = $('#crm-search').value.trim().replace(/[,()]/g, ' ').trim();
   if (term) q = q.or(`email.ilike.%${term}%,full_name.ilike.%${term}%`);
   const tier = $('#crm-tier').value;
@@ -893,12 +895,14 @@ async function loadContactList(range = activeCrmRange) {
   if (source) q = q.eq('source', source);
   if (range?.from) q = q.gte('created_at', range.from);
   if (range?.to) q = q.lt('created_at', range.to);
-  const { data, error } = await q;
+  const { data, count, error } = await q.range(crmPage * CRM_PAGE_SIZE, ((crmPage + 1) * CRM_PAGE_SIZE) - 1);
   if (req !== listReq) return; // a newer search/filter superseded this request
-  if (error) { toast('Could not load contacts.', 'error'); list.innerHTML = ''; return; }
+  if (error) { toast('Could not load contacts.', 'error'); list.innerHTML = ''; show($('#crm-pagination'), false); return; }
   state.contacts = data || [];
+  crmTotal = count || 0;
   populateSourceFilter(state.contacts);
   renderContactList();
+  renderCrmPagination();
 }
 
 // Fill the source dropdown from sources seen so far; never remove the current pick.
@@ -947,6 +951,39 @@ function renderContactList() {
     row.addEventListener('click', () => openContactDrawer(c));
     list.appendChild(row);
   }
+}
+
+function renderCrmPagination() {
+  const nav = $('#crm-pagination');
+  nav.innerHTML = '';
+  const pages = Math.ceil(crmTotal / CRM_PAGE_SIZE);
+  if (pages <= 1) { show(nav, false); return; }
+  show(nav, true);
+
+  const previous = document.createElement('button');
+  previous.className = 'btn btn-secondary';
+  previous.type = 'button';
+  previous.textContent = 'Previous';
+  previous.setAttribute('aria-label', 'Previous lead page');
+  previous.disabled = crmPage === 0;
+  previous.addEventListener('click', () => { crmPage -= 1; loadContactList(); });
+
+  const status = document.createElement('span');
+  status.className = 'crm-pagination-status';
+  const start = crmPage * CRM_PAGE_SIZE + 1;
+  const end = Math.min((crmPage + 1) * CRM_PAGE_SIZE, crmTotal);
+  status.textContent = `Showing ${start}-${end} of ${crmTotal}`;
+  status.setAttribute('aria-live', 'polite');
+
+  const next = document.createElement('button');
+  next.className = 'btn btn-secondary';
+  next.type = 'button';
+  next.textContent = 'Next';
+  next.setAttribute('aria-label', 'Next lead page');
+  next.disabled = crmPage >= pages - 1;
+  next.addEventListener('click', () => { crmPage += 1; loadContactList(); });
+
+  nav.append(previous, status, next);
 }
 
 async function openContactDrawer(c) {

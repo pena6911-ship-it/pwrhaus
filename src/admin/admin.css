@@ -188,6 +188,9 @@ input.invalid, textarea.invalid { border-color: var(--error); }
   .crm-custom-range { grid-column: 1 / -1; grid-template-columns: 1fr 1fr auto; align-items: end; }
 }
 .contact-list { display: grid; gap: var(--space-3); }
+.crm-pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-5); }
+.crm-pagination-status { color: var(--ink-muted); font-size: 13px; text-align: center; }
+@media (min-width: 768px) { .crm-pagination { justify-content: center; } }
 .contact-row {
   background: var(--paper-raised); border: 1px solid var(--line);
   border-radius: var(--radius); padding: var(--space-4);
