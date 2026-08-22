@@ -243,3 +243,28 @@ This section supersedes the earlier authenticated-only assumptions in this docum
    complete the one-time GHL → Supabase contact migration after go-live; then apply
    `0012_require_mfa.sql` as the final RLS lock. This ordering prevents locking out
    the dashboard before the new MFA flow is deployed and enrolled.
+
+## 9 · CRM lead review
+
+The **CRM** tab shows contacts captured through the public website. The dashboard
+reads the lead database; GoHighLevel remains the working CRM and downstream contact
+system.
+
+1. Open `/admin/`, sign in, and choose **CRM**.
+2. Use **Filter leads by capture period** to choose **Today**, **This week**,
+   **This month**, **This quarter**, or **All time**. The selected period filters
+   both the lead list and the new-leads count.
+3. Choose **Custom range** when reviewing a specific period. Enter the **From**
+   and **To** dates, then select **Apply dates**. Both dates are included.
+4. Combine the date filter with the search box, tier filter, or source filter to
+   narrow the results further. Search checks contact name and email.
+5. Large imports are paginated at 100 contacts per page. The dashboard displays
+   the total number of matching contacts and **Previous** / **Next** controls;
+   filtering applies across the entire result set, not only the first 100 rows.
+6. Select a contact to view its captured details, inquiry history, and—when linked—
+   the contact's record in GHL.
+
+The one-time GHL → Supabase migration is intentionally a separate go-live task.
+After the import, use **All time** to confirm the expected total, then use a
+custom range to spot-check the imported capture period. Do not expect the CRM tab
+to show contacts that exist only in GHL until the migration has completed.

@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -360,7 +360,7 @@ function eventCard(ev) {
   const meta = document.createElement('p'); meta.className = 'meta';
   meta.textContent = `${ev.city || ''}${ev.city ? ' · ' : ''}${eventDateLabel(ev.starts_at)}`;
   const meta2 = document.createElement('p'); meta2.className = 'meta';
-  meta2.textContent = `${ev.venue || ''} · ${usd(ev.price_cents)} · ${ev.capacity ?? 0} spots`;
+  meta2.textContent = `${ev.venue || ''} · ${usd(ev.price_cents)} · ${ev.tickets_enabled ? 'Ticketed' : 'No tickets'}`;
   const badge = document.createElement('span');
   badge.className = 'badge ' + (ev.published ? 'published' : 'draft');
   badge.textContent = ev.published ? 'Published' : 'Draft';
@@ -519,6 +519,8 @@ function drawerFields() {
       <label>Price (USD)<input id="f-price" type="number" min="0" step="0.01"></label>
       <label>Capacity<input id="f-capacity" type="number" min="0" step="1"></label>
     </div>
+    <div class="toggle-row"><input id="f-tickets-enabled" type="checkbox"><span>Ticketed event</span></div>
+    <p class="field-hint">Turn this on only when guests should buy tickets through the website. Publishing alone does not open ticket sales.</p>
     <label>Summary<textarea id="f-summary"></textarea></label>
     <label>Body<textarea id="f-body"></textarea></label>
     <label>Registration URL<input id="f-reg" type="url"></label>
@@ -572,6 +574,7 @@ function openDrawer(ev) {
   $('#f-starts').value = isoToLocalInput(ev?.starts_at);
   $('#f-price').value = ev ? (ev.price_cents / 100) : '';
   $('#f-capacity').value = ev?.capacity ?? '';
+  $('#f-tickets-enabled').checked = !!ev?.tickets_enabled;
   $('#f-summary').value = ev?.summary || '';
   $('#f-body').value = ev?.body || '';
   $('#f-reg').value = ev?.registration_url || '';
@@ -608,6 +611,7 @@ async function onDrawerSubmit(e) {
     starts_at: localInputToIso($('#f-starts').value),
     price_cents: Number.isFinite(dollars) ? Math.round(dollars * 100) : NaN,
     capacity: parseInt($('#f-capacity').value, 10),
+    tickets_enabled: $('#f-tickets-enabled').checked,
     summary: $('#f-summary').value.trim(),
     body: $('#f-body').value.trim(),
     registration_url: $('#f-reg').value.trim() || null,
@@ -796,37 +800,71 @@ const CRM_PAGE_SIZE = 100;
 let crmWired = false;
 let listReq = 0;
 let contactReq = 0;
+let activeCrmRange = crmDateRange('week');
+let crmPage = 0;
+let crmTotal = 0;
 function wireCrm() {
   if (crmWired) return;
   crmWired = true;
   let t = null;
-  $('#crm-search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(loadContactList, 250); });
-  $('#crm-tier').addEventListener('change', loadContactList);
-  $('#crm-source').addEventListener('change', loadContactList);
+  $('#crm-search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { crmPage = 0; loadContactList(); }, 250); });
+  $('#crm-tier').addEventListener('change', () => { crmPage = 0; loadContactList(); });
+  $('#crm-source').addEventListener('change', () => { crmPage = 0; loadContactList(); });
+  $('#crm-period').addEventListener('change', () => {
+    const custom = $('#crm-period').value === 'custom';
+    show($('#crm-custom-range'), custom);
+    if (!custom) refreshCrmRange();
+  });
+  $('#crm-apply-range').addEventListener('click', refreshCrmRange);
   $('#contact-drawer').addEventListener('click', (e) => { if (e.target.closest('[data-close-contact]')) closeContactDrawer(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#contact-drawer').hidden) closeContactDrawer(); });
 }
 
 async function loadCrm() {
   renderCrmStats(null); // skeleton state
-  await Promise.all([loadCrmStats(), loadContactList()]);
+  await refreshCrmRange();
 }
 
-async function loadCrmStats() {
+function selectedCrmRange() {
+  return crmDateRange(
+    $('#crm-period').value,
+    Date.now(),
+    $('#crm-date-from').value,
+    $('#crm-date-to').value,
+  );
+}
+
+async function refreshCrmRange() {
+  const range = selectedCrmRange();
+  if (!range) { toast('Choose a valid custom date range.', 'error'); return; }
+  activeCrmRange = range;
+  crmPage = 0;
+  await Promise.all([loadCrmStats(range), loadContactList(range)]);
+}
+
+async function loadCrmStats(range = activeCrmRange) {
   const count = (q) => q.then(({ count: n, error }) => (error ? null : n));
+  let periodQuery = sb.from('contacts').select('*', { count: 'exact', head: true });
+  if (range?.from) periodQuery = periodQuery.gte('created_at', range.from);
+  if (range?.to) periodQuery = periodQuery.lt('created_at', range.to);
   const [total, fresh, members, inner] = await Promise.all([
     count(sb.from('contacts').select('*', { count: 'exact', head: true })),
-    count(sb.from('contacts').select('*', { count: 'exact', head: true }).gte('created_at', weekAgoIso())),
+    count(periodQuery),
     count(sb.from('contacts').select('*', { count: 'exact', head: true }).eq('tier', 'member')),
     count(sb.from('contacts').select('*', { count: 'exact', head: true }).eq('tier', 'inner_circle')),
   ]);
-  renderCrmStats({ total, fresh, members, inner });
+  renderCrmStats({ total, fresh, members, inner, periodLabel: range?.label || 'Selected period' });
 }
 
 function renderCrmStats(s) {
+  const periodStatLabel = s?.periodLabel === 'All time'
+    ? 'All leads'
+    : s?.periodLabel
+      ? `New ${s.periodLabel.toLowerCase()}`
+      : 'New this week';
   const tiles = [
     { k: 'Contacts', n: s?.total },
-    { k: 'New this week', n: s?.fresh },
+    { k: periodStatLabel, n: s?.fresh },
     { k: 'Members', n: s?.members },
     { k: 'Inner circle', n: s?.inner },
   ];
@@ -842,26 +880,29 @@ function renderCrmStats(s) {
   }
 }
 
-async function loadContactList() {
+async function loadContactList(range = activeCrmRange) {
   const list = $('#contact-list');
   list.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
   const req = ++listReq;
   let q = sb.from('contacts')
-    .select('id,email,full_name,phone,tier,source,notes,created_at,ghl_contact_id,contact_inquiries(count)')
-    .order('created_at', { ascending: false })
-    .limit(CRM_PAGE_SIZE);
+    .select('id,email,full_name,phone,tier,source,notes,created_at,ghl_contact_id,contact_inquiries(count)', { count: 'exact' })
+    .order('created_at', { ascending: false });
   const term = $('#crm-search').value.trim().replace(/[,()]/g, ' ').trim();
   if (term) q = q.or(`email.ilike.%${term}%,full_name.ilike.%${term}%`);
   const tier = $('#crm-tier').value;
   if (tier) q = q.eq('tier', tier);
   const source = $('#crm-source').value;
   if (source) q = q.eq('source', source);
-  const { data, error } = await q;
+  if (range?.from) q = q.gte('created_at', range.from);
+  if (range?.to) q = q.lt('created_at', range.to);
+  const { data, count, error } = await q.range(crmPage * CRM_PAGE_SIZE, ((crmPage + 1) * CRM_PAGE_SIZE) - 1);
   if (req !== listReq) return; // a newer search/filter superseded this request
-  if (error) { toast('Could not load contacts.', 'error'); list.innerHTML = ''; return; }
+  if (error) { toast('Could not load contacts.', 'error'); list.innerHTML = ''; show($('#crm-pagination'), false); return; }
   state.contacts = data || [];
+  crmTotal = count || 0;
   populateSourceFilter(state.contacts);
   renderContactList();
+  renderCrmPagination();
 }
 
 // Fill the source dropdown from sources seen so far; never remove the current pick.
@@ -910,6 +951,39 @@ function renderContactList() {
     row.addEventListener('click', () => openContactDrawer(c));
     list.appendChild(row);
   }
+}
+
+function renderCrmPagination() {
+  const nav = $('#crm-pagination');
+  nav.innerHTML = '';
+  const pages = Math.ceil(crmTotal / CRM_PAGE_SIZE);
+  if (pages <= 1) { show(nav, false); return; }
+  show(nav, true);
+
+  const previous = document.createElement('button');
+  previous.className = 'btn btn-secondary';
+  previous.type = 'button';
+  previous.textContent = 'Previous';
+  previous.setAttribute('aria-label', 'Previous lead page');
+  previous.disabled = crmPage === 0;
+  previous.addEventListener('click', () => { crmPage -= 1; loadContactList(); });
+
+  const status = document.createElement('span');
+  status.className = 'crm-pagination-status';
+  const start = crmPage * CRM_PAGE_SIZE + 1;
+  const end = Math.min((crmPage + 1) * CRM_PAGE_SIZE, crmTotal);
+  status.textContent = `Showing ${start}-${end} of ${crmTotal}`;
+  status.setAttribute('aria-live', 'polite');
+
+  const next = document.createElement('button');
+  next.className = 'btn btn-secondary';
+  next.type = 'button';
+  next.textContent = 'Next';
+  next.setAttribute('aria-label', 'Next lead page');
+  next.disabled = crmPage >= pages - 1;
+  next.addEventListener('click', () => { crmPage += 1; loadContactList(); });
+
+  nav.append(previous, status, next);
 }
 
 async function openContactDrawer(c) {

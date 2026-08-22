@@ -343,6 +343,8 @@ test('events page renders published CMS events and hides drafts', () => {
   assert.doesNotMatch(html, /Draft Member Preview/, 'unpublished event should not render');
   assert.match(html, /Upcoming/, 'events page should label upcoming events');
   assert.match(html, /Past/, 'events page should label past events');
+  assert.match(html, /event-availability/, 'upcoming ticketed events should render live availability slots');
+  assert.match(html, /event-availability\.js/, 'events page should load the live availability script');
 });
 
 test('published CMS events generate detail pages and drafts do not', () => {
@@ -412,6 +414,8 @@ test('admin route ships the bespoke dashboard shell, not Sveltia', () => {
   assert.match(html, /id="login-view"/, 'admin must render the login view');
   assert.match(html, /id="mfa-view"/, 'admin must gate access behind MFA');
   assert.match(html, /id="mfa-enroll-form"/, 'admin must provide TOTP enrollment');
+  const adminApp = readFileSync(join(process.cwd(), 'src', 'admin', 'app.js'), 'utf8');
+  assert.match(adminApp, /id="f-tickets-enabled"/, 'event editor must expose an explicit ticketing toggle');
 });
 
 test('admin Site Content view lists the editable pages', () => {
@@ -424,7 +428,11 @@ test('admin ships the enabled CRM view', () => {
   assert.match(html, /data-view="crm"/, 'CRM nav must be enabled');
   assert.doesNotMatch(html, /disabled title="Coming soon">CRM/, 'CRM must no longer be a disabled placeholder');
   assert.match(html, /id="view-crm"/, 'CRM view container must ship');
+  assert.match(html, /id="crm-period"/, 'CRM must ship a capture-period filter');
+  assert.match(html, /id="crm-date-from"/, 'CRM must ship a custom start-date field');
+  assert.match(html, /id="crm-date-to"/, 'CRM must ship a custom end-date field');
   assert.match(html, /id="contact-list"/, 'contact list container must ship');
+  assert.match(html, /id="crm-pagination"/, 'CRM must ship pagination controls');
   assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
 });
 

@@ -73,6 +73,49 @@ export function weekAgoIso(nowMs = Date.now()) {
   return new Date(nowMs - 7 * 864e5).toISOString();
 }
 
+// CRM filters use local calendar boundaries, then send UTC ISO values to
+// Supabase. The custom end date is inclusive for the operator and exclusive
+// in the query so the whole selected day is included.
+export function crmDateRange(period = 'week', nowMs = Date.now(), customFrom = '', customTo = '') {
+  const now = new Date(nowMs);
+  const startOfLocalDay = (year, month, day) => new Date(year, month, day);
+  const parseDateInput = (value) => {
+    const parts = String(value || '').split('-').map(Number);
+    if (parts.length !== 3 || parts.some((n) => !Number.isInteger(n))) return null;
+    const date = startOfLocalDay(parts[0], parts[1] - 1, parts[2]);
+    return date.getFullYear() === parts[0] && date.getMonth() === parts[1] - 1 && date.getDate() === parts[2] ? date : null;
+  };
+
+  if (period === 'all') return { from: null, to: null, label: 'All time' };
+  if (period === 'custom') {
+    const from = parseDateInput(customFrom);
+    const toDate = parseDateInput(customTo);
+    if (!from || !toDate || from > toDate) return null;
+    toDate.setDate(toDate.getDate() + 1);
+    return { from: from.toISOString(), to: toDate.toISOString(), label: 'Custom range' };
+  }
+
+  let from;
+  let to;
+  if (period === 'today') {
+    from = startOfLocalDay(now.getFullYear(), now.getMonth(), now.getDate());
+    to = new Date(from); to.setDate(to.getDate() + 1);
+  } else if (period === 'month') {
+    from = startOfLocalDay(now.getFullYear(), now.getMonth(), 1);
+    to = startOfLocalDay(now.getFullYear(), now.getMonth() + 1, 1);
+  } else if (period === 'quarter') {
+    const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
+    from = startOfLocalDay(now.getFullYear(), quarterMonth, 1);
+    to = startOfLocalDay(now.getFullYear(), quarterMonth + 3, 1);
+  } else {
+    const daysSinceMonday = (now.getDay() + 6) % 7;
+    from = startOfLocalDay(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday);
+    to = new Date(from); to.setDate(to.getDate() + 7);
+    period = 'week';
+  }
+  return { from: from.toISOString(), to: to.toISOString(), label: period === 'today' ? 'Today' : period === 'month' ? 'This month' : period === 'quarter' ? 'This quarter' : 'This week' };
+}
+
 export function tierLabel(tier) {
   return { free: 'Free', member: 'Member', inner_circle: 'Inner circle' }[tier] ?? String(tier ?? '');
 }

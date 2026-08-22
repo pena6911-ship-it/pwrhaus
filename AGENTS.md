@@ -51,6 +51,39 @@ Reusable hero: `src/_includes/partials/page-hero.njk` (image OR video, per-page)
 
 ---
 
+## Session close protocol (READ THIS — applies to every agent)
+
+When the owner says **"let's wrap up here"**, **"let's stop here"**, or anything
+equivalent, that is not just a goodbye. It is an instruction to hand off. Before
+you finish the turn, do all four:
+
+1. **Update `## Current state` in this file** — append a dated bullet list of what
+   you changed: features, migrations, and any owner action they create. If you
+   contradicted something written earlier in this file, fix the earlier text
+   rather than leaving both. A file that says two things is worse than a stale one.
+2. **Update project memory** at
+   `~/.claude/projects/C--Users-pena6/memory/` — one file per fact, plus a
+   one-line pointer in `MEMORY.md`. Record only what the repo does not already
+   say: ordering constraints, landmines, decisions and their reasons. Do not
+   restate code or git history.
+3. **Update the client manual** — `docs/PWRHAUS_Website_User_Manual_v1_N.html`,
+   bumped one minor version, superseding the previous file (delete the old one;
+   git history keeps it). There is exactly **one** manual in `docs/` at a time.
+   Any owner-visible change belongs in it.
+4. **State plainly what is unpushed, unapplied, or unverified.** Never say a fix
+   works when it has not been confirmed on a device.
+
+**Why this matters:** the owner alternates between Codex and Claude, using Claude
+for design and planning and Codex for implementation. Neither can see the other's
+session. This file plus project memory is the entire handoff channel. If you skip
+it, the next agent re-derives your work from diffs, or worse, contradicts it.
+
+A wrap-up that skipped steps 1-3 has already happened (2026-08-22): six commits
+landed with no update here and nothing written to memory, and the next session
+had to reconstruct the state by reading diffs.
+
+---
+
 ## Current state (2026-08-21)
 
 Done and pushed (site work on `main`, everything on `poc/merch`):
@@ -69,6 +102,37 @@ Done and pushed (site work on `main`, everything on `poc/merch`):
 - **MFA status:** `hello@pwrhausgolfsociety.com` has a verified TOTP factor. `pena6911@gmail.com` still needs to enroll and verify one. CAPTCHA protection is currently disabled because the dashboard does not yet pass a CAPTCHA token; re-enable only after a frontend Turnstile/hCaptcha integration is added.
 - **Final launch order:** deploy the MFA code; both admins verify login and TOTP; run the one-time GHL → Supabase contact migration after go-live; then apply `0012_require_mfa.sql` as the final RLS lock. Do not apply it earlier.
 - **Testing:** current repository verification is 232 passing tests; `npm run build` passes.
+
+### 2026-08-22 — dashboard self-service + CRM review tools (Codex)
+
+Six commits, all on `main`. Verified: 234 tests pass, `npm run build` clean.
+
+- **Ticket sales are now owner-controlled** (`b2f63af`). A **Ticketed event**
+  checkbox in the event editor writes `tickets_enabled`; event cards read
+  `Ticketed` / `No tickets`. **Prices and the sales-close date are still NOT
+  editable in the dashboard** — they remain a developer step, so set them before
+  the owner toggles sales on.
+- **Live ticket availability on the public events page** (`4d1ea3f`).
+  `src/js/event-availability.js` refetches remaining seats from
+  `/api/tickets/availability` after load and renders "N spots available" /
+  "Sold out". On fetch failure it falls back to full capacity, so a sold-out
+  event can briefly read as available during an outage — accepted trade-off,
+  documented in the manual.
+- **CRM capture-period filter** (`acd571a`). `crmDateRange()` in
+  `src/admin/lib.js` (unit-tested) resolves Today / week / month / quarter /
+  all-time plus custom ranges, using local calendar boundaries converted to UTC.
+  The custom end date is inclusive for the operator, exclusive in the query.
+- **CRM pagination** (`93db6ad`) at 100 rows per page; filters apply across the
+  whole result set, not just the visible page.
+- **Manual** consolidated to a single `docs/PWRHAUS_Website_User_Manual_v1_6.html`
+  (v1.5 removed; git history retains it). The published copy lives at the
+  artifact URL the owner shares with the client — republish it when the manual
+  changes.
+- Handoff spec gained §9 (CRM lead review).
+
+**Manual location changed:** the client manual now lives in `docs/` in this repo,
+not in the owner's Downloads folder. Superseded copies still sitting in
+`~/Downloads` (v1.3, v1.4) are stale — do not edit them.
 
 ---
 
