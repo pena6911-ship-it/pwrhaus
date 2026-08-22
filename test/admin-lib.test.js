@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -151,4 +151,51 @@ test('check-in overlay pauses only for completed scan outcomes', () => {
   assert.deepEqual(checkinOverlayState({ ok: false, code: 'needs_attendee' }), null);
   assert.deepEqual(checkinOverlayState({ ok: false, code: 'queued' }), { kind: 'warn', title: 'Saved for sync' });
   assert.deepEqual(checkinOverlayState({ ok: false, code: 'ticket_expired' }), { kind: 'err', title: 'Check-in not completed' });
+});
+
+test('priceInputToCents treats blank as "not set" and rounds dollars to cents', () => {
+  // Blank must be null, not 0 — clearing the field has to clear the column,
+  // not silently make the event free.
+  assert.equal(priceInputToCents(''), null);
+  assert.equal(priceInputToCents('   '), null);
+  assert.equal(priceInputToCents(null), null);
+  assert.equal(priceInputToCents(undefined), null);
+
+  assert.equal(priceInputToCents('75'), 7500);
+  assert.equal(priceInputToCents('85.50'), 8550);
+  assert.equal(priceInputToCents('0'), 0);
+  // Float noise must not produce 8549.
+  assert.equal(priceInputToCents('85.49'), 8549);
+
+  assert.ok(Number.isNaN(priceInputToCents('abc')));
+});
+
+test('validateEvent allows blank tier prices and rejects bad ones', () => {
+  const base = {
+    name: 'X', slug: 'x-y', city: 'Miami', venue: 'V',
+    starts_at: '2026-09-01T12:00:00-04:00', price_cents: 15000, capacity: 40,
+    summary: 's', body: 'b', image: '/x.jpg', image_alt: 'alt',
+  };
+  // Blank tier prices are the normal flat-price case.
+  assert.equal(validateEvent({ ...base }).ok, true);
+  assert.equal(validateEvent({ ...base, member_price_cents: null, nonmember_price_cents: null }).ok, true);
+  assert.equal(validateEvent({ ...base, member_price_cents: 7500, nonmember_price_cents: 9500 }).ok, true);
+  // Equal prices are legitimate.
+  assert.equal(validateEvent({ ...base, member_price_cents: 9500, nonmember_price_cents: 9500 }).ok, true);
+
+  assert.ok(validateEvent({ ...base, member_price_cents: NaN }).errors.member_price_cents);
+  assert.ok(validateEvent({ ...base, nonmember_price_cents: -1 }).errors.nonmember_price_cents);
+  assert.ok(validateEvent({ ...base, member_price_cents: 12.5 }).errors.member_price_cents);
+});
+
+test('validateEvent catches a member price above the non-member price', () => {
+  const base = {
+    name: 'X', slug: 'x-y', city: 'Miami', venue: 'V',
+    starts_at: '2026-09-01T12:00:00-04:00', price_cents: 15000, capacity: 40,
+    summary: 's', body: 'b', image: '/x.jpg', image_alt: 'alt',
+  };
+  // Swapped fields would otherwise only surface after somebody was overcharged.
+  const swapped = validateEvent({ ...base, member_price_cents: 15000, nonmember_price_cents: 7500 });
+  assert.equal(swapped.ok, false);
+  assert.match(swapped.errors.member_price_cents, /higher than/);
 });

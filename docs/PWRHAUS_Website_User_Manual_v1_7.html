@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 1.6</title>
+<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 1.7</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Georgia,serif;font-size:13px;color:#14201A;line-height:1.75;max-width:860px;margin:0 auto;padding:60px}
@@ -55,7 +55,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
   <div class="cv-brand">PWRHAUS</div>
   <div class="cv-sub">Golf Society &nbsp;·&nbsp; Fort Lauderdale &nbsp;·&nbsp; Miami</div>
   <div class="cv-title">Website &amp; Dashboard User Manual</div>
-  <div class="cv-meta">Version 1.6 &nbsp;|&nbsp; August 2026 &nbsp;|&nbsp; Supersedes Version 1.5</div>
+  <div class="cv-meta">Version 1.7 &nbsp;|&nbsp; August 2026 &nbsp;|&nbsp; Supersedes Version 1.6</div>
   <div class="cv-conf">Confidential</div>
 </div>
 
@@ -223,7 +223,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <h2>4.2 Add an Event</h2>
 <ol class="s">
 <li>Click <strong>New event</strong> (top right, or the <strong>New</strong> tab on a phone)</li>
-<li>Type the <strong>Name</strong> — the web address fills in automatically as you type</li>
+<li>Type the <strong>Name</strong> — the <strong>Slug (web address)</strong> fills in automatically as you type</li>
 <li>Fill in <strong>City</strong>, <strong>Venue</strong>, and <strong>Date &amp; time</strong></li>
 <li>Enter <strong>Price</strong> in dollars (enter <code>0</code> for a free event) and <strong>Capacity</strong></li>
 <li>Write a <strong>Summary</strong> — one or two lines, shown on the events list</li>
@@ -235,6 +235,8 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 </ol>
 <div class="tip"><b>💡 Tip</b>Leave <strong>Published</strong> unticked to save a draft. Nothing appears publicly until you tick it — the safe way to prepare an event in advance.</div>
 <div class="note"><b>Why alt text?</b>It describes the photo for visually impaired visitors and for search engines. One plain sentence is perfect — "Golfers walking together across a green course."</div>
+
+<div class="note"><b>About the web address</b>The <strong>Slug (web address)</strong> box is the end of the link guests see &mdash; <code>pwrhausgolfsociety.com/events/<strong>fall-founder-scramble</strong>/</code>. It is built from the event name for you, using lowercase letters, numbers and hyphens only. You can edit it, but once you have shared the link anywhere &mdash; email, Instagram, a text &mdash; changing it breaks that link. Set it before you publish, then leave it alone.</div>
 
 <h2>4.3 Edit an Event</h2>
 <ol class="s">
@@ -412,15 +414,16 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <p>You can now switch ticket sales on yourself, from the event editor:</p>
 <ol class="s">
 <li>Go to <strong>Events</strong> and open the event</li>
-<li>Set <strong>Price (USD)</strong> &mdash; this is what a ticket costs</li>
+<li>Set <strong>Price (USD)</strong> &mdash; what a ticket costs if you charge everyone the same</li>
 <li>Set <strong>Capacity</strong> &mdash; how many seats are for sale</li>
 <li>Tick <strong>Ticketed event</strong></li>
+<li>Optionally set <strong>Member price</strong> and <strong>Non-member price</strong> to charge members less (see 7.4)</li>
 <li>Click <strong>Save</strong></li>
 <li>Check the public event page &mdash; you should see the price and a booking form</li>
 </ol>
 <p>On the Events screen, each card now tells you which state it is in &mdash; <strong>Ticketed</strong> or <strong>No tickets</strong> &mdash; so you can see at a glance which events are selling.</p>
 <div class="tip"><b>&#128161; Publishing and selling are separate switches</b>Publishing puts the event on the website. <strong>Ticketed event</strong> is what opens the till. An event can be published for weeks with sales closed, which is exactly what you want while you are still confirming a venue.</div>
-<div class="note"><b>Two settings your developer still handles</b>The <strong>member rate</strong> (charging members less than non-members) and the <strong>date sales close</strong> are not yet in the dashboard. The <strong>Price (USD)</strong> field you set is what <em>everyone</em> pays until a separate member rate is added &mdash; see 7.4.</div>
+<div class="note"><b>One setting your developer still handles</b>The <strong>date ticket sales close</strong> is not yet in the dashboard. Everything else about pricing is now yours to set.</div>
 
 <h2>7.3 What Visitors See on the Events Page</h2>
 <p>Once an event is ticketed, its card on the public events page shows how many places are actually left &mdash; <strong>&ldquo;12 spots available&rdquo;</strong>, counting down as people buy, and <strong>&ldquo;Sold out&rdquo;</strong> when the last seat goes. The figure refreshes each time somebody loads the page, so it is current rather than whatever was true when the site was last published.</p>
@@ -428,7 +431,13 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 
 <h2>7.4 Member vs Non-Member Pricing</h2>
 <p>When a member rate has been set for an event, both prices show on the event page, just as they did before. The difference is that the member rate is now <strong>verified</strong>: the site checks the buyer&rsquo;s email against your member list and applies the member price only if they really are a member. On WIX, anyone could simply select the cheaper &ldquo;member&rdquo; ticket.</p>
-<div class="tip"><b>&#128161; Flat-price events are fine</b>If no member rate has been set, the event simply sells at the single <strong>Price (USD)</strong> you entered and the page shows one price. Nothing breaks &mdash; there is just no member discount. Ask your developer to add a member rate for any event where members should pay less.</div>
+<p>You set the two rates yourself, in the event editor:</p>
+<ul class="pl">
+<li><strong>Member price</strong> &mdash; what someone on your member list pays</li>
+<li><strong>Non-member price</strong> &mdash; what everyone else pays</li>
+</ul>
+<div class="tip"><b>&#128161; Flat-price events are fine</b>Leave both boxes empty and the event simply sells at the single <strong>Price (USD)</strong> you entered, with one price on the page. Nothing breaks &mdash; there is just no member discount. Fill them in only for events where members should pay less.</div>
+<div class="note"><b>A guard against a costly typo</b>If you enter a member price <em>higher</em> than the non-member price, the dashboard refuses to save and tells you why. That combination is almost always the two figures typed into the wrong boxes &mdash; a mistake you would otherwise discover only after a member had been overcharged.</div>
 <div class="tip"><b>&#128161; Buyers pay less than they did on WIX</b>WIX added a 2.5% &ldquo;service fee&rdquo; on top of every ticket. Your site does not &mdash; a $75 ticket costs the buyer $75.</div>
 
 <h2>7.5 What the Buyer Receives</h2>
@@ -561,7 +570,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <tr><td>Photo won't upload</td><td>Check it's a normal image (JPG/PNG) and not enormous. Try a smaller file. If every photo fails, contact your developer.</td></tr>
 <tr><td>Event won't save</td><td>Look for red text under the fields — usually a missing heading, alt text, or an invalid price. Fix the highlighted fields and save again.</td></tr>
 <tr><td>Published event isn't showing</td><td>Confirm the badge reads <strong>Published</strong>, then wait for the rebuild. Note that past-dated events appear under "Recent rounds" rather than "Upcoming".</td></tr>
-<tr><td>Event page shows no booking form</td><td>The event is published but not ticketed. Open it in Events and tick <strong>Ticketed event</strong>. If the form is still missing, the prices have not been set — contact your developer.</td></tr>
+<tr><td>Event page shows no booking form</td><td>The event is published but not ticketed. Open it in Events, tick <strong>Ticketed event</strong>, and make sure a Price is set.</td></tr>
 <tr><td>Leads list is empty</td><td>Check your search box and filters are cleared.</td></tr>
 <tr><td>Reset email never arrives</td><td>Check spam. The built-in sender is rate-limited — wait an hour and retry (Section 10).</td></tr>
 <tr><td>QR code won&rsquo;t scan at the door</td><td>Hold the phone so the code fills more of the frame and let it focus. If it still will not read, type the ticket number instead (Section 8.2).</td></tr>
@@ -579,7 +588,8 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <tbody>
 <tr><td>Sign in</td><td>pwrhaus.netlify.app/admin/ → password → six-digit code from your authenticator</td></tr>
 <tr><td>Add an event</td><td>Events → New event → fill in → tick Published → Save</td></tr>
-<tr><td>Open ticket sales for an event</td><td>Events → open it → tick <strong>Ticketed event</strong> → Save (ask your developer to set prices first)</td></tr>
+<tr><td>Open ticket sales for an event</td><td>Events → open it → set Price and Capacity → tick <strong>Ticketed event</strong> → Save</td></tr>
+<tr><td>Charge members less</td><td>Events → open it → fill in <strong>Member price</strong> and <strong>Non-member price</strong> → Save</td></tr>
 <tr><td>Stop selling an event</td><td>Events → open it → untick <strong>Ticketed event</strong> → Save</td></tr>
 <tr><td>Hide an event</td><td>Events → Unpublish on the card</td></tr>
 <tr><td>Prepare an event quietly</td><td>Create it and leave Published unticked</td></tr>
@@ -617,7 +627,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 
 <div class="footer">
   <span>PWRHAUS Golf Society &nbsp;·&nbsp; Fort Lauderdale &amp; Miami</span>
-  <span>Version 1.6 &nbsp;·&nbsp; August 2026 &nbsp;·&nbsp; Confidential</span>
+  <span>Version 1.7 &nbsp;·&nbsp; August 2026 &nbsp;·&nbsp; Confidential</span>
 </div>
 
 </body>
