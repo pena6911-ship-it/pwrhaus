@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 1.5</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;font-size:13px;color:#14201A;line-height:1.75;max-width:860px;margin:0 auto;padding:60px}
+h1{font-size:22px;color:#1A4D36;border-bottom:2px solid #E6E1D6;padding-bottom:8px;margin:48px 0 18px;font-weight:400;letter-spacing:.02em}
+h2{font-size:11px;font-family:Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#5a5a5a;margin:28px 0 10px;padding-bottom:4px;border-bottom:0.5px solid #E6E1D6}
+h3{font-size:12px;font-family:Arial,sans-serif;font-weight:600;color:#1A4D36;margin:18px 0 8px}
+p{margin-bottom:10px;font-size:13px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:#F1EEE6;padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#7D6218;border-bottom:1.5px solid #d8d0bd;font-family:Arial,sans-serif}
+td{padding:8px 12px;border-bottom:0.5px solid #E6E1D6;vertical-align:top;font-size:12px}
+td:first-child{font-weight:600;color:#1A4D36;white-space:nowrap;min-width:140px}
+.note{background:#e8f0fb;border-left:3px solid #2E6DA4;padding:10px 14px;margin:12px 0;font-size:12px;color:#1a4a7a;border-radius:0 4px 4px 0}
+.tip{background:#e8f4e8;border-left:3px solid #4a9a4a;padding:10px 14px;margin:12px 0;font-size:12px;color:#2a5a27;border-radius:0 4px 4px 0}
+.warn{background:#fdf0ee;border-left:3px solid #C0392B;padding:10px 14px;margin:12px 0;font-size:12px;color:#8B1A1A;border-radius:0 4px 4px 0}
+.note b,.tip b,.warn b{display:block;font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:3px;font-family:Arial,sans-serif}
+code{font-family:'Courier New',monospace;font-size:11px;background:#F1EEE6;padding:1px 5px;border:0.5px solid #d8d0bd;color:#1A4D36}
+pre{background:#1e1e1e;color:#d4d4d4;padding:12px 16px;font-size:11px;font-family:'Courier New',monospace;margin:8px 0 16px;line-height:1.6;border-radius:4px;overflow-x:auto}
+ol.s{padding-left:0;list-style:none;counter-reset:s;margin:10px 0}
+ol.s li{counter-increment:s;padding:6px 0 6px 38px;position:relative;border-bottom:0.5px solid #E6E1D6;font-size:12px}
+ol.s li:last-child{border-bottom:none}
+ol.s li::before{content:counter(s);position:absolute;left:0;top:6px;width:22px;height:22px;background:#1A4D36;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:Arial,sans-serif}
+ul.pl{padding-left:16px;margin:8px 0}
+ul.pl li{margin-bottom:4px;font-size:12px}
+.new{background:#27AE60;color:#fff;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;margin-left:4px;font-family:Arial,sans-serif;vertical-align:middle;border-radius:2px}
+.upd{background:#B8912A;color:#fff;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;margin-left:4px;font-family:Arial,sans-serif;vertical-align:middle;border-radius:2px}
+.soon{background:#7a7a7a;color:#fff;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;margin-left:4px;font-family:Arial,sans-serif;vertical-align:middle;border-radius:2px}
+.cover{text-align:center;padding:48px 0 40px;border-bottom:2px solid #d8d0bd;margin-bottom:44px}
+.cv-brand{font-size:52px;letter-spacing:.25em;color:#1A4D36;font-weight:400}
+.cv-sub{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#7D6218;margin-top:8px}
+.cv-title{font-size:22px;font-weight:400;color:#14201A;margin-top:30px;letter-spacing:.04em}
+.cv-meta{margin-top:12px;font-size:11px;color:#7D6218;letter-spacing:.06em}
+.cv-conf{display:inline-block;margin-top:16px;padding:4px 14px;border:1px solid #B8912A;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#B8912A;font-family:Arial,sans-serif}
+.tl{border:0.5px solid #E6E1D6;border-radius:6px;overflow:hidden;margin:14px 0 20px}
+.tl-row{display:grid;grid-template-columns:160px 1fr;border-bottom:0.5px solid #E6E1D6}
+.tl-row:last-child{border-bottom:none}
+.tl-t{padding:10px 12px;font-size:11px;font-weight:700;color:#1A4D36;background:#F1EEE6;border-right:0.5px solid #E6E1D6;font-family:Arial,sans-serif}
+.tl-a{padding:10px 12px;font-size:12px}
+.footer{margin-top:60px;padding-top:16px;border-top:0.5px solid #E6E1D6;font-size:10px;color:#7D6218;display:flex;justify-content:space-between;text-transform:uppercase;letter-spacing:.08em;font-family:Arial,sans-serif}
+.divider{height:0.5px;background:#E6E1D6;margin:40px 0}
+.toc-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px dotted #E6E1D6;font-size:12px}
+.toc-sub{padding-left:18px;font-size:11px;color:#7D6218}
+.toc-num{color:#B8912A;font-weight:600;min-width:24px}
+.url{color:#2E6DA4;font-family:'Courier New',monospace;font-size:11px}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cv-brand">PWRHAUS</div>
+  <div class="cv-sub">Golf Society &nbsp;·&nbsp; Fort Lauderdale &nbsp;·&nbsp; Miami</div>
+  <div class="cv-title">Website &amp; Dashboard User Manual</div>
+  <div class="cv-meta">Version 1.5 &nbsp;|&nbsp; August 2026 &nbsp;|&nbsp; Supersedes Version 1.4</div>
+  <div class="cv-conf">Confidential</div>
+</div>
+
+<!-- TOC -->
+<h2>Table of Contents</h2>
+<div class="toc-item"><span><span class="toc-num">1</span> System Overview</span></div>
+<div class="toc-item toc-sub"><span>1.1 What the Site Does &nbsp; 1.2 Services at a Glance &nbsp; 1.3 How a Change Goes Live</span></div>
+<div class="toc-item"><span><span class="toc-num">2</span> Service Accounts &amp; Credentials</span></div>
+<div class="toc-item toc-sub"><span>2.1 GitHub &nbsp; 2.2 Netlify &nbsp; 2.3 Supabase &nbsp; 2.4 GoHighLevel &nbsp; 2.5 Stripe &amp; Printify</span></div>
+<div class="toc-item"><span><span class="toc-num">3</span> Signing In to Your Dashboard</span></div>
+<div class="toc-item toc-sub"><span>3.1 Where to Go &nbsp; 3.2 Signing In &nbsp; 3.3 Two-Step Verification &nbsp; 3.4 Install It on Your Phone &nbsp; 3.5 Signing Out</span></div>
+<div class="toc-item"><span><span class="toc-num">4</span> Managing Events</span></div>
+<div class="toc-item toc-sub"><span>4.1 The Events Screen &nbsp; 4.2 Add &nbsp; 4.3 Edit &nbsp; 4.4 Publish / Unpublish &nbsp; 4.5 Reorder &nbsp; 4.6 Duplicate &nbsp; 4.7 Delete &nbsp; 4.8 Photo Tips</span></div>
+<div class="toc-item"><span><span class="toc-num">5</span> Editing Page Content</span></div>
+<div class="toc-item toc-sub"><span>5.1 What You Can Edit &nbsp; 5.2 Edit a Page Hero &nbsp; 5.3 Replacing a Hero Photo &nbsp; 5.4 Focal Position</span></div>
+<div class="toc-item"><span><span class="toc-num">6</span> CRM — Your Leads</span></div>
+<div class="toc-item toc-sub"><span>6.1 The Leads Screen &nbsp; 6.2 Search &amp; Filter &nbsp; 6.3 Lead Detail &nbsp; 6.4 Where Leads Come From &nbsp; 6.5 Dashboard vs GoHighLevel</span></div>
+<div class="toc-item"><span><span class="toc-num">7</span> Selling Event Tickets</span></div>
+<div class="toc-item toc-sub"><span>7.1 How It Works &nbsp; 7.2 Turning Sales On &nbsp; 7.3 Member vs Non-Member &nbsp; 7.4 What the Buyer Gets &nbsp; 7.5 Your Guest List &nbsp; 7.6 Before You Sell for Real</span></div>
+<div class="toc-item"><span><span class="toc-num">8</span> Checking Guests In at the Door <span class="new">New</span></span></div>
+<div class="toc-item toc-sub"><span>8.1 Before the Event &nbsp; 8.2 Checking Someone In &nbsp; 8.3 Guests With No Name Yet &nbsp; 8.4 What the Screen Tells You &nbsp; 8.5 Patchy Signal &nbsp; 8.6 After the Event</span></div>
+<div class="toc-item"><span><span class="toc-num">9</span> Publishing — How Changes Reach the Site</span></div>
+<div class="toc-item"><span><span class="toc-num">10</span> Password Reset</span></div>
+<div class="toc-item"><span><span class="toc-num">11</span> Merchandise (Test Mode)</span></div>
+<div class="toc-item"><span><span class="toc-num">12</span> Security &amp; Access</span></div>
+<div class="toc-item"><span><span class="toc-num">13</span> Troubleshooting</span></div>
+<div class="toc-item"><span><span class="toc-num">14</span> Quick Reference Cheat Sheet</span></div>
+<div class="toc-item"><span><span class="toc-num">15</span> Contact</span></div>
+
+<div class="divider"></div>
+
+<!-- 1 -->
+<h1>1. System Overview</h1>
+<p>The PWRHaus Golf Society website is a marketing and lead-capture site for a co-ed golf society operating in Fort Lauderdale and Miami. It presents the society's events, membership tiers, lessons, corporate offerings and sponsorship, captures leads from every page, and gives you — the owner — a private dashboard to manage the parts of the site that change most often.</p>
+
+<h2>1.1 What the Site Does</h2>
+<table>
+<thead><tr><th>Capability</th><th>What It Means for You</th></tr></thead>
+<tbody>
+<tr><td>Public marketing site</td><td>Seven public pages — Home, Events, Membership, Lessons, Corporate, Sponsors, About — each with a full-width photo or video hero.</td></tr>
+<tr><td>Lead capture</td><td>Every page has a capture form, plus a site-wide welcome gate on first visit. Each submission is saved to your database <em>and</em> pushed to GoHighLevel.</td></tr>
+<tr><td>Events management</td><td>You create, edit, publish, reorder and delete events yourself. Each published event also gets its own page.</td></tr>
+<tr><td>Page content editing</td><td>You can change the headline text — and the photo — at the top of every public page without a developer.</td></tr>
+<tr><td>CRM (leads)</td><td>A read-only view of everyone who has submitted a form on your site, including their full submission history.</td></tr>
+<tr><td>Merchandise <span class="soon">Test Mode</span></td><td>A storefront driven by Printify with Stripe checkout. Currently in test mode — see Section 11.</td></tr>
+</tbody>
+</table>
+
+<h2>1.2 Services at a Glance</h2>
+<table>
+<thead><tr><th>Service</th><th>URL</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>GitHub</td><td>github.com</td><td>Stores all website code. Your developer pushes changes here.</td></tr>
+<tr><td>Netlify</td><td>netlify.com</td><td>Hosts the live site, runs the backend functions, and rebuilds the site when you publish.</td></tr>
+<tr><td>Supabase</td><td>supabase.com</td><td>The database — events, page content, leads — plus your dashboard login and photo storage.</td></tr>
+<tr><td>GoHighLevel</td><td>gohighlevel.com</td><td>Your working CRM. Every captured lead is pushed here. Memberships live here too.</td></tr>
+<tr><td>Stripe</td><td>stripe.com</td><td>Card processing for merchandise. Currently in <strong>test mode</strong>.</td></tr>
+<tr><td>Printify</td><td>printify.com</td><td>Print-on-demand merchandise supplier. Currently creating <strong>draft orders only</strong>.</td></tr>
+</tbody>
+</table>
+<div class="warn"><b>⚠ Important</b>All of these services must stay active. If an account lapses or credentials change, the feature that depends on it stops working.</div>
+
+<h2>1.3 How a Change Goes Live</h2>
+<p>This is the single most useful thing to understand about your site. The public website is <strong>static</strong> — it is built into fixed pages rather than looking things up as each visitor arrives. That is what makes it fast and strong for search engines. The trade-off is that a change in the dashboard doesn't appear publicly until the site rebuilds.</p>
+<div class="tl">
+  <div class="tl-row"><div class="tl-t">You click Save</div><div class="tl-a">Your change is stored immediately. The dashboard shows it right away.</div></div>
+  <div class="tl-row"><div class="tl-t">Publishing starts</div><div class="tl-a">The dashboard automatically tells Netlify to rebuild. You'll see "Publishing… live in ~30s".</div></div>
+  <div class="tl-row"><div class="tl-t">Netlify rebuilds</div><div class="tl-a">Netlify pulls the newest events and page content and regenerates every page.</div></div>
+  <div class="tl-row"><div class="tl-t">Live</div><div class="tl-a">Typically 30–60 seconds after you saved, the public site shows your change.</div></div>
+</div>
+<div class="note"><b>Note</b>If you save something and the public page still looks the same, wait a minute and refresh. That is almost always all it needs.</div>
+
+<!-- 2 -->
+<h1>2. Service Accounts &amp; Credentials</h1>
+<p>You do not need to sign in to most of these day to day — your dashboard is the only account you'll use regularly. They are listed so you know what exists and who to contact if something breaks.</p>
+
+<h2>2.1 GitHub</h2>
+<p>Holds the website's source code at <code>pena6911-ship-it/pwrhaus</code>. Only your developer works here. Pushing code to the <code>main</code> branch automatically deploys the live site.</p>
+
+<h2>2.2 Netlify</h2>
+<p>Hosts the site at <span class="url">https://pwrhaus.netlify.app</span> and runs the backend functions that handle form submissions and publishing.</p>
+<div class="warn"><b>⚠ Do Not Change</b>In Netlify, <strong>auto-publishing must stay ON</strong>. If it is switched off, your dashboard edits will rebuild but never actually appear on the live site. If Netlify's Deploys screen shows a "Start auto publishing" button, it is currently OFF and must be turned on.</div>
+
+<h2>2.3 Supabase</h2>
+<p>Your database and dashboard login. The parts that matter:</p>
+<table>
+<thead><tr><th>Table</th><th>What It Holds</th></tr></thead>
+<tbody>
+<tr><td>events</td><td>Every event you create — name, date, venue, price, capacity, photo, published status, display order.</td></tr>
+<tr><td>site_content</td><td>The editable headline text and photo for each page's hero.</td></tr>
+<tr><td>contacts</td><td>Every person who has submitted a form — name, email, phone, tier, source.</td></tr>
+<tr><td>contact_inquiries</td><td>One row per form submission, so repeat enquiries from the same person are all kept.</td></tr>
+<tr><td>event-media</td><td>Storage bucket holding photos you upload from the dashboard.</td></tr>
+</tbody>
+</table>
+<div class="warn"><b>⚠ Security Settings</b>In Supabase → Authentication → Sign In / Providers → Email: the Email provider must stay <strong>ON</strong> (this is what lets you sign in), and <strong>"Allow new users to sign up" must stay OFF</strong> (this is what stops strangers creating an account and reading your lead list).</div>
+
+<h2>2.4 GoHighLevel</h2>
+<p>Your working CRM. Every lead captured on the website is pushed here automatically, usually within seconds. Memberships and community features live here as well. This is where you actually work your leads — see Section 6.5.</p>
+
+<h2>2.5 Stripe &amp; Printify</h2>
+<p>Used only by the merchandise storefront, which is currently in test mode. See Section 11 before doing anything with merch.</p>
+
+<!-- 3 -->
+<h1>3. Signing In to Your Dashboard</h1>
+
+<h2>3.1 Where to Go</h2>
+<p>Your dashboard lives at:</p>
+<pre>https://pwrhaus.netlify.app/admin/</pre>
+<div class="tip"><b>💡 Tip</b>Bookmark this. Note the trailing slash — <code>/admin/</code> — it matters.</div>
+
+<h2>3.2 Signing In</h2>
+<ol class="s">
+<li>Go to <span class="url">https://pwrhaus.netlify.app/admin/</span></li>
+<li>Enter the email address and password you were given</li>
+<li>Click <strong>Sign in</strong></li>
+</ol>
+<p>You'll land on the dashboard with your events listed. Your session is remembered, so you usually won't have to sign in again on the same device.</p>
+<div class="note"><b>Note</b>Only approved accounts can reach the dashboard. There is no "create account" option, on purpose — that's a security measure protecting your lead list.</div>
+
+<h2>3.3 Two-Step Verification <span class="new">New</span></h2>
+<p>Signing in now takes a second step: a six-digit code from an authenticator app on your phone. Your password alone is no longer enough to open the dashboard — which matters, because the dashboard holds your entire lead list.</p>
+
+<p><strong>Setting it up (once):</strong></p>
+<ol class="s">
+<li>Install an authenticator app on your phone if you don't have one &mdash; <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong> and <strong>1Password</strong> all work</li>
+<li>Sign in to the dashboard as usual. You'll see <strong>&ldquo;Secure your dashboard&rdquo;</strong></li>
+<li>Tap <strong>Set up authenticator</strong> &mdash; a QR code appears</li>
+<li>In your authenticator app, add a new account and scan that QR code</li>
+<li>Type the six-digit code the app shows into <strong>Verification code</strong>, then tap <strong>Verify and continue</strong></li>
+</ol>
+
+<p><strong>Every time you sign in after that:</strong> enter your email and password, then open your authenticator app and type the current six-digit code.</p>
+
+<div class="tip"><b>&#128161; The code changes every 30 seconds</b>If it's about to roll over, wait for the fresh one rather than rushing &mdash; a code typed as it expires will be rejected.</div>
+
+<div class="warn"><b>&#9888; Do not lose your authenticator</b>If you replace or wipe your phone <em>without</em> moving your authenticator across, you will not be able to sign in and your developer will have to reset it for you. When you set it up, either save the backup text code shown under the QR code somewhere safe, or use an authenticator that syncs across your devices (1Password and Google Authenticator both do).</div>
+
+<h2>3.4 Install It on Your Phone</h2>
+<p>The dashboard can be installed like an app, so it sits on your home screen with the PWRHaus mark and opens full-screen.</p>
+<ul class="pl">
+<li><strong>iPhone / iPad:</strong> open the dashboard in Safari → tap the Share button → <strong>Add to Home Screen</strong></li>
+<li><strong>Android:</strong> open it in Chrome → tap the three-dot menu → <strong>Install app</strong> (or use the Install app link in the dashboard sidebar)</li>
+</ul>
+
+<h2>3.5 Signing Out</h2>
+<p>Click <strong>Sign out</strong> — bottom of the sidebar on a computer, top-right on a phone.</p>
+
+<!-- 4 -->
+<h1>4. Managing Events</h1>
+
+<h2>4.1 The Events Screen</h2>
+<p>This is what you see when you sign in. Across the top are four counts:</p>
+<table>
+<thead><tr><th>Tile</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Upcoming</td><td>Events whose date is still in the future — published or not.</td></tr>
+<tr><td>Published</td><td>Events currently visible on the public website.</td></tr>
+<tr><td>Draft</td><td>Events you've created but not published. Nobody outside can see these.</td></tr>
+<tr><td>Registrations</td><td>Shows "—" for now. Reserved for when ticketing is added.</td></tr>
+</tbody>
+</table>
+<p>Below the counts, each event appears as a card with its photo, name, city, date, venue, price, capacity, and a <strong>Published</strong> or <strong>Draft</strong> badge.</p>
+
+<h2>4.2 Add an Event</h2>
+<ol class="s">
+<li>Click <strong>New event</strong> (top right, or the <strong>New</strong> tab on a phone)</li>
+<li>Type the <strong>Name</strong> — the web address fills in automatically as you type</li>
+<li>Fill in <strong>City</strong>, <strong>Venue</strong>, and <strong>Date &amp; time</strong></li>
+<li>Enter <strong>Price</strong> in dollars (enter <code>0</code> for a free event) and <strong>Capacity</strong></li>
+<li>Write a <strong>Summary</strong> — one or two lines, shown on the events list</li>
+<li>Write the <strong>Body</strong> — the longer description on the event's own page</li>
+<li>Add a <strong>Registration URL</strong> if you're using an outside ticketing link (optional)</li>
+<li>Click <strong>Image</strong> and choose a photo from your device — you'll see a preview</li>
+<li>Write <strong>Image alt text</strong> — a short description of the photo (required)</li>
+<li>Tick <strong>Published</strong> when you're ready for it to be public, then click <strong>Save event</strong></li>
+</ol>
+<div class="tip"><b>💡 Tip</b>Leave <strong>Published</strong> unticked to save a draft. Nothing appears publicly until you tick it — the safe way to prepare an event in advance.</div>
+<div class="note"><b>Why alt text?</b>It describes the photo for visually impaired visitors and for search engines. One plain sentence is perfect — "Golfers walking together across a green course."</div>
+
+<h2>4.3 Edit an Event</h2>
+<ol class="s">
+<li>Find the event card and click <strong>Edit</strong></li>
+<li>Change whatever you need — every field is editable</li>
+<li>Click <strong>Save event</strong></li>
+</ol>
+<p>Leave the Image field alone if you're happy with the current photo — it stays as it is.</p>
+
+<h2>4.4 Publish / Unpublish</h2>
+<p>Each card has a button reading <strong>Publish</strong> or <strong>Unpublish</strong> depending on its current state. Click it to flip.</p>
+<ul class="pl">
+<li><strong>Publish</strong> — the event appears on the Events page and gets its own page.</li>
+<li><strong>Unpublish</strong> — it disappears from the public site but is kept safely as a draft.</li>
+</ul>
+<div class="tip"><b>💡 Tip</b>Unpublishing is the gentle alternative to deleting. Use it for an event that's finished, postponed, or not ready.</div>
+
+<h2>4.5 Reorder Events</h2>
+<p>The order of your event cards is the order visitors see. Two ways to change it:</p>
+<ul class="pl">
+<li><strong>Drag and drop</strong> — grab a card and move it up or down.</li>
+<li><strong>Arrow buttons</strong> — click <strong>↑</strong> or <strong>↓</strong> on a card. Easier on a phone, and works with a keyboard.</li>
+</ul>
+
+<h2>4.6 Duplicate an Event</h2>
+<p>Click <strong>Duplicate</strong> to copy an event. The copy is created as an <strong>unpublished draft</strong> named "… (copy)". Ideal for a recurring event — duplicate it, change the date, publish.</p>
+
+<h2>4.7 Delete an Event</h2>
+<ol class="s">
+<li>Click <strong>Delete</strong> on the event card</li>
+<li>Confirm when asked</li>
+</ol>
+<div class="warn"><b>⚠ Permanent</b>Deleting cannot be undone. If you only want it off the website, use <strong>Unpublish</strong> instead.</div>
+
+<h2>4.8 Photo Tips</h2>
+<ul class="pl">
+<li>Landscape (wider than tall) photos work best on event cards.</li>
+<li>Photos taken on a modern phone are more than large enough.</li>
+<li>Very large files make pages slower to load — if a photo is over about 3 MB, resize it first.</li>
+<li>Uploaded photos are stored automatically. You don't need to name or organise them.</li>
+</ul>
+
+<!-- 5 -->
+<h1>5. Editing Page Content</h1>
+
+<h2>5.1 What You Can Edit</h2>
+<p>Click <strong>Site Content</strong> in the sidebar. You can edit the <strong>hero</strong> — the big banner at the top — of each of these pages:</p>
+<p><strong>Home &nbsp;·&nbsp; Events &nbsp;·&nbsp; Membership &nbsp;·&nbsp; Lessons &nbsp;·&nbsp; Corporate &nbsp;·&nbsp; Sponsors &nbsp;·&nbsp; About</strong></p>
+<p>Each hero has three text fields:</p>
+<table>
+<thead><tr><th>Field</th><th>What It Is</th></tr></thead>
+<tbody>
+<tr><td>Eyebrow</td><td>The small line above the headline — e.g. "Membership".</td></tr>
+<tr><td>Heading</td><td>The large headline. Required.</td></tr>
+<tr><td>Lead</td><td>The sentence or two beneath the headline. Required.</td></tr>
+</tbody>
+</table>
+<div class="note"><b>Note</b>The buttons in a hero, and the rest of each page's content, are fixed — your developer changes those. This screen is for the headline area.</div>
+
+<h2>5.2 Edit a Page Hero</h2>
+<ol class="s">
+<li>Click <strong>Site Content</strong> in the sidebar</li>
+<li>Choose the page you want from the list</li>
+<li>Edit the <strong>Eyebrow</strong>, <strong>Heading</strong> and <strong>Lead</strong></li>
+<li>Click <strong>Save page</strong></li>
+<li>Wait about 30–60 seconds, then refresh the public page</li>
+</ol>
+
+<h2>5.3 Replacing a Hero Photo</h2>
+<p>The photos and videos already on your pages are part of the website and look after themselves — you don't need to touch them. If you do want to swap a photo, the option is tucked away so it isn't in your way day to day.</p>
+<ol class="s">
+<li>In <strong>Site Content</strong>, choose the page</li>
+<li>Click <strong>Replace hero media (optional)</strong> to expand it</li>
+<li>Click <strong>Hero image</strong> and choose a photo — a preview appears</li>
+<li>Adjust <strong>Focal position</strong> if the important part of the photo is off-centre (see 5.4)</li>
+<li>Click <strong>Save page</strong></li>
+</ol>
+<div class="note"><b>Home and Events pages</b>These two use background <em>videos</em> rather than photos. You'll see video and poster path fields instead of an upload button — leave those alone unless your developer has given you a new file name.</div>
+
+<h2>5.4 Focal Position</h2>
+<p>A hero photo is cropped to fit a wide, short banner, so part of it is always cut off. Focal position tells the site which part to keep in view.</p>
+<p>It's two percentages — left-to-right, then top-to-bottom:</p>
+<table>
+<thead><tr><th>Value</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>50% 50%</td><td>Dead centre. The default.</td></tr>
+<tr><td>50% 30%</td><td>Shows more of the <strong>top</strong> — good when faces or sky are high in the frame.</td></tr>
+<tr><td>50% 70%</td><td>Shows more of the <strong>bottom</strong>.</td></tr>
+</tbody>
+</table>
+<div class="tip"><b>💡 Tip</b>If a new photo looks like it's cutting off someone's head, lower the second number and save again. Adjust in steps of 10 until it looks right.</div>
+
+<!-- 6 -->
+<h1>6. CRM — Your Leads <span class="upd">Updated</span></h1>
+
+<h2>6.1 The Leads Screen</h2>
+<p>Click <strong>CRM</strong> in the sidebar. This shows everyone who has submitted a form on your website. Four counts sit at the top:</p>
+<table>
+<thead><tr><th>Tile</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Contacts</td><td>Total people captured.</td></tr>
+<tr><td>New this week</td><td>Captured in the last 7 days.</td></tr>
+<tr><td>Members</td><td>People marked with the "member" tier.</td></tr>
+<tr><td>Inner circle</td><td>People marked with the "inner circle" tier.</td></tr>
+</tbody>
+</table>
+<p>Below that, matching leads appear newest first — name, tier badge, email, source, join date, and how many times they've enquired. Results are shown 100 at a time, with the total matching count and <strong>Previous</strong> / <strong>Next</strong> controls, so the dashboard can handle imports of thousands of contacts.</p>
+<div class="note"><b>Read-only</b>This screen is for looking, not editing. You can't change or delete a lead here — deliberately, so nothing is lost by accident. Work your leads in GoHighLevel (6.5).</div>
+
+<h2>6.2 Search &amp; Filter</h2>
+<ul class="pl">
+<li><strong>Capture period</strong> — choose <strong>Today</strong>, <strong>This week</strong>, <strong>This month</strong>, <strong>This quarter</strong>, or <strong>All time</strong> to review when the lead was captured.</li>
+<li><strong>Custom range</strong> — choose <strong>Custom range</strong>, enter the <strong>From</strong> and <strong>To</strong> dates, then click <strong>Apply dates</strong>. Both dates are included.</li>
+<li><strong>Search box</strong> — type part of a name or email; the list narrows as you type.</li>
+<li><strong>Tier filter</strong> — show only Free, Member, or Inner circle.</li>
+<li><strong>Source filter</strong> — show only people who came from a particular form.</li>
+</ul>
+<p>You can combine the capture-period filter with search, tier, and source. The filters apply across the entire lead database, not only the 100 contacts currently visible.</p>
+<div class="tip"><b>💡 Example</b>To review leads captured during a specific campaign month, choose <strong>Custom range</strong>, enter the first and last day of the month, and click <strong>Apply dates</strong>. Use <strong>All time</strong> after the GHL import to confirm the full contact count.</div>
+<div class="tip"><b>💡 Tip</b>Avoid typing <code>%</code> or <code>_</code> in the search box — they're treated as wildcards and return odd results. Plain words work best.</div>
+
+<h2>6.3 Lead Detail</h2>
+<p>Click any lead to open their detail panel:</p>
+<ul class="pl">
+<li>Name, email, phone, tier, source, join date</li>
+<li>Their first-touch message, if they left one</li>
+<li><strong>Inquiries</strong> — every form they've ever submitted, newest first, with source, message and date</li>
+<li><strong>View in GHL</strong> — opens this person in GoHighLevel</li>
+</ul>
+<div class="tip"><b>💡 Why the inquiry history matters</b>Someone who filled in a free-profile form in September and a sponsorship form in November is a warm lead. That trail is exactly what this panel shows you.</div>
+<p>Press <strong>Escape</strong> or click <strong>Close</strong> to dismiss the panel.</p>
+
+<h2>6.4 Where Leads Come From</h2>
+<table>
+<thead><tr><th>Source</th><th>Where It's From</th></tr></thead>
+<tbody>
+<tr><td>web_free_profile</td><td>The "Create free profile" form on the home page.</td></tr>
+<tr><td>web_event_interest</td><td>The "Keep me posted" form on the Events page.</td></tr>
+<tr><td>web_lessons</td><td>The Lessons page enquiry form.</td></tr>
+<tr><td>web_sponsor</td><td>The Sponsors page enquiry form.</td></tr>
+<tr><td>web_corporate</td><td>The Corporate page enquiry form.</td></tr>
+<tr><td>web_gate</td><td>The welcome pop-up shown to first-time visitors.</td></tr>
+</tbody>
+</table>
+
+<h2>6.5 Dashboard vs GoHighLevel</h2>
+<p>You have two places that hold contacts. They do different jobs:</p>
+<table>
+<thead><tr><th>&nbsp;</th><th>What It's For</th></tr></thead>
+<tbody>
+<tr><td>Your dashboard</td><td>The permanent record of what your <strong>website</strong> captured — who submitted what, and when. Never edited, so nothing is lost.</td></tr>
+<tr><td>GoHighLevel</td><td>Your <strong>working</strong> CRM — where you follow up, tag, run campaigns, and manage memberships.</td></tr>
+</tbody>
+</table>
+<p>Information flows <strong>one way</strong>: website form → your database → GoHighLevel. So changes you make in GoHighLevel do not appear in the dashboard, and that is expected.</p>
+<div class="note"><b>Note</b>The dashboard currently shows leads captured <em>by the website</em>. Your existing GoHighLevel contacts will be imported at launch, after which they'll appear here too.</div>
+
+<!-- 7 -->
+<!-- 7 TICKETS -->
+<h1>7. Selling Event Tickets</h1>
+<p>Your site can now sell tickets to your events directly, with card payments handled by Stripe. This replaces selling tickets through WIX.</p>
+<div class="warn"><b>&#9888; Test Mode &mdash; Not Live Yet</b>Ticketing is currently connected to Stripe in <strong>test mode</strong>, so no real card can be charged and no real money moves. Everything is built and waiting &mdash; switching it on for real sales is a deliberate step (see 7.6).</div>
+
+<h2>7.1 How It Works</h2>
+<div class="tl">
+  <div class="tl-row"><div class="tl-t">Buyer picks tickets</div><div class="tl-a">On your event page they enter their name, email, and how many tickets they want.</div></div>
+  <div class="tl-row"><div class="tl-t">They pay</div><div class="tl-a">They are taken to Stripe&rsquo;s secure checkout &mdash; card, Apple&nbsp;Pay or Google&nbsp;Pay. You never handle card details.</div></div>
+  <div class="tl-row"><div class="tl-t">Tickets are issued</div><div class="tl-a">One ticket per seat, each with its own ticket number. The buyer&rsquo;s own seat is assigned to them automatically.</div></div>
+  <div class="tl-row"><div class="tl-t">They add their guests</div><div class="tl-a">They get a private link to name the people joining them. Each guest gets their own ticket &mdash; and lands in your CRM.</div></div>
+</div>
+<div class="tip"><b>&#128161; Why guests are added afterwards</b>Asking for three colleagues&rsquo; email addresses <em>before</em> payment is where group bookings get abandoned. Buyers pay in seconds, then fill in their guests afterwards when they have the details to hand &mdash; which also means the addresses you get are accurate.</div>
+
+<h2>7.2 Turning Sales On for an Event</h2>
+<p>Ticket sales are <strong>off</strong> for every event until you deliberately switch them on &mdash; so publishing an event never accidentally starts selling.</p>
+<ol class="s">
+<li>Set the event&rsquo;s <strong>member price</strong> and <strong>non-member price</strong></li>
+<li>Set the date sales should close (usually the day before the event)</li>
+<li>Switch ticket sales <strong>on</strong> for that event</li>
+<li>Check the public event page &mdash; you should see both prices and a booking form</li>
+</ol>
+<div class="note"><b>Note</b>Setting these prices is a developer step for now. Ask your developer to set them for an event, or to add price fields to your dashboard.</div>
+
+<h2>7.3 Member vs Non-Member Pricing</h2>
+<p>Both prices show on the event page, just as they did before. The difference is that the member rate is now <strong>verified</strong>: the site checks the buyer&rsquo;s email against your member list and applies the member price only if they really are a member. On WIX, anyone could simply select the cheaper &ldquo;member&rdquo; ticket.</p>
+<div class="tip"><b>&#128161; Buyers pay less than they did on WIX</b>WIX added a 2.5% &ldquo;service fee&rdquo; on top of every ticket. Your site does not &mdash; a $75 ticket costs the buyer $75.</div>
+
+<h2>7.4 What the Buyer Receives</h2>
+<p>After paying, the buyer lands on a thank-you page carrying their <strong>&ldquo;Add your guests&rdquo;</strong> link, and Stripe emails them a payment receipt.</p>
+<p>Once a seat has a name against it, that seat gets a proper ticket showing:</p>
+<ul class="pl">
+<li>The <strong>event name</strong>, with the date, time and venue</li>
+<li>The <strong>attendee</strong> &mdash; the name and email of the person actually attending</li>
+<li>The <strong>ticket type</strong> &mdash; member or non-member</li>
+<li><strong>Ordered by</strong> &mdash; who bought it, and when (so a guest&rsquo;s ticket shows who invited them)</li>
+<li>The <strong>ticket number</strong>, order number and payment status</li>
+<li>A <strong>QR code</strong> for the door</li>
+</ul>
+<div class="tip"><b>&#128161; Why &ldquo;Ordered by&rdquo; matters</b>When somebody arrives as a guest, their ticket tells you who brought them. That is the introduction you actually want to know about at the door.</div>
+<div class="warn"><b>&#9888; The deadline for naming guests</b>Guests must be named by <strong>three hours after the event start time</strong>. After that the seat is forfeited &mdash; no refund, and it cannot be moved to a future event. This is deliberate: it stops unnamed seats piling up indefinitely and keeps your guest list honest. Chase unnamed seats before the event, not after.</div>
+<div class="warn"><b>&#9888; Ticket Emails Are Waiting on Email Setup</b>The branded ticket emails &mdash; the confirmation, each guest&rsquo;s own ticket, and the reminder to fill in missing names &mdash; are built and ready, but they cannot send until your domain&rsquo;s email service is connected (see Section 10). Until then, the thank-you page is how the buyer gets their guest link. Sort this out before you sell for real.</div>
+
+<h2>7.5 Seeing Your Guest List</h2>
+<p>In the dashboard, the <strong>Registrations</strong> figure on the Events screen is now a real count, and each event has a guest list showing who is coming, whether they paid the member or non-member rate, and which seats still have no name against them.</p>
+<div class="tip"><b>&#128161; This is the whole point</b>Every guest who gets named becomes a contact in your CRM &mdash; including people who came as somebody else&rsquo;s guest. Those are exactly the warm introductions the society exists to create, so it is worth chasing the unnamed seats.</div>
+
+<h2>7.6 Before You Sell for Real</h2>
+<p>Four things must happen first. Your developer handles all of them:</p>
+<ul class="pl">
+<li>Your real Stripe account connected (it is on test keys today)</li>
+<li>Your domain&rsquo;s email service connected, so ticket emails can send</li>
+<li>Prices and a sales-close date set for the event</li>
+<li>The old WIX listing taken down &mdash; never sell the same event in two places at once</li>
+</ul>
+
+<h1>8. Checking Guests In at the Door <span class="new">New</span></h1>
+<p>Your dashboard doubles as a door list. On the night, open it on your phone and check people in as they arrive &mdash; no printed sheet, no crossing names off.</p>
+
+<h2>8.1 Before the Event</h2>
+<ol class="s">
+<li>Sign in to the dashboard on your phone (see 3.4 to add it to your home screen)</li>
+<li>Tap <strong>Check-in</strong> and pick the event</li>
+<li>You will see the full guest list and a running count of who has arrived</li>
+</ol>
+<div class="tip"><b>&#128161; Do this before you leave the house</b>Sign in while you still have good signal. The door of a golf club is a bad place to discover you have forgotten your password.</div>
+
+<h2>8.2 Checking Someone In</h2>
+<p>There are two ways. Scanning is quicker; typing the number always works as a backup:</p>
+<ul class="pl">
+<li><strong>Type the ticket number</strong> &mdash; read it off the guest&rsquo;s ticket and enter it. Useful when a phone screen is cracked, dimmed, or the guest cannot find their ticket.</li>
+<li><strong>Scan their QR code</strong> &mdash; tap <strong>Start scanning</strong> and point the camera at the ticket.</li>
+</ul>
+<p>When you tap <strong>Start scanning</strong>, hold the phone so the guest&rsquo;s QR code fills a good part of the frame. It reads in about a second.</p>
+<div class="tip"><b>&#128161; If your phone&rsquo;s built-in scanner struggles</b>Some phones have a built-in QR reader that quietly fails to focus on a screen. After a few seconds the dashboard notices, switches itself to a backup scanner, and tells you it has done so. You don&rsquo;t need to do anything &mdash; just keep pointing at the code.</div>
+
+<h2>8.3 Guests With No Name Yet</h2>
+<p>If somebody arrives on a seat that was never named, the dashboard asks you for their name and email right there. Enter it and they are checked in &mdash; and they land in your CRM like any other guest.</p>
+<div class="tip"><b>&#128161; A second chance at the introduction</b>An unnamed seat is a person you would otherwise never have captured. Thirty seconds at the door turns them into a contact you can follow up with.</div>
+
+<h2>8.4 What the Screen Tells You</h2>
+<p>After each scan a full-screen result covers the camera and <strong>scanning pauses</strong> until you tap <strong>OK</strong>. That is deliberate &mdash; at a busy door it is otherwise very easy to scan three people while looking at the queue and never notice that one of them was refused.</p>
+<table>
+<thead><tr><th>You see</th><th>What it means</th></tr></thead>
+<tbody>
+<tr><td>Green &mdash; checked in</td><td>All good. Their name and ticket type are shown.</td></tr>
+<tr><td>Already checked in</td><td>This ticket has been used. It shows the time of the first check-in &mdash; useful if somebody is trying a screenshot of a friend&rsquo;s ticket.</td></tr>
+<tr><td>Not for this event</td><td>A valid ticket, but for a different event.</td></tr>
+<tr><td>Ticket not recognised</td><td>The number does not exist. Check for a typo first.</td></tr>
+<tr><td>Refunded or expired</td><td>The ticket is no longer valid and should not be admitted.</td></tr>
+</tbody>
+</table>
+
+<h2>8.5 Patchy Signal</h2>
+<p>Golf clubs are not famous for their mobile coverage. If your connection drops mid-check-in, the dashboard holds those check-ins and sends them automatically once you are back online. Nobody gets turned away and nothing is lost.</p>
+
+<h2>8.6 After the Event</h2>
+<p>The arrival list stays on the event, so you can see who actually turned up as opposed to who bought a ticket. No-shows keep their record too &mdash; useful when you are deciding who to invite next time.</p>
+<div class="note"><b>Note</b>Checking someone in never changes their ticket or their payment. It only records that they arrived.</div>
+
+<h1>9. Publishing — How Changes Reach the Site</h1>
+<p>You never have to press a separate "publish site" button. Saving anything in the dashboard starts the process automatically.</p>
+<ol class="s">
+<li>You click <strong>Save</strong> (an event, or a page's content)</li>
+<li>The change is stored immediately — the dashboard reflects it at once</li>
+<li>An indicator reads <strong>"Publishing… live in ~30s"</strong></li>
+<li>The website rebuilds with your change and goes live, usually within 30–60 seconds</li>
+</ol>
+<div class="note"><b>Note</b>The dashboard always shows the truth immediately. The public site takes up to a minute to catch up. If a page looks unchanged, give it a minute and refresh before worrying.</div>
+<div class="warn"><b>⚠ If nothing ever publishes</b>Check that auto-publishing is still ON in Netlify (see 2.2). With it off, changes rebuild but never go live.</div>
+
+<!-- 8 -->
+<h1>10. Password Reset</h1>
+<ol class="s">
+<li>On the sign-in screen, click <strong>Forgot password?</strong></li>
+<li>Enter your email address and click <strong>Send reset link</strong></li>
+<li>Open the email and click the link — it returns you to the dashboard</li>
+<li>Type a new password (at least 8 characters) and click <strong>Save password</strong></li>
+</ol>
+<div class="note"><b>Note</b>The link is single-use and expires after about an hour. If it's expired, simply request another.</div>
+<div class="warn"><b>⚠ Before Launch</b>Password-reset emails currently send through Supabase's built-in sender, which is rate-limited to a few messages per hour and intended for testing. A dedicated email service is being configured before launch. If a reset email doesn't arrive, wait an hour or contact your developer.</div>
+
+<!-- 9 -->
+<h1>11. Merchandise (Test Mode)</h1>
+<p>The <code>/merch</code> page shows PWRHaus gear pulled live from Printify, with checkout through Stripe.</p>
+<div class="warn"><b>⚠ Not Live — Do Not Promote</b>Merchandise is in <strong>test mode</strong>. Stripe uses sandbox keys, so no real card can be charged, and Printify only receives <strong>draft orders</strong> — nothing is printed or shipped. Do not advertise the merch page until your developer confirms it has been switched to live.</div>
+<p>Going live requires your real Stripe account keys, a live payment webhook, and deliberately enabling Printify fulfilment. Your developer handles all of it.</p>
+
+<!-- 10 -->
+<h1>12. Security &amp; Access</h1>
+<table>
+<thead><tr><th>Protection</th><th>What It Does</th></tr></thead>
+<tbody>
+<tr><td>Two-step verification</td><td>A six-digit code from your authenticator app is required in addition to your password (Section 3.3).</td></tr>
+<tr><td>Named admin accounts</td><td>Only specifically approved accounts can open the dashboard. Public sign-up is disabled, and simply having <em>any</em> login is not enough.</td></tr>
+<tr><td>Database rules</td><td>Your lead data can only be read by an approved admin session — never by a website visitor, and never by an ordinary signed-in user.</td></tr>
+<tr><td>Drafts stay private</td><td>Unpublished events are invisible to the public, even to someone who knows the address.</td></tr>
+<tr><td>Hidden from search</td><td>The dashboard is marked so Google won't index it.</td></tr>
+</tbody>
+</table>
+<div class="warn"><b>⚠ Two settings that must not change</b>In Supabase → Authentication → Email: the Email provider stays <strong>ON</strong> (this is what lets you sign in) and "Allow new users to sign up" stays <strong>OFF</strong> (this is what keeps strangers out of your lead list).</div>
+<ul class="pl">
+<li>Use a strong, unique password and don't share the login.</li>
+<li>Sign out on shared or public computers.</li>
+<li>If you think the password has been exposed, reset it straight away (Section 10).</li>
+</ul>
+
+<!-- 11 -->
+<h1>13. Troubleshooting</h1>
+<table>
+<thead><tr><th>Problem</th><th>What to Do</th></tr></thead>
+<tbody>
+<tr><td>Can't sign in</td><td>Check the email and password. If it still fails, use <strong>Forgot password?</strong> (Section 10). If <em>every</em> attempt fails immediately, the Supabase Email provider may have been switched off — contact your developer.</td></tr>
+<tr><td>Change isn't on the site</td><td>Wait 60 seconds and refresh. Then hard-refresh (<code>Ctrl</code>+<code>Shift</code>+<code>R</code>). If still missing, check auto-publishing is ON in Netlify.</td></tr>
+<tr><td>"Dashboard not configured"</td><td>The site lost its database settings. Contact your developer.</td></tr>
+<tr><td>Photo won't upload</td><td>Check it's a normal image (JPG/PNG) and not enormous. Try a smaller file. If every photo fails, contact your developer.</td></tr>
+<tr><td>Event won't save</td><td>Look for red text under the fields — usually a missing heading, alt text, or an invalid price. Fix the highlighted fields and save again.</td></tr>
+<tr><td>Published event isn't showing</td><td>Confirm the badge reads <strong>Published</strong>, then wait for the rebuild. Note that past-dated events appear under "Recent rounds" rather than "Upcoming".</td></tr>
+<tr><td>Leads list is empty</td><td>Check your search box and filters are cleared.</td></tr>
+<tr><td>Reset email never arrives</td><td>Check spam. The built-in sender is rate-limited — wait an hour and retry (Section 10).</td></tr>
+<tr><td>QR code won&rsquo;t scan at the door</td><td>Hold the phone so the code fills more of the frame and let it focus. If it still will not read, type the ticket number instead (Section 8.2).</td></tr>
+<tr><td>Authenticator code rejected</td><td>Wait for the next code and retype it &mdash; codes expire every 30 seconds. If every code fails, your phone&rsquo;s clock may be out of sync; turn on automatic date &amp; time.</td></tr>
+<tr><td>Lost or replaced your phone</td><td>You will not be able to complete sign-in. Contact your developer to reset your authenticator.</td></tr>
+<tr><td>Check-in says "already checked in"</td><td>That ticket has been used. The time of the first check-in is shown &mdash; if that was not them, they may be showing somebody else&rsquo;s ticket.</td></tr>
+<tr><td>Site is completely down</td><td>Check Netlify for a failed deploy, then contact your developer.</td></tr>
+</tbody>
+</table>
+
+<!-- 12 -->
+<h1>14. Quick Reference Cheat Sheet</h1>
+<table>
+<thead><tr><th>I want to…</th><th>Do this</th></tr></thead>
+<tbody>
+<tr><td>Sign in</td><td>pwrhaus.netlify.app/admin/ → password → six-digit code from your authenticator</td></tr>
+<tr><td>Add an event</td><td>Events → New event → fill in → tick Published → Save</td></tr>
+<tr><td>Hide an event</td><td>Events → Unpublish on the card</td></tr>
+<tr><td>Prepare an event quietly</td><td>Create it and leave Published unticked</td></tr>
+<tr><td>Reorder events</td><td>Drag the cards, or use ↑ / ↓</td></tr>
+<tr><td>Repeat last year's event</td><td>Duplicate → change the date → Publish</td></tr>
+<tr><td>Change a page headline</td><td>Site Content → pick the page → edit → Save page</td></tr>
+<tr><td>Swap a hero photo</td><td>Site Content → page → Replace hero media → upload → Save page</td></tr>
+<tr><td>Fix an awkward photo crop</td><td>Adjust Focal position — lower the 2nd number to show more of the top</td></tr>
+<tr><td>See who enquired</td><td>CRM → search or filter → click a lead</td></tr>
+<tr><td>Follow up with a lead</td><td>CRM → open the lead → View in GHL</td></tr>
+<tr><td>Reset my password</td><td>Sign-in screen → Forgot password?</td></tr>
+<tr><td>Check a guest in at the door</td><td>Check-in → pick the event → type their ticket number</td></tr>
+<tr><td>Add a guest who was never named</td><td>Check-in → enter their ticket number → fill in the name and email when asked</td></tr>
+<tr><td>Put it on my phone</td><td>Open /admin/ → Share → Add to Home Screen (iPhone) or Install app (Android)</td></tr>
+</tbody>
+</table>
+<div class="tip"><b>💡 The one rule to remember</b>The dashboard updates instantly; the public website takes about 30–60 seconds. If something looks unchanged, wait a minute and refresh.</div>
+
+<!-- 13 -->
+<h1>15. Contact</h1>
+<table>
+<thead><tr><th>&nbsp;</th><th>&nbsp;</th></tr></thead>
+<tbody>
+<tr><td>Website</td><td>www.pwrhausgolfsociety.com</td></tr>
+<tr><td>Current Address</td><td>https://pwrhaus.netlify.app</td></tr>
+<tr><td>Dashboard</td><td>https://pwrhaus.netlify.app/admin/</td></tr>
+<tr><td>Email</td><td>hello@pwrhausgolfsociety.com</td></tr>
+<tr><td>Instagram</td><td>@pwrhausgolfsociety</td></tr>
+<tr><td>Facebook</td><td>facebook.com/profile.php?id=61571066276558</td></tr>
+<tr><td>LinkedIn</td><td>linkedin.com/company/pwrhaus-golf-society</td></tr>
+<tr><td>Chapters</td><td>Fort Lauderdale · Miami · New York City</td></tr>
+<tr><td>Mailing Address</td><td>160 W Camino Real, Unit 547, Boca Raton, FL 33496</td></tr>
+</tbody>
+</table>
+
+<div class="footer">
+  <span>PWRHAUS Golf Society &nbsp;·&nbsp; Fort Lauderdale &amp; Miami</span>
+  <span>Version 1.5 &nbsp;·&nbsp; August 2026 &nbsp;·&nbsp; Confidential</span>
+</div>
+
+</body>
+</html>
