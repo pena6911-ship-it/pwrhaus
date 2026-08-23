@@ -180,6 +180,57 @@ device next; **`0012_require_mfa.sql` stays unapplied until both show verified.*
 plain `fetch` using `SUPABASE_SERVICE_ROLE_KEY` from `.env`. Worth recreating or committing
 if MFA administration comes up again.
 
+### NEXT ACTIONS — start here (as of 2026-08-22, end of session)
+
+Ordered. Items 1-3 are owner-run and need no code.
+
+1. **Delete the duplicate SPF record** (owner, ~5 min, Wix DNS panel). The zone
+   publishes both `v=spf1 include:_spf.google.com ~all` and
+   `v=spf1 include:secureserver.net -all`. Two SPF records = permerror = SPF is
+   failing today for the client's real business email. Remove the
+   `secureserver.net` one after confirming nothing still sends via GoDaddy/M365.
+   Detail: `docs/superpowers/specs/2026-08-22-dns-migration-cloudflare.md` § 0.1.
+2. **Michelle enrols MFA on her own phone.** `hello@pwrhausgolfsociety.com` has
+   no factor by design. She needs her password (Auth email is dead — set it with
+   the Supabase Auth admin API and pass it by phone) and an authenticator app.
+   Do it on a call. She will land on "Set up authenticator" with a working QR.
+3. **Then, and only then, apply `0012_require_mfa.sql`.** Both accounts must show
+   a *verified* factor first. Verify via
+   `GET /auth/v1/admin/users/{id}` → `factors[]`.
+4. **Switch ticket email on** (owner ~30 min, then no code): Google Cloud project
+   → enable Gmail API → OAuth consent screen **Internal** → Desktop OAuth client
+   → consent once as the sending mailbox with **only** the `gmail.send` scope →
+   set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REFRESH_TOKEN` in
+   Netlify. Steps: same doc § 5.1. Verify per § 5.2.
+5. **Configure Supabase Auth SMTP** (Project Settings → Authentication → SMTP)
+   with Google Workspace credentials. This is a *separate pipe* from ticket
+   email — wiring item 4 does nothing for it. Until it is done, a locked-out
+   admin needs service-role intervention.
+
+**Known gaps, not scheduled:**
+
+- No self-service authenticator reset — a lost phone requires a developer.
+- `sales_end_at` (ticket sales close date) is still not editable in the dashboard;
+  every other pricing field now is.
+- The live-availability endpoint falls back to full capacity on fetch failure, so
+  a sold-out event can briefly read as available during an outage. Accepted, and
+  documented in the manual.
+- CAPTCHA is disabled on auth because the dashboard passes no token; re-enable
+  only after adding a Turnstile/hCaptcha integration.
+- Scanner hypothesis H2 was never addressed: `getUserMedia` requests no
+  resolution or focus constraints. Scanning works, so this is only worth doing if
+  it proves slow or finicky in the field.
+
+**Do NOT do:**
+
+- Do not send the client email in the DNS doc appendix — it asks Michelle to
+  approve a migration that is no longer needed.
+- Do not apply `0012` before item 3's precondition is met.
+- Do not cancel the Wix account before DNS moves — the registration is safe at
+  GoDaddy, but Wix serves the whole zone and the DMARC CNAME.
+- Do not push `feat/rebrand-official`. Only `main` goes up until Michelle
+  reviews the rebrand.
+
 ---
 
 ## Open threads / next steps
