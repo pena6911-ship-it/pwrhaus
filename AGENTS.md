@@ -28,10 +28,20 @@ For merch webhook testing: `stripe listen --api-key <sk_test> --forward-to http:
 
 ## Branch model (IMPORTANT)
 
-- **`main`** = the real production site. Site changes land here.
-- **`poc/merch`** = `main`'s site work **plus** the merch POC (Stripe+Printify). NOT production-ready.
+- **`main`** = the real production site. **All work lands here**, merch included.
+- **`feat/rebrand-official`** = the official-brand-deck re-theme of the whole site and dashboard, kept alive so both looks can be shown to the client. **Merge `main` into it after every change to `main`** (no approval needed); on conflicts keep the deck's theme. **Never push it** — only `main` goes to the remote until the client picks a direction.
+- **`poc/merch`** = *historical*. Fully contained in `main` and kept for reference only.
 
-**Workflow used so far:** make **site** changes on `main`, then `git cherry-pick main` onto `poc/merch` so both stay current. Make **merch** changes on `poc/merch` only. When merch is productionized it becomes a PR `poc/merch → main` (git dedupes the cherry-picked site commits).
+**Workflow (current):** make every change on `main`, then merge `main` into
+`feat/rebrand-official` to keep it current. That is the whole model.
+
+> **Superseded 2026-08-23:** this section previously told agents to make merch
+> changes on `poc/merch` only and to `git cherry-pick main` onto it, then raise a
+> `poc/merch → main` PR. **That merge already happened** — `src/merch.njk` and
+> `functions/merch-checkout.js` are in `main`. Following the old instructions now
+> would duplicate commits or re-merge work already present. `/merch` is in the
+> production build and safe there: `PRINTIFY_LIVE=false` so `send_to_production`
+> is never called, and Stripe is on test keys.
 
 ---
 
@@ -41,7 +51,7 @@ For merch webhook testing: `stripe listen --api-key <sk_test> --forward-to http:
 - **`git add -u`, never `git add -A`.** Working dir mixes tracked code with local-only files. Add new files by explicit path.
 - **Backup branch before any risky multi-file change.**
 - **Propose diffs for review before large/irreversible changes.** Don't add new deps/build steps without asking.
-- Keep `npm test` green. `.env` is gitignored — never commit secrets. `.netlify/` and `deno.lock` are netlify scratch (ignored on `poc/merch`).
+- Keep `npm test` green. `.env` is gitignored — never commit secrets. `.netlify/` and `deno.lock` are netlify scratch.
 
 ## Design system ("Clubhouse Light")
 
@@ -86,11 +96,11 @@ had to reconstruct the state by reading diffs.
 
 ## Current state (2026-08-21)
 
-Done and pushed (site work on `main`, everything on `poc/merch`):
+Done and pushed (all on `main`):
 - **Redesign:** full-bleed hero videos/images per page; brand logo in header (CSS-cropped monogram + wordmark) + footer; monogram favicon; tagline; site-wide **lead-capture gate** (blurs page until submit/dismiss, JS-only so it's SEO-safe, posts `web_gate` → GHL).
 - **Per-page heroes** from the shared macro. **Lessons** + **Corporate** have contained portrait-video showcases. **Corporate hero** = a real event photo from venue partner **The Tips Golf Miami** (credited, links thetipsgolf.com).
 - **Footer:** Instagram + Facebook social icons (inline SVG); credit row aligned.
-- **Merch POC** (`poc/merch` only): `/merch` storefront is **built live from Printify** (`src/_data/products.js` fetches at build time — the static `products.json` in the merch spec §4 is superseded by this dynamic approach). Checkout = Stripe **test** hosted Checkout (`functions/merch-checkout.js`), webhook (`functions/merch-webhook.js`) creates a **Printify DRAFT order** only. **Safety rail: `PRINTIFY_LIVE=false` → never calls `send_to_production`.** Verified end-to-end in test mode.
+- **Merch POC** (now merged into `main`; was `poc/merch`): `/merch` storefront is **built live from Printify** (`src/_data/products.js` fetches at build time — the static `products.json` in the merch spec §4 is superseded by this dynamic approach). Checkout = Stripe **test** hosted Checkout (`functions/merch-checkout.js`), webhook (`functions/merch-webhook.js`) creates a **Printify DRAFT order** only. **Safety rail: `PRINTIFY_LIVE=false` → never calls `send_to_production`.** Verified end-to-end in test mode.
 
 `.env` keys (names only): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GHL_API_KEY`, `GHL_LOCATION_ID`, `STRIPE_SECRET_KEY` (sk_test), `STRIPE_WEBHOOK_SECRET`, `PRINTIFY_API_TOKEN`, `PRINTIFY_SHOP_ID` (28584383), `PRINTIFY_LIVE=false`, `STRIPE_MERCH_WEBHOOK_SECRET`.
 
@@ -263,7 +273,7 @@ Ordered. Items 1-3 are owner-run and need no code.
 ## Open threads / next steps
 
 1. **Asset swaps (easy, site):** the lessons (`golflessons.mp4`) and corporate (`simulator-lounge.mp4`) loops are short (~3–7s) and loop hard — owner is sourcing longer clips; swap same filenames when they land. A higher-res corporate hero from The Tips is already in (`corporate-hero.webp`, 2048px).
-2. **Merch productionization (Plan D):** live Stripe keys + `PRINTIFY_LIVE` go-live path (`send_to_production`), persist orders to Supabase (`functions/lib/orders.js` backbone exists), fulfillment-failure alerting, Printify shipment→tracking-email webhook, Stripe Tax, get polo/towel set up in Printify (only "Cap" exists). Then PR `poc/merch → main`. Spec: `docs/superpowers/specs/2026-08-14-merch-stripe-printify-design.md`.
+2. **Merch productionization (Plan D):** live Stripe keys + `PRINTIFY_LIVE` go-live path (`send_to_production`), persist orders to Supabase (`functions/lib/orders.js` backbone exists), fulfillment-failure alerting, Printify shipment→tracking-email webhook, Stripe Tax, get polo/towel set up in Printify (only "Cap" exists). **The `poc/merch → main` merge already happened** — `src/merch.njk` and `functions/merch-checkout.js` are in `main`, so `/merch` is part of the production build. It is safe because the rails are still on: `PRINTIFY_LIVE=false` (never calls `send_to_production`) and Stripe test keys. Do not re-merge the branch; `poc/merch` is fully contained in `main` and kept only for reference. Spec: `docs/superpowers/specs/2026-08-14-merch-stripe-printify-design.md`.
 3. **Michelle's Dashboard (Phase 1: Events) — BUILT on `feat/michelle-dashboard`.** Bespoke `src/admin/` SPA (plain HTML/CSS/vanilla JS, supabase-js via pinned CDN) replaces Sveltia for events: email+password login, events CRUD + image upload + drag-reorder, events-page hero editor. Supabase is the source of truth; the build reads published rows (`src/_data/events.js` / `siteContent.js`) with a `data/*.seed.json` fallback when env is absent. Save → `/api/publish` (Netlify Function) verifies the session and pings `NETLIFY_BUILD_HOOK` to rebuild. **Sveltia (`src/admin/config.yml` + GitHub OAuth) is retired.** Owner go-live steps (Supabase account, build hook, env, migration apply, deploy-preview QA): `docs/superpowers/specs/2026-08-19-michelle-dashboard-handoff.md`. Design spec: `docs/superpowers/specs/2026-08-19-michelle-dashboard-events-design.md`; plan: `docs/superpowers/plans/2026-08-19-michelle-dashboard.md`. **Phase 2a (Site Content) — SHIPPED on `feat/site-content-mgmt`.** The dashboard's Site Content view now edits every page's hero, not just events; `siteContent.js` serves per-page heroes with seed fallback; migration `0004_site_content_pages.sql` pre-seeds a `site_content` row per page; hero image uploads reuse the existing `event-media` Storage bucket. **Phase 3 (CRM lead-intake, read-only) — SHIPPED on `feat/crm-lead-intake`.** The CRM nav shows website-captured leads from `contacts`/`contact_inquiries` (RLS `0005`, authenticated-only); GHL remains the working CRM; the one-time **GHL → Supabase contact import is a deliberate go-live task** (run on launch day). **Phase 4 (event ticketing, Stripe test mode) — SHIPPED on `feat/event-ticketing`.** Buyer-only checkout on the public event page with server-verified member pricing (the browser never sends a price); one QR-bearing ticket issued per seat; token-link attendee assignment (`/tickets/manage/?token=`) that feeds the CRM; a dashboard roster per event and a real Registrations count on the Events stat row. Ticket email is dormant until `RESEND_API_KEY` is set (Stripe's own receipt still sends). Go-live steps: `docs/superpowers/specs/2026-08-19-michelle-dashboard-handoff.md`. **Phase 5 (event check-in) — SHIPPED on `feat/event-checkin`.** QR tickets rendered from `qr_token` (vendored `qrcode-generator`); session-verified `/api/tickets/checkin` endpoint; phone-first Check-in dashboard view with BarcodeDetector camera scanning, manual ticket-number entry, door capture that syncs unnamed seats to GHL, offline retry queue, and a running roster. Attendance lands in `event_attendance` and is additive (never mutates ticket status, not cleared on expiry). Migration `0009_event_checkin.sql` adds unique constraint, event index, and authenticated-read policy; check-in requires no new secrets. **Camera QR scanning: root cause found and fixed 2026-08-21 (native `BarcodeDetector` could stall forever with no fallback) — see "RESOLVED" section below. Confirmed working by the owner on Android. Manual ticket-number entry remains available.**
 4. **Member portal (Plan C / Phase 2):** portal via **GHL native** (memberships/community); Supabase stays the fact-store. Not started. Doc: `docs/superpowers/specs/2026-08-14-member-portal-and-cms-architecture.md`. (The CMS half of this thread is now delivered by the dashboard above.) When the member portal gives end users Supabase Auth accounts, the `0005` `to authenticated` read policies on `contacts`/`contact_inquiries` MUST first be tightened to an owner/admin identity check (e.g. an admins table or email pin) — otherwise every member could read the lead database. The same tightening applies to `0009`'s `to authenticated` read policy on `event_attendance`, and to `/api/tickets/checkin`, which currently authorizes on any valid session rather than an admin identity — otherwise every member could read the attendance roster or check tickets in.
 4. **⚠ LIVE EMAIL DEFECT (found 2026-08-22): the domain publishes TWO SPF records** — Google's and a leftover GoDaddy `include:secureserver.net`. RFC 7208 allows one; two make receivers return permerror, so SPF is **failing today** for the client's real business email. Only `p=none` DMARC hides it. Fix is one TXT deletion in Wix DNS, no migration needed. Also corrected: **GoDaddy is the registrar, not Wix** — Wix only hosts DNS (NS delegation) and the current site, so no transfer and no 60-day lock apply. Measured records, the stale Microsoft 365 verification TXT, and the DMARC-CNAME'd-to-Wix problem: `docs/superpowers/specs/2026-08-22-dns-migration-cloudflare.md` § 0.
