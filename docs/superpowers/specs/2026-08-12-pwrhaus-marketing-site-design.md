@@ -407,6 +407,14 @@ Apply to `pwrhaus-dev` via the Supabase SQL editor, as with `0001_init.sql`.
 
 ### DNS cutover — Wix is the registrar (confirmed 2026-08-12)
 
+> **⚠ CORRECTED 2026-08-22: this heading and the paragraph below are WRONG.**
+> The registrar is **GoDaddy**; Wix is only the DNS host (by nameserver
+> delegation) and the current site host. Measured evidence and the corrected
+> consequences — no transfer needed, no 60-day lock, nameservers changed at
+> GoDaddy, and a live duplicate-SPF defect — are in
+> `2026-08-22-dns-migration-cloudflare.md` § 0. The rollback-time reasoning
+> below (record change vs nameserver delegation) still holds.
+
 This resolves the `docs/pwrhaus-scope-session.md` §0 blank. **Wix is both the registrar and
 the current DNS host** (confirmed 2026-08-12).
 
