@@ -8,7 +8,13 @@
     <title>PWRHaus Dashboard</title>
     <link rel="manifest" href="/admin/manifest.webmanifest">
     <link rel="icon" href="/img/favicon-mark.png" type="image/png">
-    <link rel="apple-touch-icon" href="/img/favicon-mark.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+    <!-- iOS ignores the manifest on older versions: without these the home-screen
+         launch opens inside Safari chrome instead of standalone, and the app name
+         falls back to the (truncated) document title. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PWRHaus">
     <link rel="preload" href="/fonts/fraunces-variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/work-sans-variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/admin/admin.css">
