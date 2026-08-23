@@ -15,10 +15,90 @@ blocks Resend (ticket emails) and the eventual go-live cutover.
 
 ---
 
+## 0 · Observed DNS facts (measured 2026-08-22, public resolver)
+
+**This section supersedes every earlier claim about who holds what.** Earlier
+documents state "Wix is both the registrar and the current DNS host (confirmed
+2026-08-12)". **That is wrong.** Corrected picture:
+
+| Role | Holder |
+|---|---|
+| **Registrar** | **GoDaddy** — the domain was bought there |
+| **DNS host** | **Wix** — `NS` delegates to `ns14/ns15.wixdns.net` |
+| **Website** | Wix — apex `A` → `185.230.63.107/171/186`, `www` → `cdn1.wixdns.net` |
+| **Email** | **Google Workspace** — `MX 10 smtp.google.com`, DKIM published at `google._domainkey` |
+
+Measured records:
+
+```
+NS      ns14.wixdns.net, ns15.wixdns.net
+MX      10 smtp.google.com
+TXT     "v=spf1 include:_spf.google.com ~all"
+TXT     "v=spf1 include:secureserver.net -all"        <-- see 0.1
+TXT     "NETORGFT17971610.onmicrosoft.com"            <-- stale, see 0.2
+TXT     "google-site-verification=hYRcBYbvuGCjfeaVSyywHnaxtEjw5hH5AKWENuyGhf0"
+TXT     "canva-domain-verify=3cfe0dac-bf79-4b0c-b58b-059ac4907794"
+DKIM    google._domainkey  -> v=DKIM1 (RSA, present)
+DMARC   _dmarc is a CNAME to _dmarc.wixemails.com
+                            -> "v=DMARC1; p=none; rua=mailto:dmarc_agg@vali.email"
+```
+
+### 0.1 ⚠ LIVE DEFECT — the domain publishes TWO SPF records
+
+```
+"v=spf1 include:_spf.google.com ~all"      <- Google Workspace, correct
+"v=spf1 include:secureserver.net -all"     <- GoDaddy mail, leftover
+```
+
+RFC 7208 permits exactly one. A domain publishing two makes conforming receivers
+return **permerror** — so SPF is not merely weaker, it **is not passing at all**
+for the client's real business email, today. The only reason this is not causing
+visible rejections is that the DMARC policy is `p=none`.
+
+**Fix:** delete the `include:secureserver.net` record. This is a single TXT
+deletion, doable in Wix's DNS panel without any migration.
+
+**Check before deleting:** confirm nothing still sends as this domain through
+GoDaddy or Microsoft 365. Incoming mail is Google-only (single MX), so the risk
+is limited to legacy outbound — an old GoDaddy mailbox, a GoDaddy form, or a
+website contact form. If something does, it stops authenticating.
+
+### 0.2 Other findings worth acting on eventually
+
+- **`NETORGFT17971610.onmicrosoft.com`** is a Microsoft 365 domain-verification
+  record, typical of GoDaddy-resold M365. Almost certainly stale from before the
+  move to Google. Confirm, then delete.
+- **DMARC is a CNAME into Wix** (`_dmarc.wixemails.com`). Two consequences: the
+  client cannot tighten the policy beyond `p=none` without taking it over, and
+  **aggregate reports go to Wix's vendor, not to the client** — nobody on this
+  side sees who is sending as this domain. Moving DNS breaks this CNAME unless a
+  real `_dmarc` TXT replaces it.
+- `google-site-verification` and `canva-domain-verify` are both in use. Keep.
+
+### 0.3 What the corrected ownership changes
+
+- **Nameservers are changed at GoDaddy, not Wix.** Wix's cooperation is not
+  needed to move DNS, and its DNS-panel limitations stop being a constraint the
+  moment delegation moves.
+- **Cancelling the Wix account does not endanger the domain registration** — the
+  earlier warning was based on the mistaken belief that Wix was the registrar.
+  **But do not cancel Wix before moving DNS:** Wix currently serves the entire
+  zone *and* the DMARC CNAME, so cancelling first would take down the website and
+  break mail authentication together.
+- **No domain transfer is needed at all.** The 5–7 day transfer window and the
+  60-day lock discussed in the `2026-08-12` spec do not apply.
+- **Cloudflare is now optional rather than indicated.** GoDaddy's own DNS is
+  already paid for and already the client's, and using it adds no vendor — which
+  matches the "one less dependent service" reasoning that settled the email
+  question. Cloudflare remains the better tooling; it is no longer the only way
+  to get record control.
+
+---
+
 ## 1 · Why we are moving
 
-`pwrhausgolfsociety.com` is registered at **Wix**, and Wix is also the current
-**DNS host** (confirmed 2026-08-12). That single fact drives everything below.
+`pwrhausgolfsociety.com` is registered at **GoDaddy**; **Wix** is the DNS host by
+nameserver delegation, and also hosts the current website (see § 0, measured).
 
 Wix's DNS tooling is too limited for what the new site needs — specifically the
 SPF/DKIM/DMARC records that let ticket confirmations and event email send from
@@ -41,10 +121,10 @@ mandatory.
 - **Not an email provider change.** Google Workspace stays exactly as it is.
 - **Not the site cutover.** That is a separate, later step.
 
-**⚠ Do not cancel the Wix account.** The domain is registered there, and if it
-was issued free with a Premium plan, cancelling can affect the registration
-itself. This overrides any "Wix is decommissioned after go-live" language in the
-Phase 1 spec.
+**⚠ Do not cancel the Wix account before DNS has moved.** The registration is
+safe — it lives at GoDaddy — but Wix currently serves the whole zone and the
+DMARC CNAME. Cancelling first would take the website and mail authentication
+down together. Move nameservers at GoDaddy first, verify, then cancel.
 
 ## 3 · Sequencing, and why it is this order
 
