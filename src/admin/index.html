@@ -19,7 +19,7 @@
     <link rel="preload" href="/fonts/work-sans-variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/admin/admin.css">
     <script>
-      window.__PWRHAUS = { supabaseUrl: "{{ admin.supabaseUrl }}", supabaseAnonKey: "{{ admin.supabaseAnonKey }}", ghlLocationId: "{{ admin.ghlLocationId }}" };
+      window.__PWRHAUS = { supabaseUrl: "{{ admin.supabaseUrl }}", supabaseAnonKey: "{{ admin.supabaseAnonKey }}", ghlLocationId: "{{ admin.ghlLocationId }}", require2fa: {{ admin.require2fa }} };
     </script>
   </head>
   <body>
@@ -83,6 +83,9 @@
 
     <!-- APP -->
     <div id="app-view" class="app" hidden>
+      <div id="no-2fa-banner" class="no-2fa-banner" role="status" hidden>
+        &#9888; Two-factor authentication is switched off on this dashboard. It is protected by your password alone &mdash; switch it back on before the site goes live.
+      </div>
       <aside id="sidebar" class="sidebar">
         <div class="brand"><img class="brand-logo-sm" src="/img/favicon-mark.png" alt="" aria-hidden="true"> PWRHaus</div>
         <nav class="side-nav" aria-label="Sections">

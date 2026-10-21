@@ -86,10 +86,17 @@ async function requireSession() {
       show($('#login-error'), true);
       return;
     }
-    const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal?.currentLevel !== 'aal2') {
-      await requireMfa(aal);
-      return;
+    // cfg.require2fa === false is the owner-approved temporary disable. The
+    // enrollment/challenge code below stays intact so flipping the env var
+    // back restores the gate with no code change.
+    if (cfg.require2fa !== false) {
+      const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal?.currentLevel !== 'aal2') {
+        await requireMfa(aal);
+        return;
+      }
+    } else {
+      show($('#no-2fa-banner'), true);
     }
     show($('#login-view'), false);
     show($('#mfa-view'), false);

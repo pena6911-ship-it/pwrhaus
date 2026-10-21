@@ -306,3 +306,16 @@ input.invalid, textarea.invalid { border-color: var(--error); }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
+
+/* Temporary-state banner: shown only while AUTH_REQUIRE_2FA=false. Deliberately
+   loud and non-dismissible — a dashboard holding real member contacts must not
+   sit behind one password without that being obvious every single login. */
+.no-2fa-banner {
+  padding: var(--space-3) var(--space-4);
+  background: var(--error);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+}

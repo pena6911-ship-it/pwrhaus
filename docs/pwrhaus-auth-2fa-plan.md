@@ -4,6 +4,35 @@
 
 ---
 
+## 0 · Deviation in force (21 Oct 2026) — READ FIRST
+
+**2FA is currently OFF on production**, at the owner's instruction, because the
+owner's account (`hello@pwrhausgolfsociety.com`) has no authenticator factor —
+it was deliberately cleared when the original was found to be enrolled on the
+developer's phone — and she tests on the production deploy, since DNS has not
+moved yet. With the fail-closed logic in § 1 she could not get in at all.
+
+What was actually built differs from § 1 in exactly one way:
+
+```js
+// functions/lib/auth.js — the single source of truth, imported by src/_data/admin.js
+export function require2fa(env = process.env) {
+  return env.AUTH_REQUIRE_2FA !== 'false';
+}
+```
+
+- Still fail-closed against *absence* and *typos*: unset, `''`, `'False'`, `'0'` all leave 2FA **on**
+- **No longer context-aware** — `AUTH_REQUIRE_2FA=false` now wins in production too
+- Enforced identically in the SPA (`src/admin/app.js`) and the API (`functions/lib/auth.js`), so the UI gate and the API gate cannot disagree
+- A non-dismissible red banner shows on every dashboard screen while it is off
+
+**Netlify:** `AUTH_REQUIRE_2FA=false` is set in the **Production** scope.
+
+**To restore the § 1 design before cutover:** delete that Netlify variable, then
+reinstate the context check in `require2fa()`. The § 4 checklist below is the gate.
+
+---
+
 ## 1 · Environment-scoped enforcement
 
 Netlify exposes `CONTEXT` on every build: `production`, `deploy-preview`, `branch-deploy`, `dev`.
@@ -107,6 +136,9 @@ If she pushes back on enrolling at all, that's the conversation to have before l
 
 Run before repointing DNS:
 
+- [ ] **Delete `AUTH_REQUIRE_2FA` from the Netlify Production scope** (set to `false` on 21 Oct 2026 — see § 0)
+- [ ] **Restore the context-aware `require2fa()`** in `functions/lib/auth.js` so `false` is ignored in production
+- [ ] Owner enrolled an authenticator on **her own** device and the red no-2FA banner is gone
 - [ ] Production deploy: confirm `REQUIRE_2FA === true` by logging in and being challenged
 - [ ] Confirm `AUTH_REQUIRE_2FA` is **not** set in the Production scope
 - [ ] Michelle enrolled in 2FA (passkey or TOTP) on production
