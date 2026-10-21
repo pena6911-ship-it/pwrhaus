@@ -2,49 +2,49 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 1.8</title>
+<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 1.9</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Georgia,serif;font-size:13px;color:#14201A;line-height:1.75;max-width:860px;margin:0 auto;padding:60px}
-h1{font-size:22px;color:#1A4D36;border-bottom:2px solid #E6E1D6;padding-bottom:8px;margin:48px 0 18px;font-weight:400;letter-spacing:.02em}
-h2{font-size:11px;font-family:Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#5a5a5a;margin:28px 0 10px;padding-bottom:4px;border-bottom:0.5px solid #E6E1D6}
-h3{font-size:12px;font-family:Arial,sans-serif;font-weight:600;color:#1A4D36;margin:18px 0 8px}
+body{font-family:Georgia,serif;font-size:13px;color:#2E2623;line-height:1.75;max-width:860px;margin:0 auto;padding:60px}
+h1{font-size:22px;color:#026A0C;border-bottom:2px solid #E7DECB;padding-bottom:8px;margin:48px 0 18px;font-weight:400;letter-spacing:.02em}
+h2{font-size:11px;font-family:Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#5a5a5a;margin:28px 0 10px;padding-bottom:4px;border-bottom:0.5px solid #E7DECB}
+h3{font-size:12px;font-family:Arial,sans-serif;font-weight:600;color:#026A0C;margin:18px 0 8px}
 p{margin-bottom:10px;font-size:13px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
-th{background:#F1EEE6;padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#7D6218;border-bottom:1.5px solid #d8d0bd;font-family:Arial,sans-serif}
-td{padding:8px 12px;border-bottom:0.5px solid #E6E1D6;vertical-align:top;font-size:12px}
-td:first-child{font-weight:600;color:#1A4D36;white-space:nowrap;min-width:140px}
+th{background:#F5EFE1;padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4A3B32;border-bottom:1.5px solid #E0D5BF;font-family:Arial,sans-serif}
+td{padding:8px 12px;border-bottom:0.5px solid #E7DECB;vertical-align:top;font-size:12px}
+td:first-child{font-weight:600;color:#2E2623;white-space:nowrap;min-width:140px}
 .note{background:#e8f0fb;border-left:3px solid #2E6DA4;padding:10px 14px;margin:12px 0;font-size:12px;color:#1a4a7a;border-radius:0 4px 4px 0}
 .tip{background:#e8f4e8;border-left:3px solid #4a9a4a;padding:10px 14px;margin:12px 0;font-size:12px;color:#2a5a27;border-radius:0 4px 4px 0}
 .warn{background:#fdf0ee;border-left:3px solid #C0392B;padding:10px 14px;margin:12px 0;font-size:12px;color:#8B1A1A;border-radius:0 4px 4px 0}
 .note b,.tip b,.warn b{display:block;font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:3px;font-family:Arial,sans-serif}
-code{font-family:'Courier New',monospace;font-size:11px;background:#F1EEE6;padding:1px 5px;border:0.5px solid #d8d0bd;color:#1A4D36}
+code{font-family:'Courier New',monospace;font-size:11px;background:#F5EFE1;padding:1px 5px;border:0.5px solid #E0D5BF;color:#2E2623}
 pre{background:#1e1e1e;color:#d4d4d4;padding:12px 16px;font-size:11px;font-family:'Courier New',monospace;margin:8px 0 16px;line-height:1.6;border-radius:4px;overflow-x:auto}
 ol.s{padding-left:0;list-style:none;counter-reset:s;margin:10px 0}
-ol.s li{counter-increment:s;padding:6px 0 6px 38px;position:relative;border-bottom:0.5px solid #E6E1D6;font-size:12px}
+ol.s li{counter-increment:s;padding:6px 0 6px 38px;position:relative;border-bottom:0.5px solid #E7DECB;font-size:12px}
 ol.s li:last-child{border-bottom:none}
-ol.s li::before{content:counter(s);position:absolute;left:0;top:6px;width:22px;height:22px;background:#1A4D36;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:Arial,sans-serif}
+ol.s li::before{content:counter(s);position:absolute;left:0;top:6px;width:22px;height:22px;background:#026A0C;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:Arial,sans-serif}
 ul.pl{padding-left:16px;margin:8px 0}
 ul.pl li{margin-bottom:4px;font-size:12px}
-.new{background:#27AE60;color:#fff;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;margin-left:4px;font-family:Arial,sans-serif;vertical-align:middle;border-radius:2px}
-.upd{background:#B8912A;color:#fff;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;margin-left:4px;font-family:Arial,sans-serif;vertical-align:middle;border-radius:2px}
+.new{background:#028A0F;color:#fff;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;margin-left:4px;font-family:Arial,sans-serif;vertical-align:middle;border-radius:2px}
+.upd{background:#4A3B32;color:#fff;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;margin-left:4px;font-family:Arial,sans-serif;vertical-align:middle;border-radius:2px}
 .soon{background:#7a7a7a;color:#fff;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;margin-left:4px;font-family:Arial,sans-serif;vertical-align:middle;border-radius:2px}
-.cover{text-align:center;padding:48px 0 40px;border-bottom:2px solid #d8d0bd;margin-bottom:44px}
-.cv-brand{font-size:52px;letter-spacing:.25em;color:#1A4D36;font-weight:400}
-.cv-sub{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#7D6218;margin-top:8px}
-.cv-title{font-size:22px;font-weight:400;color:#14201A;margin-top:30px;letter-spacing:.04em}
-.cv-meta{margin-top:12px;font-size:11px;color:#7D6218;letter-spacing:.06em}
-.cv-conf{display:inline-block;margin-top:16px;padding:4px 14px;border:1px solid #B8912A;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#B8912A;font-family:Arial,sans-serif}
-.tl{border:0.5px solid #E6E1D6;border-radius:6px;overflow:hidden;margin:14px 0 20px}
-.tl-row{display:grid;grid-template-columns:160px 1fr;border-bottom:0.5px solid #E6E1D6}
+.cover{text-align:center;padding:48px 0 40px;border-bottom:2px solid #E0D5BF;margin-bottom:44px}
+.cv-brand{font-size:52px;letter-spacing:.25em;color:#026A0C;font-weight:400}
+.cv-sub{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#4A3B32;margin-top:8px}
+.cv-title{font-size:22px;font-weight:400;color:#2E2623;margin-top:30px;letter-spacing:.04em}
+.cv-meta{margin-top:12px;font-size:11px;color:#4A3B32;letter-spacing:.06em}
+.cv-conf{display:inline-block;margin-top:16px;padding:4px 14px;border:1px solid #4A3B32;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#4A3B32;font-family:Arial,sans-serif}
+.tl{border:0.5px solid #E7DECB;border-radius:6px;overflow:hidden;margin:14px 0 20px}
+.tl-row{display:grid;grid-template-columns:160px 1fr;border-bottom:0.5px solid #E7DECB}
 .tl-row:last-child{border-bottom:none}
-.tl-t{padding:10px 12px;font-size:11px;font-weight:700;color:#1A4D36;background:#F1EEE6;border-right:0.5px solid #E6E1D6;font-family:Arial,sans-serif}
+.tl-t{padding:10px 12px;font-size:11px;font-weight:700;color:#2E2623;background:#F5EFE1;border-right:0.5px solid #E7DECB;font-family:Arial,sans-serif}
 .tl-a{padding:10px 12px;font-size:12px}
-.footer{margin-top:60px;padding-top:16px;border-top:0.5px solid #E6E1D6;font-size:10px;color:#7D6218;display:flex;justify-content:space-between;text-transform:uppercase;letter-spacing:.08em;font-family:Arial,sans-serif}
-.divider{height:0.5px;background:#E6E1D6;margin:40px 0}
-.toc-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px dotted #E6E1D6;font-size:12px}
-.toc-sub{padding-left:18px;font-size:11px;color:#7D6218}
-.toc-num{color:#B8912A;font-weight:600;min-width:24px}
+.footer{margin-top:60px;padding-top:16px;border-top:0.5px solid #E7DECB;font-size:10px;color:#4A3B32;display:flex;justify-content:space-between;text-transform:uppercase;letter-spacing:.08em;font-family:Arial,sans-serif}
+.divider{height:0.5px;background:#E7DECB;margin:40px 0}
+.toc-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px dotted #E7DECB;font-size:12px}
+.toc-sub{padding-left:18px;font-size:11px;color:#4A3B32}
+.toc-num{color:#028A0F;font-weight:600;min-width:24px}
 .url{color:#2E6DA4;font-family:'Courier New',monospace;font-size:11px}
 </style>
 </head>
@@ -55,7 +55,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
   <div class="cv-brand">PWRHAUS</div>
   <div class="cv-sub">Golf Society &nbsp;·&nbsp; Fort Lauderdale &nbsp;·&nbsp; Miami</div>
   <div class="cv-title">Website &amp; Dashboard User Manual</div>
-  <div class="cv-meta">Version 1.8 &nbsp;|&nbsp; August 2026 &nbsp;|&nbsp; Supersedes Version 1.7</div>
+  <div class="cv-meta">Version 1.9 &nbsp;|&nbsp; October 2026 &nbsp;|&nbsp; Supersedes Version 1.8</div>
   <div class="cv-conf">Confidential</div>
 </div>
 
@@ -90,6 +90,8 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <!-- 1 -->
 <h1>1. System Overview</h1>
 <p>The PWRHaus Golf Society website is a marketing and lead-capture site for a co-ed golf society operating in Fort Lauderdale and Miami. It presents the society's events, membership tiers, lessons, corporate offerings and sponsorship, captures leads from every page, and gives you — the owner — a private dashboard to manage the parts of the site that change most often.</p>
+
+<div class="note"><b>New Look &mdash; October 2026</b>Your website and dashboard now use the official PWRHAUS colors from your brand deck &mdash; the cream ground, brown text and single green accent &mdash; in place of the earlier green-and-gold scheme. <strong>Nothing moved and nothing works differently.</strong> Every button, menu and screen in this manual is exactly where it was; only the colors changed. If a page you already had open still shows the old colors, refresh it.</div>
 
 <h2>1.1 What the Site Does</h2>
 <table>
@@ -176,24 +178,18 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <p>You'll land on the dashboard with your events listed. Your session is remembered, so you usually won't have to sign in again on the same device.</p>
 <div class="note"><b>Note</b>Only approved accounts can reach the dashboard. There is no "create account" option, on purpose — that's a security measure protecting your lead list.</div>
 
-<h2>3.3 Two-Step Verification <span class="new">New</span></h2>
-<p>Signing in now takes a second step: a six-digit code from an authenticator app on your phone. Your password alone is no longer enough to open the dashboard — which matters, because the dashboard holds your entire lead list.</p>
+<h2>3.3 Two-Step Verification <span class="soon">Paused</span></h2>
+<p><strong>Two-step verification is switched off for now.</strong> Sign in with your email and password only &mdash; you will not be asked for a six-digit code, and you do not need an authenticator app on your phone yet.</p>
 
-<p><strong>Setting it up (once):</strong></p>
-<ol class="s">
-<li>Install an authenticator app on your phone if you don't have one &mdash; <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong> and <strong>1Password</strong> all work</li>
-<li>Sign in to the dashboard as usual. You'll see <strong>&ldquo;Secure your dashboard&rdquo;</strong></li>
-<li>Tap <strong>Set up authenticator</strong> &mdash; a QR code appears</li>
-<li>In your authenticator app, add a new account and scan that QR code</li>
-<li>Type the six-digit code the app shows into <strong>Verification code</strong>, then tap <strong>Verify and continue</strong></li>
-</ol>
+<div class="warn"><b>&#9888; You Will See a Red Banner</b>While this is switched off, every dashboard screen carries a red bar reading &ldquo;Two-factor authentication is switched off on this dashboard.&rdquo; That is expected, and it is deliberately hard to miss &mdash; your password is the only thing protecting your member list in the meantime. It disappears by itself once verification is switched back on.</div>
 
-<p><strong>Every time you sign in after that:</strong> enter your email and password, then open your authenticator app and type the current six-digit code.</p>
+<p><strong>Why it is off:</strong> the authenticator that had been set up for your account was registered on your developer&rsquo;s phone rather than your own, which is not where it belongs. It was cleared &mdash; and rather than leave you locked out of your own dashboard, the second step was switched off until you can set it up on your own device.</p>
 
-<div class="tip"><b>&#128161; The code changes every 30 seconds</b>If it's about to roll over, wait for the fresh one rather than rushing &mdash; a code typed as it expires will be rejected.</div>
+<p><strong>What happens next:</strong> before the site goes live on your real domain, you and your developer will set this up on your own phone &mdash; about five minutes on a call. You will install an authenticator app (<strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong> and <strong>1Password</strong> all work), scan a QR code once, and from then on signing in takes your password plus a six-digit code from that app.</p>
 
-<div class="warn"><b>&#9888; If you lose or replace your phone</b>You will not be able to finish signing in, and there is no self-service way to fix it yet &mdash; contact your developer, who can clear it so you can set it up again on the new phone. This takes them a couple of minutes.</div>
-<div class="warn"><b>&#9888; Do not lose your authenticator</b>If you replace or wipe your phone <em>without</em> moving your authenticator across, you will not be able to sign in and your developer will have to reset it for you. When you set it up, either save the backup text code shown under the QR code somewhere safe, or use an authenticator that syncs across your devices (1Password and Google Authenticator both do).</div>
+<div class="tip"><b>&#128161; Until then, your password is the only lock</b>Use a long password you do not use anywhere else, and do not share it. If you think anyone else has it, tell your developer and have it changed the same day.</div>
+
+<div class="note"><b>Note</b>Only approved accounts can reach the dashboard at all, and there is no &ldquo;create account&rdquo; option &mdash; so a stranger cannot sign themselves up. That protection is unchanged.</div>
 
 <h2>3.4 Install It on Your Phone</h2>
 <p>The dashboard can be installed like an app, so it sits on your home screen with the PWRHaus mark and opens full-screen.</p>
@@ -546,7 +542,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <table>
 <thead><tr><th>Protection</th><th>What It Does</th></tr></thead>
 <tbody>
-<tr><td>Two-step verification</td><td>A six-digit code from your authenticator app is required in addition to your password (Section 3.3).</td></tr>
+<tr><td>Two-step verification</td><td><strong>Switched off for now</strong> &mdash; your password alone opens the dashboard. To be set up on your own phone before launch (Section 3.3).</td></tr>
 <tr><td>Named admin accounts</td><td>Only specifically approved accounts can open the dashboard. Public sign-up is disabled, and simply having <em>any</em> login is not enough.</td></tr>
 <tr><td>Database rules</td><td>Your lead data can only be read by an approved admin session — never by a website visitor, and never by an ordinary signed-in user.</td></tr>
 <tr><td>Drafts stay private</td><td>Unpublished events are invisible to the public, even to someone who knows the address.</td></tr>
@@ -575,8 +571,8 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <tr><td>Leads list is empty</td><td>Check your search box and filters are cleared.</td></tr>
 <tr><td>Reset email never arrives</td><td>Password-reset email is not connected yet (Section 10). Contact your developer, who can reset it for you directly.</td></tr>
 <tr><td>QR code won&rsquo;t scan at the door</td><td>Hold the phone so the code fills more of the frame and let it focus. If it still will not read, type the ticket number instead (Section 8.2).</td></tr>
-<tr><td>Authenticator code rejected</td><td>Wait for the next code and retype it &mdash; codes expire every 30 seconds. If every code fails, your phone&rsquo;s clock may be out of sync; turn on automatic date &amp; time.</td></tr>
-<tr><td>Lost or replaced your phone</td><td>You will not be able to complete sign-in. Contact your developer to reset your authenticator.</td></tr>
+<tr><td>Asked for a six-digit code</td><td>You should not be &mdash; verification is switched off (Section 3.3). If you are asked for one, or the red banner has gone, it has been switched back on; contact your developer.</td></tr>
+<tr><td>Forgotten password</td><td>Password reset email is not switched on yet, so you cannot reset it yourself. Contact your developer, who can set a new one for you.</td></tr>
 <tr><td>Check-in says "already checked in"</td><td>That ticket has been used. The time of the first check-in is shown &mdash; if that was not them, they may be showing somebody else&rsquo;s ticket.</td></tr>
 <tr><td>Site is completely down</td><td>Check Netlify for a failed deploy, then contact your developer.</td></tr>
 </tbody>
@@ -587,7 +583,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <table>
 <thead><tr><th>I want to…</th><th>Do this</th></tr></thead>
 <tbody>
-<tr><td>Sign in</td><td>pwrhaus.netlify.app/admin/ → password → six-digit code from your authenticator</td></tr>
+<tr><td>Sign in</td><td>pwrhaus.netlify.app/admin/ → email + password (no code needed for now)</td></tr>
 <tr><td>Add an event</td><td>Events → New event → fill in → tick Published → Save</td></tr>
 <tr><td>Open ticket sales for an event</td><td>Events → open it → set Price and Capacity → tick <strong>Ticketed event</strong> → Save</td></tr>
 <tr><td>Charge members less</td><td>Events → open it → fill in <strong>Member price</strong> and <strong>Non-member price</strong> → Save</td></tr>
@@ -628,7 +624,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 
 <div class="footer">
   <span>PWRHAUS Golf Society &nbsp;·&nbsp; Fort Lauderdale &amp; Miami</span>
-  <span>Version 1.8 &nbsp;·&nbsp; August 2026 &nbsp;·&nbsp; Confidential</span>
+  <span>Version 1.9 &nbsp;·&nbsp; October 2026 &nbsp;·&nbsp; Confidential</span>
 </div>
 
 </body>
