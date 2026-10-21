@@ -119,6 +119,15 @@ Done and pushed (all on `main`):
 - **MFA code is merged to `main` in commit `fae06d6`.** The dashboard includes TOTP enrollment/challenge UX; Netlify functions use verified JWT claims and require admin role plus `aal2`. Migration `0012_require_mfa.sql` is intentionally **not applied live yet** so the final lock does not precede deployment and enrollment.
 - **MFA status:** `hello@pwrhausgolfsociety.com` has a verified TOTP factor. `pena6911@gmail.com` still needs to enroll and verify one. CAPTCHA protection is currently disabled because the dashboard does not yet pass a CAPTCHA token; re-enable only after a frontend Turnstile/hCaptcha integration is added.
 - **Final launch order:** deploy the MFA code; both admins verify login and TOTP; run the one-time GHL → Supabase contact migration after go-live; then apply `0012_require_mfa.sql` as the final RLS lock. Do not apply it earlier.
+  > **Superseded 2026-10-21 — this ordering would now cause an outage.** It assumes
+  > 2FA is enforced, and it is not: enforcement defaults OFF (see the 2FA entry in
+  > "Do not" below). Applying `0012` after enrollment but before switching
+  > enforcement back on leaves an admin authenticated at `aal1` and unable to read
+  > or write anything. Correct order now: enroll on the owner's **own** device →
+  > `AUTH_REQUIRE_2FA=true` → confirm the challenge actually appears → restore the
+  > fail-closed `require2fa()` → only then apply `0012`. Gate:
+  > `docs/pwrhaus-auth-2fa-plan.md` § 4.
+  > The MFA status on the line above is also stale — see the 2026-08-23 entry.
 - **Testing:** current repository verification is 232 passing tests; `npm run build` passes.
 
 ### 2026-08-22 — dashboard self-service + CRM review tools (Codex)
