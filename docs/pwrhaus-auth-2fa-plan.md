@@ -16,20 +16,37 @@ What was actually built differs from § 1 in exactly one way:
 
 ```js
 // functions/lib/auth.js — the single source of truth, imported by src/_data/admin.js
+const ENABLED = new Set(['true', '1', 'yes', 'on']);
 export function require2fa(env = process.env) {
-  return env.AUTH_REQUIRE_2FA !== 'false';
+  return ENABLED.has(String(env.AUTH_REQUIRE_2FA ?? '').trim().toLowerCase());
 }
 ```
 
-- Still fail-closed against *absence* and *typos*: unset, `''`, `'False'`, `'0'` all leave 2FA **on**
-- **No longer context-aware** — `AUTH_REQUIRE_2FA=false` now wins in production too
+**This is fail-OPEN. A fresh environment with no config has 2FA off.** That is a
+real reduction in posture, accepted knowingly — see the history below for why the
+env-var approach was abandoned.
+
+- **Default OFF.** Unset, `''`, `false` → 2FA off
+- **Opt-in to switch on**, and parsing is permissive in that direction: `true`, `True`, `1`, `yes`, `on` all enable it. With the default inverted, a typo that silently leaves the dashboard unprotected is the expensive mistake
+- **No longer context-aware** — production is not special-cased
 - Enforced identically in the SPA (`src/admin/app.js`) and the API (`functions/lib/auth.js`), so the UI gate and the API gate cannot disagree
 - A non-dismissible red banner shows on every dashboard screen while it is off
 
-**Netlify:** `AUTH_REQUIRE_2FA=false` is set in the **Production** scope.
+**Netlify:** no variable is required for the current (off) state. Set
+`AUTH_REQUIRE_2FA=true` to switch enforcement back on.
 
-**To restore the § 1 design before cutover:** delete that Netlify variable, then
-reinstate the context check in `require2fa()`. The § 4 checklist below is the gate.
+**Why the env-var-only approach was abandoned (21 Oct 2026):** it was first built
+fail-closed, defaulting ON and disabled by `AUTH_REQUIRE_2FA=false`. Setting that
+variable in Netlify did not take effect — the build produced byte-identical output,
+so the value never reached the Eleventy build (wrong scope, wrong context, or a
+value that was not exactly `false`; it could not be distinguished from the outside).
+**A misconfigured variable is indistinguishable from an unset one, and the symptom
+is a silent lockout.** Defaulting off removes that failure mode at the cost of the
+fail-closed guarantee.
+
+**To restore the § 1 design before cutover:** set `AUTH_REQUIRE_2FA=true`, confirm
+the challenge actually appears, then reinstate the fail-closed, context-aware form
+of `require2fa()`. The § 4 checklist below is the gate.
 
 ---
 
@@ -136,8 +153,8 @@ If she pushes back on enrolling at all, that's the conversation to have before l
 
 Run before repointing DNS:
 
-- [ ] **Delete `AUTH_REQUIRE_2FA` from the Netlify Production scope** (set to `false` on 21 Oct 2026 — see § 0)
-- [ ] **Restore the context-aware `require2fa()`** in `functions/lib/auth.js` so `false` is ignored in production
+- [ ] **Set `AUTH_REQUIRE_2FA=true`** and confirm the challenge actually appears — the default is OFF as of 21 Oct 2026 (see § 0), so doing nothing ships an unprotected dashboard
+- [ ] **Restore the fail-closed, context-aware `require2fa()`** in `functions/lib/auth.js` so a missing variable means ON again
 - [ ] Owner enrolled an authenticator on **her own** device and the red no-2FA banner is gone
 - [ ] Production deploy: confirm `REQUIRE_2FA === true` by logging in and being challenged
 - [ ] Confirm `AUTH_REQUIRE_2FA` is **not** set in the Production scope

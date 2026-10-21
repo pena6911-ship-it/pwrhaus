@@ -275,15 +275,23 @@ Ordered. Items 1-3 are owner-run and need no code.
 - Do not apply `0012` before item 3's precondition is met. **It is doubly unsafe
   right now** — 2FA is switched off (below), so applying the `aal2` RLS lock would
   leave the owner authenticated but unable to read or write anything.
-- **2FA is OFF on production as of 2026-10-21, at the owner's instruction.**
-  `AUTH_REQUIRE_2FA=false` is set in the Netlify Production scope; the rule lives
-  in `functions/lib/auth.js` (`require2fa()`) and is imported by
-  `src/_data/admin.js` so the SPA and the API can never disagree. It is
-  fail-closed against absence and typos — only the exact string `false` disables
-  it. Do **not** "fix" this by restoring the context-aware form from
-  `docs/pwrhaus-auth-2fa-plan.md` § 1: that would lock the owner out, because her
-  account has no authenticator factor and she tests on the production deploy.
-  The deviation and the steps to unwind it are recorded in that doc's § 0.
+- **2FA is OFF as of 2026-10-21, at the owner's instruction, and the default is
+  now OFF — this is fail-OPEN.** The rule lives in `functions/lib/auth.js`
+  (`require2fa()`) and is imported by `src/_data/admin.js` so the SPA and the API
+  can never disagree. **No env var is needed for the off state**; set
+  `AUTH_REQUIRE_2FA=true` (or `1`/`yes`/`on` — parsing is permissive toward
+  switching it on) to enforce again.
+  It was first built fail-closed and disabled by `AUTH_REQUIRE_2FA=false`. That
+  did not work: the variable never reached the Eleventy build, the build produced
+  byte-identical output, and **a misconfigured variable looked exactly like an
+  unset one while the owner stayed locked out.** Hence the inverted default.
+  Do **not** "fix" this by restoring the fail-closed form from
+  `docs/pwrhaus-auth-2fa-plan.md` § 1 on its own: that locks the owner out again,
+  because her account has no authenticator factor and she tests on the production
+  deploy. Enrollment comes first, then enforcement. Steps in that doc's § 0/§ 4.
+- **A fresh environment therefore has no second factor.** Nothing but the
+  pre-cutover checklist stands between this state and launch. Treat
+  `docs/pwrhaus-auth-2fa-plan.md` § 4 as a release gate, not a suggestion.
 - Never add a named export to a file in `src/_data/`. Eleventy merges every
   export into the data object and interpolates it into the page — a helper
   function once landed in `window.__PWRHAUS` as its own source text, which does
