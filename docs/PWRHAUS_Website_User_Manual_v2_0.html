@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 1.9</title>
+<title>PWRHAUS Golf Society — Website &amp; Dashboard User Manual — Version 2.0</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Georgia,serif;font-size:13px;color:#2E2623;line-height:1.75;max-width:860px;margin:0 auto;padding:60px}
@@ -55,7 +55,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
   <div class="cv-brand">PWRHAUS</div>
   <div class="cv-sub">Golf Society &nbsp;·&nbsp; Fort Lauderdale &nbsp;·&nbsp; Miami</div>
   <div class="cv-title">Website &amp; Dashboard User Manual</div>
-  <div class="cv-meta">Version 1.9 &nbsp;|&nbsp; October 2026 &nbsp;|&nbsp; Supersedes Version 1.8</div>
+  <div class="cv-meta">Version 2.0 &nbsp;|&nbsp; November 2026 &nbsp;|&nbsp; Supersedes Version 1.9</div>
   <div class="cv-conf">Confidential</div>
 </div>
 
@@ -74,7 +74,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <div class="toc-item"><span><span class="toc-num">6</span> CRM — Your Leads</span></div>
 <div class="toc-item toc-sub"><span>6.1 The Leads Screen &nbsp; 6.2 Search &amp; Filter &nbsp; 6.3 Lead Detail &nbsp; 6.4 Where Leads Come From &nbsp; 6.5 Dashboard vs GoHighLevel</span></div>
 <div class="toc-item"><span><span class="toc-num">7</span> Selling Event Tickets <span class="upd">Updated</span></span></div>
-<div class="toc-item toc-sub"><span>7.1 How It Works &nbsp; 7.2 Turning Sales On &nbsp; 7.3 What Visitors See &nbsp; 7.4 Member vs Non-Member &nbsp; 7.5 What the Buyer Gets &nbsp; 7.6 Your Guest List &nbsp; 7.7 Before You Sell for Real</span></div>
+<div class="toc-item toc-sub"><span>7.1 How It Works &nbsp; 7.2 Turning Sales On &nbsp; 7.3 What Visitors See &nbsp; 7.4 Member vs Non-Member &nbsp; 7.5 What the Buyer Gets &nbsp; 7.6 Your Guest List &nbsp; 7.7 Ticket Sales Summary &nbsp; 7.8 Before You Sell for Real</span></div>
 <div class="toc-item"><span><span class="toc-num">8</span> Checking Guests In at the Door <span class="new">New</span></span></div>
 <div class="toc-item toc-sub"><span>8.1 Before the Event &nbsp; 8.2 Checking Someone In &nbsp; 8.3 Guests With No Name Yet &nbsp; 8.4 What the Screen Tells You &nbsp; 8.5 Patchy Signal &nbsp; 8.6 After the Event</span></div>
 <div class="toc-item"><span><span class="toc-num">9</span> Publishing — How Changes Reach the Site</span></div>
@@ -395,7 +395,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <!-- 7 TICKETS -->
 <h1>7. Selling Event Tickets <span class="upd">Updated</span></h1>
 <p>Your site can now sell tickets to your events directly, with card payments handled by Stripe. This replaces selling tickets through WIX.</p>
-<div class="warn"><b>&#9888; Test Mode &mdash; Not Live Yet</b>Ticketing is currently connected to Stripe in <strong>test mode</strong>, so no real card can be charged and no real money moves. Everything is built and waiting &mdash; switching it on for real sales is a deliberate step (see 7.7).</div>
+<div class="warn"><b>&#9888; Test Mode &mdash; Not Live Yet</b>Ticketing is currently connected to Stripe in <strong>test mode</strong>, so no real card can be charged and no real money moves. Everything is built and waiting &mdash; switching it on for real sales is a deliberate step (see 7.8).</div>
 
 <h2>7.1 How It Works</h2>
 <div class="tl">
@@ -456,7 +456,26 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <p>In the dashboard, the <strong>Registrations</strong> figure on the Events screen is now a real count, and each event has a guest list showing who is coming, whether they paid the member or non-member rate, and which seats still have no name against them.</p>
 <div class="tip"><b>&#128161; This is the whole point</b>Every guest who gets named becomes a contact in your CRM &mdash; including people who came as somebody else&rsquo;s guest. Those are exactly the warm introductions the society exists to create, so it is worth chasing the unnamed seats.</div>
 
-<h2>7.7 Before You Sell for Real</h2>
+<h2>7.7 Ticket Sales Summary</h2>
+<p>The Events dashboard includes a <strong>Ticket sales</strong> summary so you can see how many tickets have sold and how much ticket revenue has been recorded. It defaults to <strong>All time</strong>.</p>
+<table>
+<thead><tr><th>Tile</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Tickets sold</td><td>Valid tickets in the selected period.</td></tr>
+<tr><td>Gross sales</td><td>Total paid event-order value before refunds.</td></tr>
+<tr><td>Refunds</td><td>Value of refunded event orders.</td></tr>
+<tr><td>Net sales</td><td>Gross sales minus refunds. This is not profit after Stripe fees, taxes, or other costs.</td></tr>
+</tbody>
+</table>
+<ol class="s">
+<li>On the Events dashboard, review the <strong>Ticket sales</strong> section.</li>
+<li>Use <strong>All time</strong>, <strong>Today</strong>, <strong>This week</strong>, <strong>This month</strong>, <strong>This quarter</strong>, or <strong>Custom range</strong>.</li>
+<li>For a custom range, enter <strong>From</strong> and <strong>To</strong>, then click <strong>Apply dates</strong>. Both dates are included.</li>
+<li>Each event card also shows tickets sold against capacity and net sales for the selected period.</li>
+</ol>
+<div class="note"><b>Important</b>Only paid and refunded ticket orders are included. Failed or abandoned checkouts do not count. Net sales are not profit and do not subtract Stripe fees, taxes, or fulfillment costs.</div>
+
+<h2>7.8 Before You Sell for Real</h2>
 <p>Four things must happen first. Your developer handles all of them:</p>
 <ul class="pl">
 <li>Your real Stripe account connected (it is on test keys today)</li>
@@ -588,6 +607,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 <tr><td>Open ticket sales for an event</td><td>Events → open it → set Price and Capacity → tick <strong>Ticketed event</strong> → Save</td></tr>
 <tr><td>Charge members less</td><td>Events → open it → fill in <strong>Member price</strong> and <strong>Non-member price</strong> → Save</td></tr>
 <tr><td>Stop selling an event</td><td>Events → open it → untick <strong>Ticketed event</strong> → Save</td></tr>
+<tr><td>Review ticket sales</td><td>Events → Ticket sales → choose a reporting period</td></tr>
 <tr><td>Hide an event</td><td>Events → Unpublish on the card</td></tr>
 <tr><td>Prepare an event quietly</td><td>Create it and leave Published unticked</td></tr>
 <tr><td>Reorder events</td><td>Drag the cards, or use ↑ / ↓</td></tr>
@@ -624,7 +644,7 @@ ul.pl li{margin-bottom:4px;font-size:12px}
 
 <div class="footer">
   <span>PWRHAUS Golf Society &nbsp;·&nbsp; Fort Lauderdale &amp; Miami</span>
-  <span>Version 1.9 &nbsp;·&nbsp; October 2026 &nbsp;·&nbsp; Confidential</span>
+  <span>Version 2.0 &nbsp;·&nbsp; November 2026 &nbsp;·&nbsp; Confidential</span>
 </div>
 
 </body>

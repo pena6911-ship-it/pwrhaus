@@ -147,6 +147,44 @@ export function crmDateRange(period = 'week', nowMs = Date.now(), customFrom = '
   return { from: from.toISOString(), to: to.toISOString(), label: period === 'today' ? 'Today' : period === 'month' ? 'This month' : period === 'quarter' ? 'This quarter' : 'This week' };
 }
 
+export function computeTicketSales(events = [], tickets = [], orders = [], range = null) {
+  const inRange = (value) => {
+    if (!range?.from && !range?.to) return true;
+    const time = Date.parse(value || '');
+    if (!Number.isFinite(time)) return false;
+    if (range.from && time < Date.parse(range.from)) return false;
+    if (range.to && time >= Date.parse(range.to)) return false;
+    return true;
+  };
+  const blank = () => ({ sold: 0, grossCents: 0, refundCents: 0, netCents: 0 });
+  const byEvent = Object.fromEntries(events.map((event) => [event.id, blank()]));
+  let sold = 0;
+  let grossCents = 0;
+  let refundCents = 0;
+
+  for (const order of orders) {
+    if (order.type !== 'event' || !byEvent[order.event_id] || !inRange(order.created_at)) continue;
+    if (!['paid', 'refunded'].includes(order.current_status)) continue;
+    const amount = Number.isInteger(order.amount_cents) && order.amount_cents >= 0 ? order.amount_cents : 0;
+    const eventSales = byEvent[order.event_id];
+    grossCents += amount;
+    eventSales.grossCents += amount;
+    if (order.current_status === 'refunded') {
+      refundCents += amount;
+      eventSales.refundCents += amount;
+    }
+  }
+
+  for (const ticket of tickets) {
+    if (ticket.status !== 'valid' || !byEvent[ticket.event_id] || !inRange(ticket.created_at)) continue;
+    sold += 1;
+    byEvent[ticket.event_id].sold += 1;
+  }
+
+  for (const eventSales of Object.values(byEvent)) eventSales.netCents = eventSales.grossCents - eventSales.refundCents;
+  return { sold, grossCents, refundCents, netCents: grossCents - refundCents, byEvent };
+}
+
 export function tierLabel(tier) {
   return { free: 'Free', member: 'Member', inner_circle: 'Inner circle' }[tier] ?? String(tier ?? '');
 }

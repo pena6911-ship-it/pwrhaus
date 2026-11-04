@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, computeTicketSales, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -35,10 +35,12 @@ function persistCheckinQueue() {
   }
 }
 
-const state = { events: [], contacts: [], tickets: [], slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: loadPersistedCheckinQueue() };
+const state = { events: [], contacts: [], tickets: [], ticketOrders: [], sales: null, slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: loadPersistedCheckinQueue() };
 
 let sb = null;
 let pendingMfaFactorId = '';
+let salesWired = false;
+let activeSalesRange = crmDateRange('all');
 
 /* ============================ boot / auth ============================ */
 
@@ -257,11 +259,13 @@ async function boot() {
   wireDrawer();
   wireSettings();
   wireCrm();
+  wireSales();
   wireCheckin();
   renderSkeleton();
   await loadEvents();
-  await loadRosters();
+  await Promise.all([loadRosters(), loadTicketOrders()]);
   renderStats();
+  renderSalesSummary();
   renderList();
 }
 
@@ -292,8 +296,9 @@ async function loadEvents() {
 
 async function refresh() {
   await loadEvents();
-  await loadRosters();
+  await Promise.all([loadRosters(), loadTicketOrders()]);
   renderStats();
+  renderSalesSummary();
   renderList();
 }
 
@@ -301,12 +306,21 @@ async function refresh() {
 async function loadRosters() {
   const { data, error } = await sb
     .from('tickets')
-    .select('id,event_id,ticket_no,tier_sold,contact_id,status,contacts(full_name,email)')
+    .select('id,event_id,ticket_no,tier_sold,contact_id,status,created_at,contacts(full_name,email)')
     .eq('status', 'valid');
   // null is distinct from "zero registrations" — a failed load must not be
   // rendered as an empty roster.
   if (error) { state.tickets = null; toast('Could not load registrations.', 'error'); return; }
   state.tickets = data || [];
+}
+
+async function loadTicketOrders() {
+  const { data, error } = await sb
+    .from('orders')
+    .select('event_id,type,amount_cents,current_status,created_at')
+    .eq('type', 'event');
+  if (error) { state.ticketOrders = null; toast('Could not load ticket sales.', 'error'); return; }
+  state.ticketOrders = data || [];
 }
 
 function ticketsForEvent(eventId) {
@@ -373,6 +387,59 @@ function renderStats() {
   }
 }
 
+function wireSales() {
+  if (salesWired) return;
+  salesWired = true;
+  $('#sales-period').addEventListener('change', () => {
+    const custom = $('#sales-period').value === 'custom';
+    show($('#sales-custom-range'), custom);
+    if (!custom) refreshSalesRange();
+  });
+  $('#sales-apply-range').addEventListener('click', refreshSalesRange);
+}
+
+function selectedSalesRange() {
+  return crmDateRange(
+    $('#sales-period').value,
+    Date.now(),
+    $('#sales-date-from').value,
+    $('#sales-date-to').value,
+  );
+}
+
+function refreshSalesRange() {
+  const range = selectedSalesRange();
+  if (!range) { toast('Choose a valid custom sales date range.', 'error'); return; }
+  activeSalesRange = range;
+  renderSalesSummary(range);
+  renderList();
+}
+
+function renderSalesSummary(range = activeSalesRange) {
+  const row = $('#sales-stat-row');
+  const label = $('#sales-period-label');
+  label.textContent = range?.label || 'Selected period';
+  row.innerHTML = '';
+  const sales = state.tickets && state.ticketOrders
+    ? computeTicketSales(state.events, state.tickets, state.ticketOrders, range)
+    : null;
+  state.sales = sales;
+  const tiles = [
+    { k: 'Tickets sold', n: sales ? sales.sold : '—' },
+    { k: 'Gross sales', n: sales ? usd(sales.grossCents) : '—' },
+    { k: 'Refunds', n: sales ? usd(sales.refundCents) : '—' },
+    { k: 'Net sales', n: sales ? usd(sales.netCents) : '—' },
+  ];
+  for (const tile of tiles) {
+    const el = document.createElement('div');
+    el.className = 'stat';
+    const n = document.createElement('div'); n.className = 'n'; n.textContent = String(tile.n);
+    const k = document.createElement('div'); k.className = 'k'; k.textContent = tile.k;
+    el.append(n, k);
+    row.appendChild(el);
+  }
+}
+
 function renderList() {
   const list = $('#event-list');
   list.innerHTML = '';
@@ -404,10 +471,15 @@ function eventCard(ev) {
   meta.textContent = `${ev.city || ''}${ev.city ? ' · ' : ''}${eventDateLabel(ev.starts_at)}`;
   const meta2 = document.createElement('p'); meta2.className = 'meta';
   meta2.textContent = `${ev.venue || ''} · ${usd(ev.price_cents)} · ${ev.tickets_enabled ? 'Ticketed' : 'No tickets'}`;
+  const meta3 = document.createElement('p'); meta3.className = 'meta event-sales';
+  const eventSales = state.sales?.byEvent?.[ev.id];
+  meta3.textContent = eventSales
+    ? `Tickets sold: ${eventSales.sold}/${ev.capacity} · Net sales: ${usd(eventSales.netCents)}`
+    : 'Ticket sales unavailable';
   const badge = document.createElement('span');
   badge.className = 'badge ' + (ev.published ? 'published' : 'draft');
   badge.textContent = ev.published ? 'Published' : 'Draft';
-  body.append(title, meta, meta2, badge);
+  body.append(title, meta, meta2, meta3, badge);
 
   const actions = document.createElement('div');
   actions.className = 'actions';

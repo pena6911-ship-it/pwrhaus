@@ -436,6 +436,14 @@ test('admin ships the enabled CRM view', () => {
   assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
 });
 
+test('admin ships ticket sales reporting controls', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  assert.match(html, /id="sales-stat-row"/, 'dashboard must ship ticket sales stats');
+  assert.match(html, /id="sales-period"/, 'dashboard must ship a sales-period filter');
+  assert.match(html, /id="sales-date-from"/, 'dashboard must ship a sales start-date field');
+  assert.match(html, /id="sales-date-to"/, 'dashboard must ship a sales end-date field');
+});
+
 test('admin ships the check-in view with a camera-free path', () => {
   const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
   assert.match(html, /data-view="checkin"/, 'check-in must be reachable from the nav');

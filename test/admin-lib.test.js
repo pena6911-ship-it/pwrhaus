@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, computeTicketSales, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -97,6 +97,53 @@ test('crmDateRange supports a custom inclusive date range', () => {
   const range = crmDateRange('custom', Date.now(), '2026-08-01', '2026-08-15');
   assert.equal(new Date(range.from).getDate(), 1);
   assert.equal(new Date(range.to).getDate(), 16);
+});
+
+test('computeTicketSales totals paid tickets, refunds, and per-event sales', () => {
+  const result = computeTicketSales(
+    [{ id: 'event-a' }, { id: 'event-b' }],
+    [
+      { event_id: 'event-a', status: 'valid', created_at: '2026-08-10T12:00:00Z' },
+      { event_id: 'event-a', status: 'valid', created_at: '2026-08-10T12:00:00Z' },
+      { event_id: 'event-b', status: 'refunded', created_at: '2026-08-11T12:00:00Z' },
+    ],
+    [
+      { type: 'event', event_id: 'event-a', current_status: 'paid', amount_cents: 13000, created_at: '2026-08-10T12:00:00Z' },
+      { type: 'event', event_id: 'event-b', current_status: 'refunded', amount_cents: 6500, created_at: '2026-08-11T12:00:00Z' },
+      { type: 'merch', event_id: 'event-a', current_status: 'paid', amount_cents: 9999, created_at: '2026-08-10T12:00:00Z' },
+    ],
+  );
+
+  assert.deepEqual(result, {
+    sold: 2,
+    grossCents: 19500,
+    refundCents: 6500,
+    netCents: 13000,
+    byEvent: {
+      'event-a': { sold: 2, grossCents: 13000, refundCents: 0, netCents: 13000 },
+      'event-b': { sold: 0, grossCents: 6500, refundCents: 6500, netCents: 0 },
+    },
+  });
+});
+
+test('computeTicketSales applies the selected order and ticket date range', () => {
+  const range = crmDateRange('custom', Date.now(), '2026-08-01', '2026-08-15');
+  const result = computeTicketSales(
+    [{ id: 'event-a' }],
+    [
+      { event_id: 'event-a', status: 'valid', created_at: '2026-08-10T12:00:00Z' },
+      { event_id: 'event-a', status: 'valid', created_at: '2026-08-20T12:00:00Z' },
+    ],
+    [
+      { type: 'event', event_id: 'event-a', current_status: 'paid', amount_cents: 5000, created_at: '2026-08-10T12:00:00Z' },
+      { type: 'event', event_id: 'event-a', current_status: 'paid', amount_cents: 7000, created_at: '2026-08-20T12:00:00Z' },
+    ],
+    range,
+  );
+
+  assert.equal(result.sold, 1);
+  assert.equal(result.grossCents, 5000);
+  assert.equal(result.netCents, 5000);
 });
 
 test('tierLabel maps known tiers and passes unknown through', () => {

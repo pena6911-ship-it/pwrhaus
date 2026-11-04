@@ -112,6 +112,25 @@
             <button class="btn btn-primary" id="new-event-btn">New event</button>
           </div>
           <div class="stat-row" id="stat-row"><!-- stats injected --></div>
+          <div class="sales-summary" id="sales-summary">
+            <div class="view-head"><h3>Ticket sales</h3><span id="sales-period-label" class="field-hint">All time</span></div>
+            <div class="sales-controls" id="sales-controls">
+              <select id="sales-period" aria-label="Filter ticket sales by period">
+                <option value="all">All time</option>
+                <option value="today">Today</option>
+                <option value="week">This week</option>
+                <option value="month">This month</option>
+                <option value="quarter">This quarter</option>
+                <option value="custom">Custom range</option>
+              </select>
+              <div id="sales-custom-range" class="sales-custom-range" hidden>
+                <label for="sales-date-from">From<input type="date" id="sales-date-from"></label>
+                <label for="sales-date-to">To<input type="date" id="sales-date-to"></label>
+                <button class="btn btn-secondary" id="sales-apply-range" type="button">Apply dates</button>
+              </div>
+            </div>
+            <div class="stat-row sales-stat-row" id="sales-stat-row"><!-- sales stats injected --></div>
+          </div>
           <div class="event-list" id="event-list" aria-live="polite"><!-- cards / skeleton injected --></div>
           <div id="event-roster" class="event-roster" hidden></div>
         </section>
