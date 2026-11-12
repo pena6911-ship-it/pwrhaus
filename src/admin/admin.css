@@ -289,7 +289,10 @@ input.invalid, textarea.invalid { border-color: var(--error); }
 
 /* ---------- Desktop ---------- */
 @media (min-width: 768px) {
-  .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: 1fr; }
+  .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: auto 1fr; }
+  #no-2fa-banner { grid-column: 1 / -1; grid-row: 1; }
+  .sidebar       { grid-row: 2; }
+  .workspace     { grid-row: 2; }
   .topbar { display: none; }
   .bottom-nav { display: none; }
   .sidebar {
