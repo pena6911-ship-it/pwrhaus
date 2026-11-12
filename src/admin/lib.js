@@ -100,6 +100,19 @@ export function computeStats(events = []) {
   };
 }
 
+// Dashboard "Upcoming events": published only, since a draft is not on sale.
+export function upcomingEvents(events = [], nowMs = Date.now()) {
+  return events
+    .filter((e) => e.published === true && Date.parse(e.starts_at || '') >= nowMs)
+    .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at));
+}
+
+export function shortDateLabel(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(d);
+}
+
 export function weekAgoIso(nowMs = Date.now()) {
   return new Date(nowMs - 7 * 864e5).toISOString();
 }

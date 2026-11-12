@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeStats, computeTicketSales, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeTicketSales, upcomingEvents, shortDateLabel, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -35,12 +35,12 @@ function persistCheckinQueue() {
   }
 }
 
-const state = { events: [], contacts: [], tickets: [], ticketOrders: [], sales: null, slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: loadPersistedCheckinQueue() };
+const state = { events: [], contacts: [], tickets: [], ticketOrders: [], eventSales: null, salesReady: false, dashContacts: undefined, slugTouched: false, editingId: null, pendingFile: null, deferredInstall: null, checkinQueue: loadPersistedCheckinQueue() };
 
 let sb = null;
 let pendingMfaFactorId = '';
 let salesWired = false;
-let activeSalesRange = crmDateRange('all');
+let activeSalesRange = crmDateRange('month');
 
 /* ============================ boot / auth ============================ */
 
@@ -259,31 +259,35 @@ async function boot() {
   wireDrawer();
   wireSettings();
   wireCrm();
-  wireSales();
+  wireDashboard();
   wireCheckin();
   renderSkeleton();
+  renderDashboardStats();
+  loadDashboardContacts();
   await loadEvents();
   await Promise.all([loadRosters(), loadTicketOrders()]);
-  renderStats();
-  renderSalesSummary();
+  renderDashboard();
   renderList();
 }
 
+function goTo(view) {
+  show($('#view-dashboard'), view === 'dashboard');
+  show($('#view-events'), view === 'events');
+  show($('#view-settings'), view === 'settings');
+  show($('#view-crm'), view === 'crm');
+  show($('#view-checkin'), view === 'checkin');
+  if (view === 'crm') loadCrm();
+  if (view === 'checkin') loadCheckin();
+  if (view !== 'checkin') stopScanning();
+  $$('.nav-item[data-view], .tab[data-view]').forEach((b) => {
+    if (b.dataset.view === view) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
+}
+
 function wireNav() {
-  const go = (view) => {
-    show($('#view-events'), view === 'events');
-    show($('#view-settings'), view === 'settings');
-    show($('#view-crm'), view === 'crm');
-    show($('#view-checkin'), view === 'checkin');
-    if (view === 'crm') loadCrm();
-    if (view === 'checkin') loadCheckin();
-    if (view !== 'checkin') stopScanning();
-    $$('.nav-item[data-view], .tab[data-view]').forEach((b) => {
-      if (b.dataset.view === view) b.setAttribute('aria-current', 'page');
-      else b.removeAttribute('aria-current');
-    });
-  };
-  $$('.nav-item[data-view], .tab[data-view]').forEach((b) => b.addEventListener('click', () => go(b.dataset.view)));
+  $$('.nav-item[data-view], .tab[data-view]').forEach((b) => b.addEventListener('click', () => goTo(b.dataset.view)));
+  $$('[data-goto]').forEach((b) => b.addEventListener('click', () => goTo(b.dataset.goto)));
   $('#new-event-btn').addEventListener('click', () => openDrawer(null));
   $('#new-event-tab').addEventListener('click', () => openDrawer(null));
 }
@@ -297,8 +301,7 @@ async function loadEvents() {
 async function refresh() {
   await loadEvents();
   await Promise.all([loadRosters(), loadTicketOrders()]);
-  renderStats();
-  renderSalesSummary();
+  renderDashboard();
   renderList();
 }
 
@@ -366,36 +369,20 @@ function renderSkeleton() {
   }
 }
 
-function renderStats() {
-  const s = computeStats(state.events);
-  const tiles = [
-    { k: 'Upcoming', n: s.upcoming },
-    { k: 'Published', n: s.published },
-    { k: 'Draft', n: s.draft },
-    { k: 'Registrations', n: state.tickets ? state.tickets.length : '—' },
-  ];
-  const row = $('#stat-row');
-  row.innerHTML = '';
-  for (const t of tiles) {
-    const el = document.createElement('div');
-    el.className = 'stat';
-    if (t.title) el.title = t.title;
-    const n = document.createElement('div'); n.className = 'n'; n.textContent = String(t.n);
-    const k = document.createElement('div'); k.className = 'k'; k.textContent = t.k;
-    el.append(n, k);
-    row.appendChild(el);
-  }
-}
+/* ============================ dashboard view ============================ */
 
-function wireSales() {
+const DASH_LIST_LIMIT = 5;
+let dashContactsReq = 0;
+
+function wireDashboard() {
   if (salesWired) return;
   salesWired = true;
   $('#sales-period').addEventListener('change', () => {
     const custom = $('#sales-period').value === 'custom';
     show($('#sales-custom-range'), custom);
-    if (!custom) refreshSalesRange();
+    if (!custom) refreshDashboardRange();
   });
-  $('#sales-apply-range').addEventListener('click', refreshSalesRange);
+  $('#sales-apply-range').addEventListener('click', refreshDashboardRange);
 }
 
 function selectedSalesRange() {
@@ -407,38 +394,132 @@ function selectedSalesRange() {
   );
 }
 
-function refreshSalesRange() {
+function refreshDashboardRange() {
   const range = selectedSalesRange();
-  if (!range) { toast('Choose a valid custom sales date range.', 'error'); return; }
+  if (!range) { toast('Choose a valid custom date range.', 'error'); return; }
   activeSalesRange = range;
-  renderSalesSummary(range);
-  renderList();
+  renderDashboardStats();
+  loadDashboardContacts(range);
 }
 
-function renderSalesSummary(range = activeSalesRange) {
-  const row = $('#sales-stat-row');
-  const label = $('#sales-period-label');
-  label.textContent = range?.label || 'Selected period';
-  row.innerHTML = '';
-  const sales = state.tickets && state.ticketOrders
+// The period's new-contact count plus the newest few contacts. Independent of
+// the CRM page's own filters, so changing one never moves the other.
+async function loadDashboardContacts(range = activeSalesRange) {
+  const req = ++dashContactsReq;
+  state.dashContacts = undefined;
+  renderDashboardStats();
+  renderDashboardContacts();
+  let countQuery = sb.from('contacts').select('*', { count: 'exact', head: true });
+  if (range?.from) countQuery = countQuery.gte('created_at', range.from);
+  if (range?.to) countQuery = countQuery.lt('created_at', range.to);
+  const [counted, newest] = await Promise.all([
+    countQuery,
+    sb.from('contacts')
+      .select('id,email,full_name,phone,tier,source,notes,created_at,ghl_contact_id')
+      .order('created_at', { ascending: false })
+      .limit(DASH_LIST_LIMIT),
+  ]);
+  if (req !== dashContactsReq) return; // a newer period superseded this request
+  state.dashContacts = {
+    fresh: counted.error ? null : counted.count,
+    rows: newest.error ? null : (newest.data || []),
+  };
+  renderDashboardStats();
+  renderDashboardContacts();
+}
+
+function renderDashboard() {
+  // All-time per-event totals: the Events cards and the capacity column both
+  // describe the whole event, whatever period the dashboard is showing.
+  state.eventSales = state.tickets && state.ticketOrders
+    ? computeTicketSales(state.events, state.tickets, state.ticketOrders, null)
+    : null;
+  state.salesReady = true;
+  renderDashboardStats();
+  renderDashboardEvents();
+}
+
+function statTile(label, value, sub) {
+  const el = document.createElement('div');
+  el.className = 'stat';
+  const n = document.createElement('div'); n.className = 'n'; n.textContent = value == null ? '—' : String(value);
+  const k = document.createElement('div'); k.className = 'k'; k.textContent = label;
+  el.append(n, k);
+  if (sub) {
+    const s = document.createElement('div'); s.className = 'sub'; s.textContent = sub;
+    el.appendChild(s);
+  }
+  return el;
+}
+
+function renderDashboardStats() {
+  const range = activeSalesRange;
+  const sales = state.salesReady && state.tickets && state.ticketOrders
     ? computeTicketSales(state.events, state.tickets, state.ticketOrders, range)
     : null;
-  state.sales = sales;
-  const tiles = [
-    { k: 'Tickets sold', n: sales ? sales.sold : '—' },
-    { k: 'Gross sales', n: sales ? usd(sales.grossCents) : '—' },
-    { k: 'Refunds', n: sales ? usd(sales.refundCents) : '—' },
-    { k: 'Net sales', n: sales ? usd(sales.netCents) : '—' },
-  ];
-  for (const tile of tiles) {
-    const el = document.createElement('div');
-    el.className = 'stat';
-    const n = document.createElement('div'); n.className = 'n'; n.textContent = String(tile.n);
-    const k = document.createElement('div'); k.className = 'k'; k.textContent = tile.k;
-    el.append(n, k);
-    row.appendChild(el);
+  const allTime = range?.label === 'All time';
+  const row = $('#dash-stat-row');
+  row.innerHTML = '';
+  row.append(
+    statTile('Tickets sold', sales?.sold, range?.label),
+    statTile('Net sales', sales ? usd(sales.netCents) : null,
+      sales ? `Gross ${usd(sales.grossCents)} · Refunds ${usd(sales.refundCents)}` : ''),
+    statTile('Upcoming events', state.salesReady ? upcomingEvents(state.events).length : null, 'From today'),
+    statTile(allTime ? 'Contacts' : 'New contacts', state.dashContacts?.fresh, range?.label),
+  );
+}
+
+function dashRow(name, sub, side, onOpen) {
+  const row = document.createElement('button');
+  row.type = 'button';
+  row.className = 'dash-row';
+  const text = document.createElement('span'); text.className = 'dash-row-text';
+  const n = document.createElement('span'); n.className = 'dash-row-name'; n.textContent = name;
+  const s = document.createElement('span'); s.className = 'dash-row-sub'; s.textContent = sub;
+  text.append(n, s);
+  const r = document.createElement('span'); r.className = 'dash-row-side'; r.textContent = side;
+  row.append(text, r);
+  row.addEventListener('click', onOpen);
+  return row;
+}
+
+function dashMessage(box, text) {
+  const p = document.createElement('p');
+  p.className = 'dash-empty';
+  p.textContent = text;
+  box.appendChild(p);
+}
+
+function renderDashboardEvents() {
+  const box = $('#dash-events');
+  box.innerHTML = '';
+  if (!state.salesReady) { box.innerHTML = '<div class="skeleton"></div>'; return; }
+  const next = upcomingEvents(state.events).slice(0, DASH_LIST_LIMIT);
+  if (!next.length) { dashMessage(box, 'No upcoming published events.'); return; }
+  for (const ev of next) {
+    const sold = state.eventSales?.byEvent?.[ev.id]?.sold;
+    const side = !ev.tickets_enabled ? 'No tickets'
+      : sold == null ? '—'
+        : ev.capacity != null ? `${sold} / ${ev.capacity} sold` : `${sold} sold`;
+    const sub = `${shortDateLabel(ev.starts_at)}${ev.city ? ` · ${ev.city}` : ''}`;
+    box.appendChild(dashRow(ev.name, sub, side, () => { goTo('events'); openDrawer(ev); }));
   }
 }
+
+function renderDashboardContacts() {
+  const box = $('#dash-contacts');
+  box.innerHTML = '';
+  const rows = state.dashContacts?.rows;
+  if (rows === undefined) { box.innerHTML = '<div class="skeleton"></div>'; return; }
+  if (rows === null) { dashMessage(box, 'Could not load contacts.'); return; }
+  if (!rows.length) { dashMessage(box, 'No contacts yet.'); return; }
+  for (const c of rows) {
+    const sub = `${shortDateLabel(c.created_at)} · ${c.source || 'site'}`;
+    box.appendChild(dashRow(c.full_name || c.email, sub, tierLabel(c.tier), () => { goTo('crm'); openContactDrawer(c); }));
+  }
+}
+
+/* ============================ events list ============================ */
 
 function renderList() {
   const list = $('#event-list');
@@ -472,7 +553,7 @@ function eventCard(ev) {
   const meta2 = document.createElement('p'); meta2.className = 'meta';
   meta2.textContent = `${ev.venue || ''} · ${usd(ev.price_cents)} · ${ev.tickets_enabled ? 'Ticketed' : 'No tickets'}`;
   const meta3 = document.createElement('p'); meta3.className = 'meta event-sales';
-  const eventSales = state.sales?.byEvent?.[ev.id];
+  const eventSales = state.eventSales?.byEvent?.[ev.id];
   meta3.textContent = eventSales
     ? `Tickets sold: ${eventSales.sold}/${ev.capacity} · Net sales: ${usd(eventSales.netCents)}`
     : 'Ticket sales unavailable';
@@ -946,7 +1027,6 @@ function wireCrm() {
 }
 
 async function loadCrm() {
-  renderCrmStats(null); // skeleton state
   await refreshCrmRange();
 }
 
@@ -964,45 +1044,7 @@ async function refreshCrmRange() {
   if (!range) { toast('Choose a valid custom date range.', 'error'); return; }
   activeCrmRange = range;
   crmPage = 0;
-  await Promise.all([loadCrmStats(range), loadContactList(range)]);
-}
-
-async function loadCrmStats(range = activeCrmRange) {
-  const count = (q) => q.then(({ count: n, error }) => (error ? null : n));
-  let periodQuery = sb.from('contacts').select('*', { count: 'exact', head: true });
-  if (range?.from) periodQuery = periodQuery.gte('created_at', range.from);
-  if (range?.to) periodQuery = periodQuery.lt('created_at', range.to);
-  const [total, fresh, members, inner] = await Promise.all([
-    count(sb.from('contacts').select('*', { count: 'exact', head: true })),
-    count(periodQuery),
-    count(sb.from('contacts').select('*', { count: 'exact', head: true }).eq('tier', 'member')),
-    count(sb.from('contacts').select('*', { count: 'exact', head: true }).eq('tier', 'inner_circle')),
-  ]);
-  renderCrmStats({ total, fresh, members, inner, periodLabel: range?.label || 'Selected period' });
-}
-
-function renderCrmStats(s) {
-  const periodStatLabel = s?.periodLabel === 'All time'
-    ? 'All leads'
-    : s?.periodLabel
-      ? `New ${s.periodLabel.toLowerCase()}`
-      : 'New this week';
-  const tiles = [
-    { k: 'Contacts', n: s?.total },
-    { k: periodStatLabel, n: s?.fresh },
-    { k: 'Members', n: s?.members },
-    { k: 'Inner circle', n: s?.inner },
-  ];
-  const row = $('#crm-stat-row');
-  row.innerHTML = '';
-  for (const tdef of tiles) {
-    const el = document.createElement('div');
-    el.className = 'stat';
-    const n = document.createElement('div'); n.className = 'n'; n.textContent = tdef.n == null ? '—' : String(tdef.n);
-    const k = document.createElement('div'); k.className = 'k'; k.textContent = tdef.k;
-    el.append(n, k);
-    row.appendChild(el);
-  }
+  await loadContactList(range);
 }
 
 async function loadContactList(range = activeCrmRange) {

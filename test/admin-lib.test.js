@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, computeTicketSales, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, computeTicketSales, upcomingEvents, shortDateLabel, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -32,6 +32,24 @@ test('computeStats counts upcoming/published/draft', () => {
   assert.equal(stats.published, 2);
   assert.equal(stats.draft, 1);
   assert.equal(stats.upcoming, 2);
+});
+
+test('upcomingEvents returns published future events, soonest first', () => {
+  const now = Date.parse('2026-11-12T12:00:00Z');
+  const events = [
+    { id: 'late', published: true, starts_at: '2026-12-13T18:00:00Z' },
+    { id: 'past', published: true, starts_at: '2026-11-01T18:00:00Z' },
+    { id: 'draft', published: false, starts_at: '2026-11-20T18:00:00Z' },
+    { id: 'soon', published: true, starts_at: '2026-11-22T18:00:00Z' },
+    { id: 'undated', published: true, starts_at: null },
+  ];
+  assert.deepEqual(upcomingEvents(events, now).map((e) => e.id), ['soon', 'late']);
+  assert.deepEqual(upcomingEvents([], now), []);
+});
+
+test('shortDateLabel renders a compact weekday and date', () => {
+  assert.equal(shortDateLabel('2026-11-22T18:00:00'), 'Sun, Nov 22');
+  assert.equal(shortDateLabel('not a date'), '');
 });
 
 test('sortByOrder + nextSortOrder', () => {

@@ -436,9 +436,22 @@ test('admin ships the enabled CRM view', () => {
   assert.match(html, /ghlLocationId/, 'admin must inject the GHL location id');
 });
 
+test('admin Dashboard is its own summary view, not a second Events button', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  assert.match(html, /<button class="nav-item" data-view="dashboard" aria-current="page">Dashboard<\/button>/, 'sidebar Dashboard must open the dashboard view');
+  assert.match(html, /<button class="nav-item" data-view="events">Events<\/button>/, 'sidebar Events must stay a separate button');
+  assert.match(html, /<button class="tab" data-view="dashboard" aria-current="page">Home<\/button>/, 'phone tab bar must reach the dashboard');
+  assert.match(html, /<section id="view-dashboard" class="view">/, 'dashboard view must ship and show first');
+  assert.match(html, /<section id="view-events" class="view" hidden>/, 'Events must not be the landing view');
+  assert.match(html, /id="dash-events"/, 'dashboard must list the next events');
+  assert.match(html, /id="dash-contacts"/, 'dashboard must list the newest contacts');
+  assert.doesNotMatch(html, /id="stat-row"/, 'Events summary tiles moved to the dashboard');
+  assert.doesNotMatch(html, /id="crm-stat-row"/, 'CRM summary tiles moved to the dashboard');
+});
+
 test('admin ships ticket sales reporting controls', () => {
   const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
-  assert.match(html, /id="sales-stat-row"/, 'dashboard must ship ticket sales stats');
+  assert.match(html, /id="dash-stat-row"/, 'dashboard must ship ticket sales stats');
   assert.match(html, /id="sales-period"/, 'dashboard must ship a sales-period filter');
   assert.match(html, /id="sales-date-from"/, 'dashboard must ship a sales start-date field');
   assert.match(html, /id="sales-date-to"/, 'dashboard must ship a sales end-date field');
