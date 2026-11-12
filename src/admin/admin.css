@@ -357,3 +357,25 @@ input.invalid, textarea.invalid { border-color: var(--error); }
   line-height: 1.5;
   text-align: center;
 }
+
+/* iOS install hint. Apple never fires beforeinstallprompt, so iPhone/iPad get
+   a written instruction instead of the Install button. Phones see the bar under
+   the top bar (the sidebar is hidden there); iPads at >=768px see it in the sidebar. */
+.install-hint-bar {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+  background: var(--paper-raised); border-bottom: 1px solid var(--line);
+  font-size: 13px; line-height: 1.5;
+}
+.install-hint-bar p { margin: 0; flex: 1; }
+.install-hint-close {
+  background: transparent; border: 0; cursor: pointer;
+  color: var(--ink-muted); font-size: 22px; line-height: 1;
+  min-width: var(--touch); min-height: var(--touch);
+}
+.install-hint-close:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.install-hint { font-size: 12px; line-height: 1.5; color: #d8e2dc; margin: var(--space-4) 0 0; padding: 0 var(--space-3); }
+.install-hint .install-hint-close { color: #d8e2dc; font-size: 16px; min-width: 24px; min-height: 24px; padding: 0; vertical-align: baseline; }
+@media (min-width: 768px) {
+  .install-hint-bar { display: none; }
+}

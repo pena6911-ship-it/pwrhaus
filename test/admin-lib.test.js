@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, validateEvent, usd, computeStats, computeTicketSales, upcomingEvents, shortDateLabel, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '../src/admin/lib.js';
+import { slugify, validateEvent, usd, computeStats, computeTicketSales, upcomingEvents, shortDateLabel, needsIosInstallHint, sortByOrder, nextSortOrder, moveInOrder, escapeHtml, escapeAttr, weekAgoIso, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '../src/admin/lib.js';
 
 test('slugify makes URL-safe slugs', () => {
   assert.equal(slugify('Fall Founder Scramble!'), 'fall-founder-scramble');
@@ -274,4 +274,22 @@ test('qrRenderMode handles both shapes Supabase has shipped for the TOTP QR', ()
   assert.equal(qrRenderMode(''), 'none');
   assert.equal(qrRenderMode(undefined), 'none');
   assert.equal(qrRenderMode(null), 'none');
+});
+
+test('the iOS install hint appears only where it is the actual install route', () => {
+  const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15';
+  const IPAD_OS = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15';
+  const ANDROID = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126';
+
+  assert.equal(needsIosInstallHint({ userAgent: IPHONE }), true);
+  // iPadOS 13+ claims to be a Mac; touch points are the only tell.
+  assert.equal(needsIosInstallHint({ userAgent: IPAD_OS, maxTouchPoints: 5 }), true);
+  assert.equal(needsIosInstallHint({ userAgent: IPAD_OS, maxTouchPoints: 0 }), false, 'a desktop Mac has no Share sheet');
+
+  // Android gets a real Install button, so the hint would be wrong there.
+  assert.equal(needsIosInstallHint({ userAgent: ANDROID }), false);
+
+  // Already installed: never tell someone to install what they are running.
+  assert.equal(needsIosInstallHint({ userAgent: IPHONE, standalone: true }), false);
+  assert.equal(needsIosInstallHint(), false);
 });

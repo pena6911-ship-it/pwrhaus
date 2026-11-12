@@ -449,6 +449,14 @@ test('admin Dashboard is its own summary view, not a second Events button', () =
   assert.doesNotMatch(html, /id="crm-stat-row"/, 'CRM summary tiles moved to the dashboard');
 });
 
+test('admin ships the iOS install hint where a phone can see it', () => {
+  const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
+  // The sidebar is hidden below 768px, so a sidebar-only hint never reaches an iPhone.
+  assert.match(html, /<div class="install-hint-bar" id="install-hint-bar" hidden>/, 'phones need a hint outside the sidebar');
+  assert.match(html, /<p class="install-hint" id="install-hint" hidden>/, 'iPads keep the sidebar hint');
+  assert.match(html, /data-dismiss-install-hint/, 'the hint must be dismissible');
+});
+
 test('admin ships ticket sales reporting controls', () => {
   const html = readFileSync(join(outDir, 'admin', 'index.html'), 'utf8');
   assert.match(html, /id="dash-stat-row"/, 'dashboard must ship ticket sales stats');

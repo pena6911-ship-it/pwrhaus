@@ -1,6 +1,6 @@
 // PWRHaus Dashboard SPA — auth, events CRUD, page settings, publish, polish.
 // Pure logic lives in /admin/lib.js (unit-tested). This module is DOM glue.
-import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeTicketSales, upcomingEvents, shortDateLabel, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '/admin/lib.js';
+import { slugify, usd, eventDateLabel, validateEvent, sortByOrder, nextSortOrder, computeTicketSales, upcomingEvents, shortDateLabel, needsIosInstallHint, moveInOrder, escapeHtml, escapeAttr, crmDateRange, tierLabel, tokenFromScan, resolveJsqr, shouldFallbackToJsqr, checkinOverlayState, priceInputToCents, qrRenderMode } from '/admin/lib.js';
 
 // supabase-js is vendored locally (UMD global) — no runtime CDN dependency.
 const { createClient } = window.supabase;
@@ -1688,8 +1688,31 @@ function registerServiceWorker() {
   }
 }
 
+const INSTALL_HINT_DISMISSED_KEY = 'pwrhaus.installHintDismissed';
+
+function installHintDismissed() {
+  try { return localStorage.getItem(INSTALL_HINT_DISMISSED_KEY) === '1'; } catch { return false; }
+}
+
 function wireInstallPrompt() {
   const btn = $('#install-btn');
+
+  if (!installHintDismissed() && needsIosInstallHint({
+    userAgent: navigator.userAgent,
+    maxTouchPoints: navigator.maxTouchPoints,
+    standalone: window.navigator.standalone === true
+      || window.matchMedia?.('(display-mode: standalone)').matches === true,
+  })) {
+    show($('#install-hint-bar'), true);
+    show($('#install-hint'), true);
+  }
+  $$('[data-dismiss-install-hint]').forEach((b) => b.addEventListener('click', () => {
+    show($('#install-hint-bar'), false);
+    show($('#install-hint'), false);
+    // Private browsing can refuse storage; the hint then just returns next visit.
+    try { localStorage.setItem(INSTALL_HINT_DISMISSED_KEY, '1'); } catch { /* ignore */ }
+  }));
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     state.deferredInstall = e;

@@ -65,6 +65,18 @@ export function qrRenderMode(qrCode) {
   return code.startsWith('<svg') ? 'svg' : 'img';
 }
 
+// iOS never fires beforeinstallprompt, so the Install button stays hidden there
+// and the only route is Share -> Add to Home Screen. Show that instruction instead
+// of leaving an iPhone user with nothing where Android users get a button.
+export function needsIosInstallHint({ userAgent = '', maxTouchPoints = 0, standalone = false } = {}) {
+  if (standalone) return false; // already installed
+  const ua = String(userAgent);
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  // iPadOS 13+ reports a Macintosh user agent; touch points are what separate it
+  // from a real desktop Mac, where the hint would be nonsense.
+  return /Macintosh/.test(ua) && Number(maxTouchPoints) > 1;
+}
+
 export function sortByOrder(events = []) {
   return [...events].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || new Date(a.starts_at) - new Date(b.starts_at));
 }
