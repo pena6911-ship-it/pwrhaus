@@ -274,6 +274,24 @@ changed, not the instructions.
   on a real narrow desktop window or a device, and not on a signed-in session.
 - Manual unchanged: § 3.3 already describes the red bar; only its placement was
   fixed.
+- `4d66bf4`: **Dashboard is its own view** (`#view-dashboard`) and the landing
+  page. The sidebar Dashboard button used to open Events. It shows tickets sold,
+  net sales (gross/refunds underneath), upcoming *published* events and new
+  contacts for one period menu (default **This month**), plus the next 5 events
+  (sold / capacity) and newest 5 contacts; rows open the event editor / contact
+  drawer. Events and CRM **lost their stat tiles on purpose** — the owner wants
+  them to be working pages only; do not add counts back there. Event cards keep an
+  all-time per-event sales line (`state.eventSales`), independent of the dashboard
+  period. Phones get a **Home** tab (bottom nav is now 6 columns).
+- `06aed6f`: **iOS install hint restored** from `feb3fd5` at the owner's request
+  (Michelle wants it on her iPhone). The original lived only in the sidebar, which
+  is `display: none` below 768px, so it could never reach an iPhone — phones now
+  get `#install-hint-bar` under the top bar; iPads keep `#install-hint` in the
+  sidebar. Dismiss is remembered in `localStorage` (`pwrhaus.installHintDismissed`).
+  Checked with a spoofed user agent in Chrome only — **not on a real iPhone**, and
+  the home-screen (standalone) suppression cannot be reproduced in Chrome.
+- Manual bumped to **v2.2**: new § 3.6 Dashboard home screen; § 3.4, 4.1, 6.1,
+  7.6, 7.7 and the cheat sheet updated for the moved figures and the iPhone hint.
 
 ### NEXT ACTIONS — start here (as of 2026-08-22, end of session)
 
