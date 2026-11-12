@@ -258,6 +258,23 @@ Verified: 247 tests pass, `npm run build` clean. The manual needed no change —
 § 3.4 already describes the iOS install route correctly; only the icon quality
 changed, not the instructions.
 
+### 2026-11-12 — no-2FA banner layout on desktop (Claude)
+
+- `e599222`: at ≥768px `.app` is a two-column grid, so `#no-2fa-banner` was
+  auto-placed into the sidebar column. It now has its own `auto` first row
+  spanning both columns; `.sidebar` and `.workspace` are pinned to row 2. With
+  the banner hidden, row 1 collapses to 0px and the layout is unchanged.
+- `1b8bb15`: removed `min-height: 100vh` from the desktop `.sidebar`. With the
+  banner above it, that pushed the page past the viewport and clipped "Sign out".
+  `.app`'s `min-height: 100dvh` plus the `1fr` row already fills the height —
+  do not add the 100vh back, and do not swap in a `calc()` with a fixed banner
+  height (the banner wraps at narrower widths).
+- Checked in Chrome at 1536px by forcing the app view on with JS (banner on, off,
+  and padded to 100px): page height equals the viewport in all three. Not checked
+  on a real narrow desktop window or a device, and not on a signed-in session.
+- Manual unchanged: § 3.3 already describes the red bar; only its placement was
+  fixed.
+
 ### NEXT ACTIONS — start here (as of 2026-08-22, end of session)
 
 Ordered. Items 1-3 are owner-run and need no code.
